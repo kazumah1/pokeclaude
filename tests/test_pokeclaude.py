@@ -1136,6 +1136,85 @@ def test_banner_fits():
     check("LEGENDARY" in visible(txt), "banner shows the rarity tier")
 
 
+def test_readme_svgs():
+    """The generated README images must be valid, self-contained and not clip.
+
+    These are the only user-facing artifacts nobody sees fail: a broken SVG still
+    renders as *something*, so two real defects shipped before being spotted by
+    eye. Both are cheap to assert.
+    """
+    print("\n[docs] README SVGs are valid and cannot clip")
+    import glob
+    import xml.etree.ElementTree as ET
+
+    files = sorted(glob.glob(os.path.join(REPO, "docs", "*.svg")))
+    check(len(files) >= 4, "README SVGs exist (%d found)" % len(files))
+
+    bad_xml, unpinned, overflow, risky = [], [], [], []
+    for path in files:
+        name = os.path.basename(path)
+        with open(path) as f:
+            s = f.read()
+        try:
+            ET.fromstring(s)
+        except ET.ParseError as e:
+            bad_xml.append((name, str(e)))
+            continue
+
+        # Every text run must pin its width. Cells sit on a fixed grid but glyphs
+        # advance at whatever width the viewer's monospace font uses, so an
+        # unpinned run overflows the viewport and is clipped mid-word.
+        n_text, n_pinned = s.count("<text"), s.count('textLength="')
+        if n_text != n_pinned:
+            unpinned.append((name, n_pinned, n_text))
+
+        declared = float(re.search(r'width="(\d+)"', s).group(1))
+        widest = 0.0
+        for m in re.finditer(r'<text x="([\d.]+)"[^>]*textLength="([\d.]+)"', s):
+            widest = max(widest, float(m.group(1)) + float(m.group(2)))
+        if widest > declared:
+            overflow.append((name, widest, declared))
+
+        # GitHub's SVG sanitizer drops these, so an image relying on any of them
+        # would render blank or partially in the README.
+        found = [
+            t for t in ("<script", "<foreignObject", "xlink:href", "<style", "onload")
+            if t in s
+        ]
+        if found:
+            risky.append((name, found))
+
+    check(not bad_xml, "every SVG parses as XML (%s)" % (bad_xml[:2] or "all valid"))
+    check(not unpinned, "every text run pins textLength (%s)" % (unpinned[:2] or "all pinned"))
+    check(not overflow, "no text run exceeds the declared width (%s)" % (overflow[:2] or "none"))
+    check(not risky, "no markup GitHub's sanitizer strips (%s)" % (risky[:2] or "none"))
+
+    # Background rects must overlap, not merely tile. Abutting edges land
+    # mid-pixel at fractional zoom and antialias into a seam across every row.
+    with open(os.path.join(REPO, "docs", "catch-snorlax.svg")) as f:
+        s = f.read()
+    ys = sorted({
+        float(m) for m in re.findall(r'<rect x="[-\d.]+" y="([-\d.]+)"', s)
+    })
+    heights = {
+        float(m) for m in re.findall(r'height="([\d.]+)"', s)
+    }
+    pitch = [round(b - a, 3) for a, b in zip(ys, ys[1:])]
+    row_pitch = min(pitch) if pitch else 0
+    check(
+        any(h > row_pitch for h in heights if h < 100),
+        "background rects overlap their row pitch (no seams at fractional zoom)",
+    )
+
+    # Every image the README points at must actually be committed.
+    with open(os.path.join(REPO, "README.md")) as f:
+        readme = f.read()
+    refs = sorted(set(re.findall(r'docs/[A-Za-z0-9._-]+\.svg', readme)))
+    missing = [r for r in refs if not os.path.exists(os.path.join(REPO, r))]
+    check(refs, "README references SVG images (%d)" % len(refs))
+    check(not missing, "every referenced image exists (%s)" % (missing or "all present"))
+
+
 def main():
     print("PokeClaude test suite (python %s)" % sys.version.split()[0])
     real = os.path.join(os.path.expanduser("~"), ".claude", "pokeclaude")
@@ -1165,6 +1244,7 @@ def main():
         test_release_cli,
         test_dupes_and_project_cli,
         test_banner_fits,
+        test_readme_svgs,
     ):
         try:
             fn()

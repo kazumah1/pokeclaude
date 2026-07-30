@@ -37,6 +37,9 @@ CW, CH = 9.0, 18.0
 FONT_SIZE = 15
 BASELINE = 13.7  # glyph baseline within the cell
 
+# Half-unit overlap on background rects, to kill inter-row seams. See to_svg().
+BLEED = 0.5
+
 # Terminal defaults, tuned to read like a dark terminal rather than pure black.
 DEFAULT_FG = (220, 223, 228)
 DEFAULT_BG = (13, 17, 23)  # GitHub dark canvas, so the image blends into the page
@@ -142,13 +145,21 @@ def to_svg(rows, pad=14):
             bg = cells[x][2] if x < len(cells) else None
             if bg != run_bg:
                 if run_bg is not None:
-                    # No fudge factor on the dimensions: with integer metrics the
-                    # rects tile exactly, and an overlap would darken every seam
-                    # instead of hiding it.
+                    # Bleed each rect half a unit past its cell on all sides.
+                    #
+                    # Exact tiling is NOT enough. Abutting rects share an edge,
+                    # and whenever the image is scaled to a non-integer device
+                    # ratio that edge lands mid-pixel: the rasteriser blends both
+                    # neighbours with whatever is under them, leaving a faint
+                    # line across every row of flat-coloured sprite. Overlapping
+                    # removes the shared edge entirely. Same-coloured neighbours
+                    # overlap invisibly; different-coloured ones differ by half a
+                    # unit at a boundary that is one sprite pixel wide anyway.
                     parts.append(
                         '<rect x="%g" y="%g" width="%g" height="%g" fill="%s"/>'
-                        % (pad + run_start * CW, pad + y * CH,
-                           (x - run_start) * CW, CH, _hex(run_bg))
+                        % (pad + run_start * CW - BLEED, pad + y * CH - BLEED,
+                           (x - run_start) * CW + BLEED * 2, CH + BLEED * 2,
+                           _hex(run_bg))
                     )
                 run_bg, run_start = bg, x
 
@@ -190,11 +201,22 @@ def to_svg(rows, pad=14):
             colour = fg or DEFAULT_FG
             if dim:
                 colour = _dimmed(colour)
+            text = "".join(run)
+            # textLength pins the run to the exact grid width.
+            #
+            # Without it the layout is a lie: cells are positioned on a CW grid
+            # but the glyphs advance at whatever width the viewer's monospace
+            # font happens to use. Any font wider than CW pushes long runs past
+            # the declared viewport and the text is clipped mid-word -- the right
+            # edge of a wide grid, or "…to browse" losing its last letters.
+            # lengthAdjust=spacing stretches the gaps rather than the letterforms,
+            # so glyphs keep their shape.
             parts.append(
-                '<text x="%.2f" y="%.2f" fill="%s"%s xml:space="preserve">%s</text>'
+                '<text x="%g" y="%g" fill="%s"%s textLength="%g" '
+                'lengthAdjust="spacing" xml:space="preserve">%s</text>'
                 % (pad + x * CW, pad + y * CH + BASELINE, _hex(colour),
                    ' font-weight="bold"' if bold else "",
-                   _escape("".join(run)))
+                   len(text) * CW, _escape(text))
             )
             x = j if j > x else x + 1
 
