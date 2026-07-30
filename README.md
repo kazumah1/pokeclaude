@@ -1,278 +1,262 @@
 # PokeClaude
 
-Catch Pokemon while you work. Every turn you spend tokens in Claude Code is a chance at
-a wild encounter, rendered as truecolor pixel art directly in your terminal.
+Catch Pokemon while you work. Every turn you spend tokens in your AI coding agent is a
+chance at a wild encounter, rendered as truecolor pixel art directly in your terminal.
 
-<img src="docs/catch-snorlax.svg" alt="A wild SNORLAX appeared — pixel art catch banner">
+<img src="docs/catch-snorlax.svg" alt="A wild SNORLAX appeared — pixel art catch banner" width="620">
 
-Your Pokedex is shared across **every** Claude Code instance — parallel sessions, every
-project, one collection.
+All 1025 Pokemon from Gen 1–9, with shiny variants. Your Pokedex is shared across **every**
+session — parallel agents, every project, one collection.
+
+Works with **Claude Code**, **Codex CLI**, **Cursor**, **Kiro**, and **GitHub Copilot CLI**.
+
+---
+
+## Install
+
+Requires Python 3 (system `python3` is fine, no packages) and a truecolor terminal.
+
+```bash
+git clone https://github.com/<you>/pokeclaude.git
+cd pokeclaude
+python3 install.py
+```
+
+That detects which agent CLIs you have and wires each one up. Restart your agent
+afterwards so it picks up the hooks.
+
+```bash
+python3 install.py --list        # show detected hosts and what's installed
+python3 install.py --dry-run     # preview changes without writing
+python3 install.py --host kiro    # one host only
+python3 install.py --all          # wire every supported host
+python3 install.py --uninstall    # remove again
+```
+
+Existing hook config is merged, not overwritten — your other hooks are left alone, and the
+original is backed up to `<file>.pokeclaude-backup`.
+
+### Per-host details
+
+| Host | Config written | Event | Catch appears via |
+|---|---|---|---|
+| Claude Code | `~/.claude/hooks/hooks.json` | `Stop` | inline, full colour |
+| Codex CLI | `~/.codex/hooks.json` | `stop` | inline, full colour |
+| Cursor | `~/.cursor/hooks.json` | `stop` | stderr |
+| Kiro | `~/.kiro/hooks/pokeclaude.json` | `Stop` | stderr |
+| GitHub Copilot CLI | `~/.copilot/hooks.json` | `stop` | stderr |
+
+Claude Code and Codex render hook output directly, so catches appear inline as you work.
+The other hosts discard hook stdout, so the banner goes to stderr instead — whether that is
+displayed depends on the host. Either way the catch is recorded, and any catch you did not
+see is announced the next time you open your Pokedex.
+
+Override detection with `POKECLAUDE_HOST=codex` if needed.
+
+### Claude Code as a plugin
+
+Claude Code can also install it as a proper plugin, which adds slash commands:
+
+```bash
+claude plugin marketplace add /path/to/pokeclaude
+claude plugin install pokeclaude@pokeclaude
+```
+
+---
 
 ## Your Pokedex
 
-`/pokeclaude:pokedex` pages through everything you have caught, in colour, with duplicate
-counts:
+Browse everything you have caught, in colour, with duplicate counts:
+
+```bash
+python3 plugin/scripts/pokedex.py
+```
+
+Under Claude Code, use `/pokeclaude:pokedex` instead.
 
 <img src="docs/pokedex-page.svg" alt="Pokedex grid showing caught Pokemon as colour pixel art" width="840">
 
-`--id N` opens a single entry, with its encounter rarity and catch history. Species you have
-not caught yet render in greyscale, so it is obvious at a glance what you actually own:
+`--id N` opens a single entry with its rarity, catch count and timestamps:
 
-<img src="docs/detail-pikachu.svg" alt="Pikachu detail view, caught four times">
+<img src="docs/detail-pikachu.svg" alt="Pikachu detail view" width="620">
 
-<img src="docs/detail-koraidon.svg" alt="Koraidon detail view, a caught legendary">
+Species you have not caught render in greyscale:
 
-<img src="docs/detail-arceus-uncaught.svg" alt="Arceus detail view, uncaught and rendered in greyscale">
+<img src="docs/detail-arceus-uncaught.svg" alt="Arceus detail view, uncaught and greyscale" width="620">
+
+### Options
+
+| Flag | Effect |
+|---|---|
+| *(none)* | first page of caught Pokemon |
+| `--page N` | a specific page |
+| `--all` | include uncaught entries as dim silhouettes |
+| `--id N` | large detail view for one species |
+| `--shiny` | show only the shinies you have caught |
+| `--normal` | with `--id`, the ordinary colours of a species you own a shiny of |
+| `--stats` | progress summary, no art |
+| `--dupes` | full duplicate list, most-caught first |
+| `--project` | only Pokemon caught while working in this project |
+| `--scale 1\|2\|3` | sprite size: 1 = 64px, 2 = 32px, 3 = 21px |
+
+`--id` accepts a dex number. Flags combine, e.g. `--project --stats` or `--shiny --project`.
+
+---
 
 ## Shinies
 
 Every catch has a **1 in 64** chance of being shiny — the alternate-coloured variant, with
-its own real sprite rather than a recolour filter.
+its own real sprite.
 
-The roll is independent of which species appeared, so shininess never compounds with
-rarity: a shiny Rattata and a shiny Mewtwo are equally likely. That is deliberate. Were the
-two multiplied, a shiny legendary would sit past a human lifetime of use.
+The roll is independent of species, so a shiny Rattata and a shiny Mewtwo are equally
+likely. Shinies are tracked separately from ordinary catches, so owning a normal Pikachu
+*and* a shiny one records both.
 
-1 in 64 is far more generous than the games' 1 in 8192, because catches here are themselves
-rare — roughly one per session on `normal`. At the games' odds nobody would ever see one.
+- The grid marks them `✧` and renders them in their shiny colours
+- `--id N` shows the shiny count and when you first got one
+- `--shiny` filters your collection to just the shinies you own
+- `--id N --normal` switches a species back to its ordinary colours
 
-Shinies are tracked separately from ordinary catches, so owning a normal Pikachu *and* a
-shiny one records both. The grid marks them with `✧` and renders them in their shiny
-colours; `--id N` shows the count and when you first got one.
+Shiny colours are **earned, not previewed**: the Pokedex will not show you a species' shiny
+palette until you have caught one.
 
-Shiny colours are **earned, never previewed** — the plugin will not show you a species'
-shiny palette until you have actually caught one, because spoiling it spends the reward
-before it is won.
-
-- `--shiny` — a showcase of just the shinies you own (combines with `--project`)
-- `--id N --normal` — the toggle back to ordinary colours, for a species you own both of
-
-## Install
+To look at shiny art outside the Pokedex (spoils nothing, reads no collection data):
 
 ```bash
-claude plugin marketplace add kazumah1/pokeclaude
-claude plugin install pokeclaude@pokeclaude
+python3 tools/preview_shiny.py 6          # charizard, normal vs shiny
+python3 tools/preview_shiny.py pikachu    # by name
+python3 tools/preview_shiny.py --random 5 # five random species
+python3 tools/preview_shiny.py --scale 2 25
 ```
 
-Then start a new session and run `/pokeclaude:pokedex` to browse your collection. Catches begin
-appearing as you work.
+---
 
-Requires Python 3 (system `python3` is fine) and a truecolor terminal.
+## Catch rate
 
-Claude Code reports the footprint as **~49 tokens always-on** and classifies the hook as
-`harness-only — no model context cost`; check it yourself with
-`claude plugin details pokeclaude`.
+```bash
+python3 plugin/scripts/config.py           # show current setting
+python3 plugin/scripts/config.py light     # 1 per 300k tokens  (~2 per session)
+python3 plugin/scripts/config.py normal    # 1 per 600k tokens  (~1 per session, default)
+python3 plugin/scripts/config.py strict    # 1 per 1.2M tokens  (~0.5 per session)
+python3 plugin/scripts/config.py --tokens 900000   # an exact rate
+```
+
+Under Claude Code: `/pokeclaude:pokeclaude light`.
+
+Only turn tokens count — input + output, never cache. Settings live in
+`~/.claude/pokeclaude/config.json` and apply to every session and every host.
+
+---
+
+## Releasing
+
+Deletes collection data, so it runs in two steps — without `--confirm` it shows what would
+happen and changes nothing.
+
+```bash
+python3 plugin/scripts/release.py pikachu            # dry run
+python3 plugin/scripts/release.py pikachu --confirm  # do it
+python3 plugin/scripts/release.py all --confirm      # full reset
+python3 plugin/scripts/release.py all --project --confirm  # this project only
+```
+
+Under Claude Code: `/pokeclaude:release`.
+
+---
+
+## Per-project Pokedex
+
+`--project` scopes any view to the current repo (git toplevel, else the working directory),
+so you can see how your luck has been on one codebase:
+
+```bash
+python3 plugin/scripts/pokedex.py --project --stats
+```
+
+The global collection stays the single source of truth; project counts are additive
+bookkeeping on top.
+
+---
 
 ## How it works
 
-**Catch rolls.** A `Stop` hook fires once per completed turn and rolls against that
-turn's real assistant `output_tokens` — everything produced between your prompt and the
-end of the response. Long grinding turns genuinely improve your odds; short ones barely
-move the needle. Scope is strictly one turn: the session so far never counts, so
-installing mid-session doesn't hand out a free catch.
+For the curious. Nothing here is needed to use it.
 
-**Odds.** `p(catch) = min(0.25, turn_tokens / TOKENS_PER_CATCH)` — linear in the turn's
-tokens, ceilinged so one enormous turn is lucky rather than inevitable.
-
-**Difficulty.** `/pokeclaude:pokeclaude light|normal|strict`:
-
-| Preset | Rate | Catches per session |
-|---|---|---|
-| `light` | 1 per 300k tokens | ~2 |
-| `normal` | 1 per 600k tokens | ~1 (default) |
-| `strict` | 1 per 1.2M tokens | ~0.5 |
-
-"Per session" is measured against a real 589k-token, 147-turn session, and that reference
-is the point. Stating a rate as "1 per 100k tokens" sounds rare but means roughly **six**
-catches in a session that size — the reason the default moved from 55k to 600k.
-
-`--tokens N` sets an exact rate between or beyond the presets.
-
-**Which tokens count.** Input + output, never cache. Measured over one session: 201M
-cache_read against 309k output, a 664x ratio — counting cache would tie the rate to context
-size rather than work done. `input_tokens` is included for correctness but caching leaves it
-tiny (a 0.6% addition to output alone).
-
-**Uncaught species render in greyscale.** Looking up something you do not own shows the
-sprite desaturated to luminance rather than as a flat silhouette — the shading survives, so
-it stays recognisable while clearly reading as unowned. Rec. 709 luma weights, because a
-channel average maps red and blue to the same grey and loses the internal detail.
-
-**Rarity.** Every catch and detail view shows the species' share of all encounters and its
-tier — `0.011% of encounters · MYTHICAL` for Mew, `0.27% · COMMON` for Pikachu. Tiers cut on
-the intrinsic rarity multiplier rather than share, so adding a generation does not
-reclassify the dex: 365 COMMON, 16 LEGENDARY, 5 MYTHICAL.
-
-**Rate.** Replaying 5,057 real turns from 157 sessions (30,330 active minutes) gives one
-catch per **~72 minutes of active work** — about **1.5 catches in a median working
-session**, with a ~80% chance of at least one. Both knobs live in
-[`encounter.py`](plugin/lib/pokeclaude/encounter.py).
-
-Real turns are much larger than intuition suggests — median 5,907 output tokens, p90
-32,558, max 338,263 — so don't tune against an assumed "typical turn". Sessions are also
-bimodal: a median of 2 turns across all 228 sessions, but 17 (p90 123) once you exclude
-one-off questions.
-
-The two knobs fight each other, which is worth knowing before turning either. Lowering
-`MAX_TURN_PROBABILITY` to rein in long sessions barely works: 71% of the catches in a
-marathon session come from *ordinary* turns, because those sessions are long by turn count
-(median 107 turns) rather than turn size. Restoring the average afterwards by lowering
-`TOKENS_PER_CATCH` pushes marathon totals right back up. Scale the whole curve with
-`TOKENS_PER_CATCH`; use the cap only to bound extremes.
-
-Three traps if you retune it, each of which produced a wrong constant here first:
-
-1. Claude Code writes one transcript record per content block and repeats the message's
-   *final* `output_tokens` on every one — naive per-record summing over-counts by 2–3x.
-   Deduplicate by `message.id`.
-2. "Tokens per minute" depends entirely on the denominator: wall-clock gives ~1,070
-   tok/min, excluding idle gaps gives ~2,090. Prefer replaying turns.
-3. Tool results are recorded as `type: "user"`. Treating them as turn boundaries splits
-   one agentic turn into dozens.
-
-**It costs you nothing.** The catch banner is delivered via a hook's `systemMessage`,
-which Claude Code renders to the UI *without* injecting it into the model's context.
-Measured: 24.5k tokens of banner content delivered across four catches produced a **+0**
-change in input/cache tokens. Reading the transcript happens in a separate process, off
-the model's context entirely. PokeClaude observes your token usage; it never adds to it.
-
-**Duplicates.** Already-caught species stay possible but are deliberately rarer —
-weighted at `DUPLICATE_WEIGHT` (0.25) of an unseen one. Early on almost every catch is
-new; duplicates only dominate once the Pokedex is nearly full, so catches never dry up.
-
-**Legendaries** carry their own rarity multipliers (Mewtwo is ~15x rarer than Pidgey).
-
-## Commands
-
-Plugin commands are namespaced, so tab-complete `/pokeclaude:` to see both.
-
-| Command | What it does |
-|---|---|
-| `/pokeclaude:pokeclaude` | Show or set the catch rate (light/normal/strict) |
-| `/pokeclaude:pokedex` | Paginated grid of everything you've caught |
-| `…:pokedex --all` | Include uncaught entries in greyscale |
-| `…:pokedex --id 25` | Large detail view for one species |
-| `…:pokedex --stats` | Progress summary, no art |
-| `…:pokedex --dupes` | Full duplicate list, most-caught first |
-| `…:pokedex --project` | Only Pokemon caught while working in this project |
-| `…:pokedex --scale 1` | Full 64px sprites (may be persisted, not inline) |
-| `/pokeclaude:release <name>` | Release one Pokemon (dry-run first) |
-| `…:release all` | Wipe the Pokedex and start over |
-
-### Per-project Pokedex
-
-`--project` scopes to the current repo (git toplevel, else the working directory), so you
-can see how your luck has been on one project. Per-project counts are tracked
-independently, not merely filtered — Pikachu can be ×4 globally while being ×3 here and
-×1 somewhere else.
-
-The global collection is always the source of truth. `--project` is a view over it, and
-`…:release all --project` resets one project's records **without** touching your
-real collection.
-
-### Releasing
-
-Releasing deletes collection data, so it is deliberately two-step: the command dry-runs
-first, prints exactly what would be removed, and exits without changing anything until you
-pass `--confirm`.
-
-| Exit | Meaning |
-|---|---|
-| `0` | done, or nothing to do |
-| `1` | unknown Pokemon, or lock unavailable (nothing changed) |
-| `2` | dry run — awaiting `--confirm` |
-
-## Rendering
-
-Sprites are drawn with Unicode half-blocks (`▀`), where a glyph's foreground paints the
-upper pixel and its background the lower one — two pixels per character cell, so a 64x64
-sprite occupies 64 columns by 32 rows.
-
-Stored at **64px with up to 63 colours**, which is as much as the source holds: the official
-art is 96x96 but only ~78x41 pixels of it are actual content, so 64px keeps essentially all
-real detail while 96px would be interpolation. Grid views downsample 3x (21px) and catch
-banners 2x (32px) so they fit beside their text; column count comes from your real terminal
-width, because wrapping destroys pixel art. 3x rather than 4x for the grid because it keeps
-~20 distinct colours per sprite instead of 16, which is the difference between a readable
-silhouette and a smear.
-
-Escape codes are emitted only when a colour changes rather than per cell, which cuts the
-byte overhead 3-5x — that matters because all art travels through a hook field.
-
-**Output size matters.** ~88% of a rendered sprite is colour escapes, so a 64px sprite is
-12-26KB depending on species — which straddles the threshold where Claude Code persists tool
-output to a file and shows a 2KB preview instead, truncating the art mid-render. The detail
-view therefore defaults to 32px (3.7-6.0KB, always inline) with `--scale 1` available for
-full resolution. A simultaneous foreground+background change is also folded into a single
-SGR sequence, which removes roughly 560 escapes per sprite.
-
-**Why a hook renders the Pokedex.** Truecolour only survives on channels Claude Code paints
-itself: a hook's `systemMessage` is one, but text the assistant writes into its reply is
-content and gets its VT control characters stripped. So a `PostToolUse` hook re-emits the
-script's stdout as a `systemMessage`. Without it the art arrived as monochrome blocks unless
-you pressed ctrl+o to see the raw output.
-
-## Storage
-
-Everything lives in `~/.claude/pokeclaude/`:
+**Catch rolls.** A turn-end hook fires once per completed turn and rolls against that
+turn's real assistant `output_tokens` — everything produced between your prompt and the end
+of the response. Long turns improve your odds; short ones barely move the needle. Scope is
+strictly one turn, so installing mid-session doesn't hand out a free catch.
 
 ```
-pokedex.json        your collection
-pokedex.json.lock   O_EXCL mutex
-state.json          per-session roll bookkeeping
-config.json         difficulty preset
+p(catch) = min(0.25, turn_tokens / TOKENS_PER_CATCH)
 ```
 
-Writes take a lockfile, re-read inside the lock, and swap in via atomic rename, so
-parallel Claude sessions can't corrupt or clobber each other. Readers never block. A
-corrupt file is quarantined as `.corrupt-<ts>` rather than overwritten.
+The ceiling means one enormous turn is lucky rather than inevitable.
 
-Config via environment:
+**Zero token cost.** The hook runs outside the model. On Claude Code it reports as
+`harness-only — no model context cost`; verify with `claude plugin details pokeclaude`.
 
-| Variable | Effect |
-|---|---|
-| `POKECLAUDE_DISABLE=1` | Turn off catching entirely |
-| `POKECLAUDE_HOME` | Move the data directory (useful for testing) |
-| `POKECLAUDE_WIDTH` | Override detected terminal width |
+**Species selection.** Weighted by rarity, with legendaries and mythicals scarcer.
+Duplicates are possible but kept at a quarter the weight of an unseen species, so the dex
+fills in while still handing out repeats. Rarity tiers come from PokeAPI's own
+`is_legendary` / `is_mythical` flags.
 
-## Non-interference
+**Rendering.** Sprites are stored as a palette plus one character per pixel, and drawn with
+the Unicode half-block `▀`: the glyph's foreground paints the upper pixel and its background
+the lower one, giving two pixels per character cell. Adjacent pixels usually share a colour,
+so escape sequences are only emitted on change.
 
-The hook runs on every turn, so it is built to fail silently: unreadable transcript,
-missing sprite, unavailable lock, malformed input — all exit 0 and print nothing. A
-dropped catch is invisible. A crashing or hanging hook would ruin your session, so that
-never happens.
+**Storage.** One JSON file at `~/.claude/pokeclaude/pokedex.json`, written under an
+`O_EXCL` lockfile via temp-file-and-rename, so parallel sessions cannot lose a catch or
+leave a half-written file. A corrupt file is quarantined rather than overwritten.
 
-One roll per turn. The hook records the id of the turn it last rolled for, so a `Stop`
-that fires more than once (a subagent finishing, for example) cannot hand out several
-chances for one prompt. Because scope is a single turn rather than a running byte offset,
-there is nothing to drift, desync on a rewritten transcript, or accumulate — resuming,
-forking and `/compact` all just start the next turn cleanly.
+**Non-interference.** The hook exits 0 and prints nothing on any failure — unreadable
+transcript, missing sprite, unavailable lock. A dropped catch is invisible; a crashing hook
+would break your session.
+
+**Multi-host.** Everything above is shared. Each host differs in only two respects — where
+the turn's token count lives, and how to show you a banner — and those live in
+`plugin/lib/pokeclaude/hosts.py`. See [`adapters/README.md`](adapters/README.md) to add
+another host.
+
+---
 
 ## Assets
 
 Sprites are baked from [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (official
-96x96 art) into a compact palette+index format — ~4KB each, 4.0MB for all 1025, plus the
-same again for the shiny variants.
+96x96 art) into a compact palette+index format — ~4KB each, 4MB for all 1025, plus the same
+again for shinies.
 
 ```bash
 python3 tools/bake_sprites.py --max-dex 1025 --size 64
-python3 tools/bake_sprites.py --max-dex 1025 --size 64 --shiny   # shiny variants
-python3 tools/bake_sprites.py --ids 25 --preview   # see one in your terminal
+python3 tools/bake_sprites.py --max-dex 1025 --size 64 --shiny
+python3 tools/bake_sprites.py --ids 25 --preview
 ```
 
-Baking crops to the content bbox before downscaling (otherwise a third of the pixel
-budget encodes empty margin), thresholds alpha *before* resizing to keep silhouettes
-crisp, quantizes to <=63 colours (one symbol per pixel from a 64-character alphabet), and
-trims blank rows so a wide sprite does not store half a file of padding.
+Baking needs Pillow; the baked assets ship in the repo, so users never run this.
 
-Every generation's art turned out to be the same 96x96, 10–15 colour format, so gens 4–9
-needed no pipeline changes — only a longer id range.
+README images are generated from the scripts' real output, so they cannot drift from what
+the code prints:
 
-Species names come from PokeAPI too, with default-form suffixes stripped: it labels the
-only form we bake as `deoxys-normal` and `squawkabilly-green-plumage`, the latter being 26
-characters and wider than a grid cell. The strip is a denylist of known suffixes rather
-than "cut at the first hyphen", because 39 species have a load-bearing hyphen — that naive
-rule would leave `iron-treads` as "iron" and `ho-oh` as "ho".
+```bash
+python3 tools/ansi_to_svg.py --demo catch --id 143 --out docs/catch-snorlax.svg
+python3 tools/animate_demo.py --style ball --id 143 --out docs/anim-catch.gif
+```
 
-Pokemon is a trademark of Nintendo / Creatures Inc. / GAME FREAK Inc. This is an
-unofficial fan project.
+---
+
+## Tests
+
+```bash
+python3 tests/test_pokeclaude.py
+```
+
+324 checks, no pytest needed. They isolate via `POKECLAUDE_HOME` and assert they never
+touch a real Pokedex.
+
+---
+
+## License
+
+MIT for the code. Sprite art derives from Nintendo/Game Freak's Pokemon and is
+redistributed via PokeAPI; this is an unofficial fan project. See [LICENSE](LICENSE).

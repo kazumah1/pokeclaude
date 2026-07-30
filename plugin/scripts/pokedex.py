@@ -199,6 +199,24 @@ def main():
         "  " + _c(GOLD, counts, bold=True) + DIM + tail + RESET + DIM + catch_txt + RESET
     )
 
+    # Catches made on hosts that cannot display a banner are announced here, once.
+    # Skipped for --stats/--dupes so a summary view never silently consumes them.
+    if not (args.stats or args.dupes or args.project):
+        pending = store.take_unseen()
+        if pending:
+            names = []
+            for key in pending[:6]:
+                nm = (meta.get(str(key)) or {}).get("name", "#%s" % key)
+                names.append(nm)
+            more = "" if len(pending) <= 6 else " and %d more" % (len(pending) - 6)
+            out.append(
+                "  "
+                + _c(GOLD, "NEW", bold=True)
+                + DIM
+                + " while you were working: %s%s" % (", ".join(names), more)
+                + RESET
+            )
+
     # Shiny tally, only once there is one to report -- an unconditional "0 shinies"
     # would advertise an absence on every single run.
     n_shiny = sum(e.get("shiny", 0) for e in caught.values())
