@@ -27,7 +27,7 @@ not caught yet render in greyscale, so it is obvious at a glance what you actual
 ## Install
 
 ```bash
-claude plugin marketplace add /path/to/pokeclaude
+claude plugin marketplace add kazumah1/pokeclaude
 claude plugin install pokeclaude@pokeclaude
 ```
 
@@ -248,22 +248,6 @@ only form we bake as `deoxys-normal` and `squawkabilly-green-plumage`, the latte
 characters and wider than a grid cell. The strip is a denylist of known suffixes rather
 than "cut at the first hyphen", because 39 species have a load-bearing hyphen — that naive
 rule would leave `iron-treads` as "iron" and `ho-oh` as "ho".
-
-### README images
-
-GitHub strips ANSI escapes from fenced code blocks, so a code block can only ever show a
-monochrome approximation of the art. The images above are SVGs generated from the scripts'
-**real stdout**, so they cannot drift from what the plugin actually prints:
-
-```bash
-python3 tools/ansi_to_svg.py --demo catch --id 143 --out docs/catch-snorlax.svg
-python3 tools/ansi_to_svg.py --cmd "scripts/pokedex.py" --home /tmp/demodex \
-    --width 100 --out docs/pokedex-page.svg
-```
-
-`--home` points at a throwaway `POKECLAUDE_HOME`, so regenerating the screenshots never
-reads or writes your real collection. SVG rather than PNG because it is text — it diffs in
-git, needs no image library, and stays crisp at any zoom.
 
 Pokemon is a trademark of Nintendo / Creatures Inc. / GAME FREAK Inc. This is an
 unofficial fan project.

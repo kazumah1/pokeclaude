@@ -25,20 +25,32 @@ sys.path.insert(0, os.path.join(REPO, "plugin", "lib"))
 
 SGR = re.compile(r"\x1b\[([0-9;]*)m")
 
-# Cell metrics. 9 x 18 is close to a real terminal's aspect at 15px monospace,
-# which matters because half-block art assumes cells are about twice as tall as
-# they are wide -- get this wrong and every sprite looks stretched.
+# Cell metrics, deliberately terminal-faithful rather than idealised.
 #
-# Both are integers on purpose. With fractional metrics the background rects land
-# on sub-pixel boundaries and antialiasing leaves a faint horizontal seam between
-# every row of sprite art, which is very visible across a large flat-coloured
-# area.
-CW, CH = 9.0, 18.0
+# A character cell is CW wide and holds two square pixels (PH each) stacked, plus
+# a LINE_GAP strip below that shows the canvas through. That gap is the real thing
+# a terminal produces: half-block art draws two pixels per character row (top via
+# the glyph, bottom via the cell background), and the terminal's line-height
+# leaves a hairline of its own background between character rows -- the faint
+# horizontal seams you see every second pixel row. An earlier version overlapped
+# the rects to erase those seams, which made the README look cleaner than any real
+# terminal ever does. This reproduces them instead.
+CW = 9.0
+PH = 9.0  # pixel height; square against CW
+# The seam is the terminal's line-height gap between character rows, and it is a
+# hairline, not a bar -- roughly a tenth of a pixel row. Drawn as the canvas
+# colour, so it reads as a faint dark line across coloured sprite regions (the
+# real artifact) and is invisible against the matching dark background, exactly
+# as in a terminal.
+LINE_GAP = 1.0
+CH = PH * 2 + LINE_GAP  # full character-cell height
 FONT_SIZE = 15
-BASELINE = 13.7  # glyph baseline within the cell
+BASELINE = 13.7  # glyph baseline within the 2*PH text area
 
-# Half-unit overlap on background rects, to kill inter-row seams. See to_svg().
-BLEED = 0.5
+# Glyphs the sprite renderer uses as pixels rather than text. These become
+# coloured rects; everything else (labels, progress bar, symbols) stays text.
+UPPER, LOWER, FULL = "▀", "▄", "█"
+PIXEL_GLYPHS = (UPPER, LOWER, FULL, " ")
 
 # Terminal defaults, tuned to read like a dark terminal rather than pure black.
 DEFAULT_FG = (220, 223, 228)
@@ -124,6 +136,26 @@ def _dimmed(rgb):
     return tuple(int(round(c * DIM_FACTOR)) for c in rgb)
 
 
+def _pixel_colours(cell):
+    """(top, bottom) pixel colour for a half-block cell, or None where empty.
+
+    Mirrors the sprite renderer: fg paints the glyph's solid half, bg the other.
+      ▀ solid top    -> top=fg,  bottom=bg
+      ▄ solid bottom -> top=bg,  bottom=fg
+      █ solid both   -> top=fg,  bottom=fg
+      space          -> both bg (usually transparent)
+    A None colour means "let the canvas show through", i.e. a transparent pixel.
+    """
+    ch, fg, bg, _bold, _dim = cell
+    if ch == UPPER:
+        return fg, bg
+    if ch == LOWER:
+        return bg, fg
+    if ch == FULL:
+        return fg, fg
+    return bg, bg  # space
+
+
 def to_svg(rows, pad=14):
     width = max((len(r) for r in rows), default=0)
     w = width * CW + pad * 2
@@ -137,40 +169,49 @@ def to_svg(rows, pad=14):
         '<rect width="100%%" height="100%%" fill="%s" rx="6"/>' % _hex(DEFAULT_BG),
     ]
 
-    # Backgrounds first, merged into runs. One rect per cell would triple the
-    # file for art that is mostly flat colour horizontally.
+    # A row is "pixel art" if every non-space cell is a half/full block. Those
+    # rows are drawn as two rows of square pixel rects with the terminal's
+    # line-gap left showing between character rows. Text rows (labels, progress
+    # bar) are drawn as glyphs, exactly as a terminal would.
+    def is_pixel_row(cells):
+        return any(c[0] in (UPPER, LOWER, FULL) for c in cells) and all(
+            c[0] in PIXEL_GLYPHS for c in cells
+        )
+
     for y, cells in enumerate(rows):
+        y0 = pad + y * CH
+        if is_pixel_row(cells):
+            # Two pixel bands per character row; the LINE_GAP below them stays the
+            # canvas colour, which is the seam a real terminal shows.
+            for band, get in ((0, lambda p: p[0]), (1, lambda p: p[1])):
+                by = y0 + band * PH
+                run_col, run_start = None, 0
+                for x in range(len(cells) + 1):
+                    col = get(_pixel_colours(cells[x])) if x < len(cells) else None
+                    if col != run_col:
+                        if run_col is not None:
+                            parts.append(
+                                '<rect x="%g" y="%g" width="%g" height="%g" '
+                                'fill="%s"/>'
+                                % (pad + run_start * CW, by,
+                                   (x - run_start) * CW, PH, _hex(run_col))
+                            )
+                        run_col, run_start = col, x
+            continue
+
+        # Text row: backgrounds first (rare here), then glyph runs.
         run_bg, run_start = None, 0
         for x in range(len(cells) + 1):
             bg = cells[x][2] if x < len(cells) else None
             if bg != run_bg:
                 if run_bg is not None:
-                    # Bleed each rect half a unit past its cell on all sides.
-                    #
-                    # Exact tiling is NOT enough. Abutting rects share an edge,
-                    # and whenever the image is scaled to a non-integer device
-                    # ratio that edge lands mid-pixel: the rasteriser blends both
-                    # neighbours with whatever is under them, leaving a faint
-                    # line across every row of flat-coloured sprite. Overlapping
-                    # removes the shared edge entirely. Same-coloured neighbours
-                    # overlap invisibly; different-coloured ones differ by half a
-                    # unit at a boundary that is one sprite pixel wide anyway.
                     parts.append(
                         '<rect x="%g" y="%g" width="%g" height="%g" fill="%s"/>'
-                        % (pad + run_start * CW - BLEED, pad + y * CH - BLEED,
-                           (x - run_start) * CW + BLEED * 2, CH + BLEED * 2,
-                           _hex(run_bg))
+                        % (pad + run_start * CW, y0,
+                           (x - run_start) * CW, CH, _hex(run_bg))
                     )
                 run_bg, run_start = bg, x
 
-    # Then glyphs, grouped into runs of identical style.
-    #
-    # Interior spaces are KEPT inside a run rather than skipped. Skipping them
-    # and restarting the next run at its own x would be pixel-identical for a
-    # monospace font in theory, but it silently drops the gap when a run is
-    # emitted as one <text>: "…pokedex to browse" rendered as "…pokedexto
-    # browse". Only leading spaces are skipped, to avoid emitting empty elements.
-    for y, cells in enumerate(rows):
         x = 0
         while x < len(cells):
             ch, fg, bg, bold, dim = cells[x]
@@ -181,8 +222,6 @@ def to_svg(rows, pad=14):
             j = x + 1
             while j < len(cells):
                 c2, f2, b2, bo2, d2 = cells[j]
-                # A space continues the run only if more same-styled text
-                # follows it; a trailing space would just pad the element.
                 if c2 == " ":
                     k = j
                     while k < len(cells) and cells[k][0] == " ":
@@ -202,19 +241,10 @@ def to_svg(rows, pad=14):
             if dim:
                 colour = _dimmed(colour)
             text = "".join(run)
-            # textLength pins the run to the exact grid width.
-            #
-            # Without it the layout is a lie: cells are positioned on a CW grid
-            # but the glyphs advance at whatever width the viewer's monospace
-            # font happens to use. Any font wider than CW pushes long runs past
-            # the declared viewport and the text is clipped mid-word -- the right
-            # edge of a wide grid, or "…to browse" losing its last letters.
-            # lengthAdjust=spacing stretches the gaps rather than the letterforms,
-            # so glyphs keep their shape.
             parts.append(
                 '<text x="%g" y="%g" fill="%s"%s textLength="%g" '
                 'lengthAdjust="spacing" xml:space="preserve">%s</text>'
-                % (pad + x * CW, pad + y * CH + BASELINE, _hex(colour),
+                % (pad + x * CW, y0 + BASELINE, _hex(colour),
                    ' font-weight="bold"' if bold else "",
                    len(text) * CW, _escape(text))
             )
