@@ -452,7 +452,7 @@ STYLES = {
 }
 
 
-def render_gif(texts, delay_ms, out_path, zoom=2):
+def render_gif(texts, delay_ms, out_path, zoom=2, loop=0):
     """Rasterise each ANSI frame to PNG and mux into a looping GIF.
 
     Frames are padded to a common size so a shorter frame (the bob shift trims a
@@ -480,9 +480,13 @@ def render_gif(texts, delay_ms, out_path, zoom=2):
         bg.alpha_composite(im, (0, 0))
         canvas.append(bg.convert("P", palette=Image.ADAPTIVE, colors=256))
 
+    # loop=None omits the Netscape looping extension entirely, which is how a GIF
+    # says "play once". Passing loop=1 does NOT mean once -- it means one extra
+    # repeat, i.e. twice.
+    save_kw = {} if loop is None else {"loop": loop}
     canvas[0].save(
         out_path, save_all=True, append_images=canvas[1:], duration=delay_ms,
-        loop=0, disposal=2, optimize=True,
+        disposal=2, optimize=True, **save_kw
     )
     return w, h, len(canvas)
 
@@ -492,13 +496,23 @@ def main():
     ap.add_argument("--style", choices=sorted(STYLES), required=True)
     ap.add_argument("--id", type=int, default=143)
     ap.add_argument("--zoom", type=float, default=2.0)
+    ap.add_argument(
+        "--loop", type=int, default=None,
+        help="0 = play once and stop; N = repeat N times; omit for the style default",
+    )
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
 
     texts, delay = STYLES[args.style](args.id)
+    # A catch happens ONCE, so the reveal plays once and stops on the Pokemon.
+    # Idle styles (bob) are ambient and do loop. --loop overrides either way.
+    if args.loop is not None:
+        loop = None if args.loop == 0 else args.loop
+    else:
+        loop = None if args.style in ("ball", "reveal") else 0
     out = os.path.join(REPO, args.out) if not os.path.isabs(args.out) else args.out
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    w, h, n = render_gif(texts, delay, out, zoom=args.zoom)
+    w, h, n = render_gif(texts, delay, out, zoom=args.zoom, loop=loop)
     sys.stderr.write(
         "wrote %s (%.1f KB, %d frames, %dx%d)\n"
         % (args.out, os.path.getsize(out) / 1024.0, n, w, h)
