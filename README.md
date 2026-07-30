@@ -40,14 +40,32 @@ end of the response. Long grinding turns genuinely improve your odds; short ones
 move the needle. Scope is strictly one turn: the session so far never counts, so
 installing mid-session doesn't hand out a free catch.
 
-**Odds.** `p(catch) = min(0.25, turn_tokens / 55,000)` — linear in the turn's output
+**Odds.** `p(catch) = min(0.25, turn_tokens / TOKENS_PER_CATCH)` — linear in the turn's
 tokens, ceilinged so one enormous turn is lucky rather than inevitable.
 
-| Turn size | p(catch) | |
+**Difficulty.** `/pokeclaude:pokeclaude light|normal|strict`:
+
+| Preset | Rate | Catches per session |
 |---|---|---|
-| 1,000 tok | 1.8% | |
-| 5,907 tok | 10.7% | median real turn |
-| 13,750 tok+ | 25.0% | cap binds here (~26% of turns) |
+| `light` | 1 per 300k tokens | ~2 |
+| `normal` | 1 per 600k tokens | ~1 (default) |
+| `strict` | 1 per 1.2M tokens | ~0.5 |
+
+"Per session" is measured against a real 589k-token, 147-turn session, and that reference
+is the point. Stating a rate as "1 per 100k tokens" sounds rare but means roughly **six**
+catches in a session that size — the reason the default moved from 55k to 600k.
+
+`--tokens N` sets an exact rate between or beyond the presets.
+
+**Which tokens count.** Input + output, never cache. Measured over one session: 201M
+cache_read against 309k output, a 664x ratio — counting cache would tie the rate to context
+size rather than work done. `input_tokens` is included for correctness but caching leaves it
+tiny (a 0.6% addition to output alone).
+
+**Rarity.** Every catch and detail view shows the species' share of all encounters and its
+tier — `0.011% of encounters · MYTHICAL` for Mew, `0.27% · COMMON` for Pikachu. Tiers cut on
+the intrinsic rarity multiplier rather than share, so adding a generation does not
+reclassify the dex: 365 COMMON, 16 LEGENDARY, 5 MYTHICAL.
 
 **Rate.** Replaying 5,057 real turns from 157 sessions (30,330 active minutes) gives one
 catch per **~72 minutes of active work** — about **1.5 catches in a median working
@@ -94,6 +112,7 @@ Plugin commands are namespaced, so tab-complete `/pokeclaude:` to see both.
 
 | Command | What it does |
 |---|---|
+| `/pokeclaude:pokeclaude` | Show or set the catch rate (light/normal/strict) |
 | `/pokeclaude:pokedex` | Paginated grid of everything you've caught |
 | `…:pokedex --all` | Include uncaught entries as dim silhouettes |
 | `…:pokedex --id 25` | Large detail view for one species |
@@ -165,6 +184,7 @@ Everything lives in `~/.claude/pokeclaude/`:
 pokedex.json        your collection
 pokedex.json.lock   O_EXCL mutex
 state.json          per-session roll bookkeeping
+config.json         difficulty preset
 ```
 
 Writes take a lockfile, re-read inside the lock, and swap in via atomic rename, so

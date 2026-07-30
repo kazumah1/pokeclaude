@@ -16,7 +16,7 @@ import json
 import os
 import sys
 
-MARKERS = ("pokedex.py", "release.py")
+MARKERS = ("pokedex.py", "release.py", "config.py")
 # A systemMessage is a single UI string; a very long one would flood the view, and
 # the pokedex is paginated precisely so it does not need to.
 MAX_CHARS = 60_000

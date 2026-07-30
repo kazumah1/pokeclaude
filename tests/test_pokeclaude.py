@@ -234,12 +234,20 @@ def test_encounter_probability():
         E.turn_probability(10 ** 9) <= E.MAX_TURN_PROBABILITY,
         "capped at MAX_TURN_PROBABILITY even for absurd input",
     )
-    # Replay-validated: ~72 min of active work per catch at the current cap.
-    # See encounter.py -- the cap and TOKENS_PER_CATCH interact, so this is a
-    # sanity band rather than a precise target.
-    mins = E.TOKENS_PER_CATCH / 1020.0
-    check(40 <= mins <= 90, "calibration is in a sane band (%.0f min)" % mins)
+    # Calibration is now expressed per session rather than per minute: replaying
+    # a real 589k-token session should yield roughly one catch on the default.
+    ref_tokens = 589_000
+    exp = ref_tokens / float(E.TOKENS_PER_CATCH)
+    check(0.7 <= exp <= 1.4, "default gives ~1 catch per reference session (%.2f)" % exp)
     check(0 < E.MAX_TURN_PROBABILITY <= 0.5, "single-turn probability is bounded")
+    check(
+        E.PRESETS["light"] < E.PRESETS["normal"] < E.PRESETS["strict"],
+        "presets are ordered light < normal < strict",
+    )
+    check(
+        E.TOKENS_PER_CATCH == E.PRESETS[E.DEFAULT_PRESET],
+        "module default matches the default preset",
+    )
 
 
 def test_encounter_selection():
@@ -622,6 +630,132 @@ def test_pokedex_cli():
     check(p.returncode == 0, "--all on a complete pokedex renders")
 
 
+def test_presets_and_config():
+    """Difficulty presets, and the config the hook reads them from."""
+    print("\n[config] difficulty presets")
+    home, store = fresh_home()
+    from pokeclaude import encounter as E
+
+    check(E.resolve_preset("strict") == E.PRESETS["strict"], "named preset resolves")
+    check(E.resolve_preset("STRICT") == E.PRESETS["strict"], "preset is case-insensitive")
+    check(E.resolve_preset(" light ") == E.PRESETS["light"], "surrounding space tolerated")
+    for junk in ("nonsense", "", None, 7, {}):
+        check(
+            E.resolve_preset(junk) == E.PRESETS[E.DEFAULT_PRESET],
+            "junk preset %r falls back to the default" % (junk,),
+        )
+
+    check(E.configured_tokens_per_catch({}) == E.PRESETS[E.DEFAULT_PRESET], "no config -> default")
+    check(
+        E.configured_tokens_per_catch({"preset": "light"}) == E.PRESETS["light"],
+        "config preset is honoured",
+    )
+    check(
+        E.configured_tokens_per_catch({"tokens_per_catch": 777_000}) == 777_000,
+        "numeric override wins over preset",
+    )
+    check(
+        E.configured_tokens_per_catch({"preset": "light", "tokens_per_catch": 0}) == E.PRESETS["light"],
+        "a zero override is ignored, not treated as a rate",
+    )
+
+    # Round-trip through the real config file.
+    check(store.load_config() == {}, "missing config reads as empty")
+    check(store.save_config({"preset": "strict"}), "config saves")
+    check(store.load_config().get("preset") == "strict", "config persists")
+    check(store.save_config({"preset": "light"}), "config updates")
+    check(store.load_config().get("preset") == "light", "update took effect")
+
+    with open(store.CONFIG_PATH, "w") as f:
+        f.write("{not json")
+    check(store.load_config() == {}, "corrupt config reads as empty, no crash")
+    check(
+        E.configured_tokens_per_catch(store.load_config()) == E.PRESETS[E.DEFAULT_PRESET],
+        "corrupt config falls back to the default rate",
+    )
+
+    # The rate the presets imply, against the reference session.
+    for name, lo, hi in (("light", 1.5, 2.6), ("normal", 0.7, 1.4), ("strict", 0.3, 0.7)):
+        exp = 589_000 / float(E.PRESETS[name])
+        check(lo <= exp <= hi, "%s ~= %.1f catches per reference session" % (name, exp))
+
+
+def test_config_cli():
+    print("\n[config] CLI")
+    home, store = fresh_home()
+    script = os.path.join(REPO, "plugin", "scripts", "config.py")
+
+    def run(args):
+        e = dict(os.environ)
+        e["POKECLAUDE_HOME"] = home
+        p = subprocess.run([sys.executable, script] + args, capture_output=True, env=e)
+        return p.returncode, visible(p.stdout.decode()), p.stderr.decode()
+
+    rc, out, err = run([])
+    check(rc == 0 and not err.strip(), "no-arg run is clean")
+    for name in ("light", "normal", "strict"):
+        check(name in out, "listing shows %s" % name)
+    check("per session" in out, "listing explains the per-session rate")
+
+    rc, out, _ = run(["strict"])
+    check(rc == 0 and "strict" in out, "setting a preset reports back")
+    check(store.load_config().get("preset") == "strict", "preset written to config")
+
+    rc, out, _ = run(["--tokens", "900000"])
+    check(rc == 0, "numeric override accepted")
+    check(store.load_config().get("tokens_per_catch") == 900000, "override written")
+    check(
+        store.load_config().get("preset") is None,
+        "choosing a rate clears the preset so it cannot silently win",
+    )
+
+    rc, out, _ = run(["strict"])
+    check(
+        store.load_config().get("tokens_per_catch") is None,
+        "choosing a preset clears a previous numeric override",
+    )
+
+    rc, out, _ = run(["nonsense"])
+    check(rc == 1 and "Unknown preset" in out, "unknown preset exits 1 with a hint")
+    rc, out, _ = run(["--tokens", "10"])
+    check(rc == 1, "absurdly small rate is rejected")
+
+
+def test_rarity_display():
+    print("\n[rarity] percentage and tier")
+    from pokeclaude import encounter as E
+    import json as _json
+
+    meta = _json.load(open(os.path.join(REPO, "plugin", "assets", "pokemon.json")))
+    roster = sorted(int(k) for k in meta)
+
+    mew = E.encounter_share(151, roster)
+    pidgey = E.encounter_share(16, roster)
+    check(0 < mew < pidgey, "a mythical is rarer than a common (%.4f < %.4f)" % (mew, pidgey))
+    check(
+        abs(sum(E.encounter_share(p, roster) for p in roster) - 100.0) < 0.01,
+        "shares sum to 100%",
+    )
+
+    check(E.rarity_tier(151) == "MYTHICAL", "Mew is MYTHICAL")
+    check(E.rarity_tier(150) == "LEGENDARY", "Mewtwo is LEGENDARY")
+    check(E.rarity_tier(25) == "COMMON", "Pikachu is COMMON")
+
+    # Tier must not depend on roster size, or adding a generation would silently
+    # reclassify the whole dex.
+    check(
+        E.rarity_tier(151, roster[:200]) == E.rarity_tier(151, roster),
+        "tier is independent of roster size",
+    )
+
+    txt = E.format_rarity(151, roster)
+    check("%" in txt and "MYTHICAL" in txt, "format_rarity gives percent and tier (%s)" % txt)
+    check(E.format_rarity(151, []) == "", "empty roster yields no rarity string")
+
+    tiers = set(E.rarity_tier(p) for p in roster)
+    check(tiers <= {"MYTHICAL", "LEGENDARY", "RARE", "COMMON"}, "no unexpected tiers")
+
+
 def test_project_scoping():
     print("\n[project] per-project tracking")
     home, store = fresh_home()
@@ -804,6 +938,9 @@ def main():
         test_state_locking,
         test_hook_end_to_end,
         test_pokedex_cli,
+        test_presets_and_config,
+        test_config_cli,
+        test_rarity_display,
         test_project_scoping,
         test_release,
         test_release_cli,

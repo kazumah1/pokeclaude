@@ -90,7 +90,17 @@ def read_turn_tokens(transcript_path):
                 key = msg.get("id") or d.get("uuid")
                 if key is None:
                     continue
-                seen[key] = (msg.get("usage") or {}).get("output_tokens") or 0
+                # Count input + output, but NOT cache. Prompt caching means the
+                # cache figures dwarf real work -- measured over one session:
+                # 201M cache_read against 309k output, a 664x ratio -- so
+                # including them would make the rate track context size rather
+                # than effort. input_tokens is kept for correctness even though
+                # caching leaves it tiny (1,976 tokens across 394 messages, a
+                # 0.6% addition to output alone).
+                usage = msg.get("usage") or {}
+                seen[key] = (usage.get("output_tokens") or 0) + (
+                    usage.get("input_tokens") or 0
+                )
     except (IOError, OSError):
         return 0, None
 
@@ -149,7 +159,10 @@ def main():
     # whole-file write.
     store.update_session_state(skey, {STATE_KEY: turn})
 
-    hit, _p = encounter.roll(tokens)
+    # Rate comes from the user's chosen preset (light/normal/strict), falling
+    # back to the default if the config is missing or malformed.
+    tpc = encounter.configured_tokens_per_catch(store.load_config())
+    hit, _p = encounter.roll(tokens, tokens_per_catch=tpc)
     if not hit:
         return 0
 
@@ -188,6 +201,7 @@ def main():
         dup_count=result["count"],
         unique=result["unique"],
         roster_size=len(roster),
+        roster_ids=roster,
     )
     print(json.dumps({"systemMessage": msg}))
     return 0

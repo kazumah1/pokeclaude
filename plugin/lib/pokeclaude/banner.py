@@ -41,7 +41,7 @@ def _types(type_names):
 
 
 def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_size,
-            width=80):
+            width=80, roster_ids=None):
     """Build the banner string for a catch.
 
     Sprites are stored at 64px, which is wider than the info column can sit
@@ -61,12 +61,25 @@ def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_si
         status = _c(SILVER, "duplicate ×%d" % dup_count)
 
     pct = (100.0 * unique / roster_size) if roster_size else 0.0
+    rarity = ""
+    if roster_ids:
+        from . import encounter
+
+        tier = encounter.rarity_tier(dex_id)
+        share = encounter.encounter_share(dex_id, roster_ids)
+        share_txt = ("%.3f" % share).rstrip("0").rstrip(".") if share < 0.1 else "%.2f" % share
+        # Legendaries get the gold treatment; commons stay dim so the rare ones
+        # actually stand out rather than every catch shouting.
+        tint = GOLD if tier in ("MYTHICAL", "LEGENDARY") else SILVER
+        rarity = DIM + "%s%% of encounters" % share_txt + RESET + "  " + _c(tint, tier, bold=tier in ("MYTHICAL", "LEGENDARY"))
+
     info = [
         "",
         _c(accent, "✦ ") + _c(accent, title, bold=True),
         "",
         "%s  %s" % (_c(accent, "#%03d" % dex_id), _types(type_names)),
         status,
+        rarity,
         "",
         DIM + "Pokedex %d/%d (%.0f%%)" % (unique, roster_size, pct) + RESET,
         DIM + "/pokeclaude:pokedex to browse" + RESET,
