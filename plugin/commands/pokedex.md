@@ -43,4 +43,4 @@ answers "how has my luck been on *this* project". It combines with the other fla
 If the user asks about a Pokemon by name rather than number, look up its dex number in
 `${CLAUDE_PLUGIN_ROOT}/assets/pokemon.json` and pass `--id`.
 
-To release Pokemon, use `/pokeclaude:pokeclaude-release` — not this command.
+To release Pokemon, use `/pokeclaude:release` — not this command.

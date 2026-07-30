@@ -8,7 +8,7 @@ its reply is NOT -- that is content, and it gets its VT control characters
 stripped, which is why relayed pokedex output arrives as monochrome blocks while
 the catch banner is fully coloured.
 
-So when the /pokedex or /pokeclaude-release scripts run, this hook takes their
+So when the /pokedex or /release scripts run, this hook takes their
 stdout and re-emits it as a systemMessage. Same bytes, correct channel. It also
 sets suppressOutput so the raw copy is hidden and the art is not shown twice.
 """
