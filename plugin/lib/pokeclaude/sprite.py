@@ -28,6 +28,14 @@ def _bg(rgb):
     return "\033[48;2;%d;%d;%dm" % rgb
 
 
+# Pixel indices are one character each. A hex digit only addresses 16 colours,
+# so a 64-symbol alphabet is used instead: same one-char-per-pixel density, four
+# times the palette depth. Sprites baked with the old hex encoding stay readable
+# because the first 16 symbols are the hex digits in order.
+_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-"
+_DECODE = {c: i for i, c in enumerate(_ALPHABET)}
+
+
 def decode(blob):
     """Expand a baked sprite into (palette, rows-of-indices).
 
@@ -39,7 +47,10 @@ def decode(blob):
         pal.append(
             (int(hexcol[0:2], 16), int(hexcol[2:4], 16), int(hexcol[4:6], 16))
         )
-    flat = [int(c, 16) for c in blob["px"]]
+    try:
+        flat = [_DECODE[c] for c in blob["px"]]
+    except KeyError as e:
+        raise ValueError("sprite %s: bad pixel symbol %r" % (blob.get("id"), e.args[0]))
     if len(flat) != w * h:
         raise ValueError(
             "sprite %s: expected %d px, got %d" % (blob.get("id"), w * h, len(flat))
@@ -75,16 +86,39 @@ def render(blob, indent=0, trim=True):
     for y in range(0, h, 2):
         top, bot = rows[y], rows[y + 1]
         line = []
+        cur_fg = cur_bg = None  # track emitted SGR state
         for x in range(x0, x1 + 1):
             t, b = pal[top[x]], pal[bot[x]]
+
             if t is None and b is None:
+                # Reset before a gap so the terminal does not extend a
+                # background colour across empty space.
+                if cur_fg is not None or cur_bg is not None:
+                    line.append(RESET)
+                    cur_fg = cur_bg = None
                 line.append(" ")
-            elif b is None:
-                line.append(_fg(t) + DEFAULT_BG + UPPER + RESET)
+                continue
+
+            if b is None:
+                glyph, want_fg, want_bg = UPPER, t, "default"
             elif t is None:
-                line.append(_fg(b) + DEFAULT_BG + LOWER + RESET)
+                glyph, want_fg, want_bg = LOWER, b, "default"
             else:
-                line.append(_fg(t) + _bg(b) + UPPER + RESET)
+                glyph, want_fg, want_bg = UPPER, t, b
+
+            # Emit only what changed. Adjacent pixels are very often the same
+            # colour, so this cuts the escape overhead by roughly 3-5x -- it
+            # matters because this art travels through a hook field.
+            if want_fg != cur_fg:
+                line.append(_fg(want_fg))
+                cur_fg = want_fg
+            if want_bg != cur_bg:
+                line.append(DEFAULT_BG if want_bg == "default" else _bg(want_bg))
+                cur_bg = want_bg
+            line.append(glyph)
+
+        if cur_fg is not None or cur_bg is not None:
+            line.append(RESET)
         out.append(pad + "".join(line))
     return out
 
@@ -112,7 +146,10 @@ def downscale(blob, factor=2):
         return blob
     pal, rows = decode(blob)
     w, h = blob["w"], blob["h"]
-    nw, nh = w // factor, h // factor
+    # Round UP: flooring drops the final partial block, and once sprites have
+    # trimmed (odd) heights that silently truncates the bottom of the art and
+    # yields a pixel count that no longer matches w*h.
+    nw, nh = -(-w // factor), -(-h // factor)
 
     out = []
     for y in range(nh):
@@ -141,5 +178,7 @@ def downscale(blob, factor=2):
         "w": nw,
         "h": nh,
         "pal": list(blob["pal"]),
-        "px": "".join("%x" % i for i in out),
+        # Must use the shared alphabet, not hex: a palette larger than 16 makes
+        # "%x" emit two characters for one pixel and desyncs the whole grid.
+        "px": "".join(_ALPHABET[i] for i in out),
     }

@@ -342,6 +342,8 @@ def test_sprite():
         except Exception:
             bad.append(pid)
     check(len(ids) == 386, "all 386 sprites present")
+    check(all(json.load(open(os.path.join(SPRITES, "%d.json" % p)))["w"] == 64
+              for p in ids[:20]), "sprites are baked at 64px")
     check(not bad, "every sprite renders correctly (%d bad)" % len(bad))
     check(not wide, "no sprite renders wider than its pixel width")
     check(not vanished, "no sprite vanishes when downscaled 2x (%s)" % (vanished[:5] or "none"))

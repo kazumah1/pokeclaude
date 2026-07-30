@@ -40,8 +40,17 @@ def _types(type_names):
     )
 
 
-def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_size):
-    """Build the banner string for a catch."""
+def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_size,
+            width=80):
+    """Build the banner string for a catch.
+
+    Sprites are stored at 64px, which is wider than the info column can sit
+    beside on an 80-column terminal, so the art is halved unless there is room
+    for it at full size. Wrapping would shred the pixel art entirely.
+    """
+    info_w = 34  # widest info line plus the gap
+    if spritelib.visible_width(blob) + info_w > width:
+        blob = spritelib.downscale(blob, 2)
     art = spritelib.render(blob, indent=1)
     accent = GOLD if is_new else SILVER
 
@@ -60,7 +69,7 @@ def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_si
         status,
         "",
         DIM + "Pokedex %d/%d (%.0f%%)" % (unique, roster_size, pct) + RESET,
-        DIM + "/pokedex to browse" + RESET,
+        DIM + "/pokeclaude:pokedex to browse" + RESET,
     ]
 
     # Interleave: sprite on the left, info column on the right, vertically

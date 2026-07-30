@@ -21,7 +21,7 @@ Useful arguments to pass through when the user asks:
 - `--stats` — progress summary only, no art
 - `--dupes` — full duplicate list, most-caught first
 - `--project` — only Pokemon caught while working in this project
-- `--scale 1` — full-size 32px sprites (fewer per row)
+- `--scale 1` — full-size 64px sprites (one or two per row); 2 = 32px, 4 = 16px (default)
 
 `--project` scopes to the current repo (git toplevel, else the working directory), so it
 answers "how has my luck been on *this* project". It combines with the other flags, e.g.
@@ -30,4 +30,4 @@ answers "how has my luck been on *this* project". It combines with the other fla
 If the user asks about a Pokemon by name rather than number, look up its dex number in
 `${CLAUDE_PLUGIN_ROOT}/assets/pokemon.json` and pass `--id`.
 
-To release Pokemon, use `/pokeclaude-release` — not this command.
+To release Pokemon, use `/pokeclaude:pokeclaude-release` — not this command.
