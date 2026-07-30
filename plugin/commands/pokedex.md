@@ -1,5 +1,6 @@
 ---
 description: Browse your PokeClaude Pokedex — every Pokemon caught across all your Claude sessions
+argument-hint: "[--id <name|number> · --all · --stats|--dupes · --project · --page N · --scale 1|2|3]"
 ---
 
 Run the Pokedex viewer:

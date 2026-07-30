@@ -1,5 +1,6 @@
 ---
 description: Release a Pokemon (or all of them) from your PokeClaude Pokedex
+argument-hint: "<name|number|all> [--project] [--confirm]"
 ---
 
 Release Pokemon from the Pokedex. **This deletes collection data and cannot be undone**,
