@@ -23,7 +23,7 @@ claude plugin marketplace add /path/to/pokeclaude
 claude plugin install pokeclaude@pokeclaude
 ```
 
-Then start a new session and `/pokedex` to browse your collection. Catches begin
+Then start a new session and run `/pokeclaude:pokedex` to browse your collection. Catches begin
 appearing as you work.
 
 Requires Python 3 (system `python3` is fine) and a truecolor terminal.
@@ -90,17 +90,19 @@ new; duplicates only dominate once the Pokedex is nearly full, so catches never 
 
 ## Commands
 
+Plugin commands are namespaced, so tab-complete `/pokeclaude:` to see both.
+
 | Command | What it does |
 |---|---|
-| `/pokedex` | Paginated grid of everything you've caught |
-| `/pokedex --all` | Include uncaught entries as dim silhouettes |
-| `/pokedex --id 25` | Large detail view for one species |
-| `/pokedex --stats` | Progress summary, no art |
-| `/pokedex --dupes` | Full duplicate list, most-caught first |
-| `/pokedex --project` | Only Pokemon caught while working in this project |
-| `/pokedex --scale 1` | Full-size 32px sprites |
-| `/pokeclaude-release <name>` | Release one Pokemon (dry-run first) |
-| `/pokeclaude-release all` | Wipe the Pokedex and start over |
+| `/pokeclaude:pokedex` | Paginated grid of everything you've caught |
+| `…:pokedex --all` | Include uncaught entries as dim silhouettes |
+| `…:pokedex --id 25` | Large detail view for one species |
+| `…:pokedex --stats` | Progress summary, no art |
+| `…:pokedex --dupes` | Full duplicate list, most-caught first |
+| `…:pokedex --project` | Only Pokemon caught while working in this project |
+| `…:pokedex --scale 1` | Full-size 64px sprites |
+| `/pokeclaude:pokeclaude-release <name>` | Release one Pokemon (dry-run first) |
+| `…:pokeclaude-release all` | Wipe the Pokedex and start over |
 
 ### Per-project Pokedex
 
@@ -110,7 +112,7 @@ independently, not merely filtered — Pikachu can be ×4 globally while being �
 ×1 somewhere else.
 
 The global collection is always the source of truth. `--project` is a view over it, and
-`/pokeclaude-release all --project` resets one project's records **without** touching your
+`…:pokeclaude-release all --project` resets one project's records **without** touching your
 real collection.
 
 ### Releasing
@@ -128,10 +130,17 @@ pass `--confirm`.
 ## Rendering
 
 Sprites are drawn with Unicode half-blocks (`▀`), where a glyph's foreground paints the
-upper pixel and its background the lower one — two pixels per character cell, so a 32x32
-sprite occupies 32 columns by 16 rows. Grid views downsample 2x to fit more per row, and
-column count is derived from your actual terminal width because wrapping destroys pixel
-art.
+upper pixel and its background the lower one — two pixels per character cell, so a 64x64
+sprite occupies 64 columns by 32 rows.
+
+Stored at **64px with up to 63 colours**, which is as much as the source holds: the official
+art is 96x96 but only ~78x41 pixels of it are actual content, so 64px keeps essentially all
+real detail while 96px would be interpolation. Grid views downsample 4x (16px) and catch
+banners 2x (32px) so they fit beside their text; column count comes from your real terminal
+width, because wrapping destroys pixel art.
+
+Escape codes are emitted only when a colour changes rather than per cell, which cuts the
+byte overhead 3-5x — that matters for the catch banner, which travels through a hook field.
 
 ## Storage
 
@@ -171,16 +180,17 @@ forking and `/compact` all just start the next turn cleanly.
 ## Assets
 
 Sprites are baked from [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (official
-96x96 art) into a compact palette+nibble format — ~1.2KB each, 450KB for all 386.
+96x96 art) into a compact palette+index format — ~4KB each, 1.5MB for all 386.
 
 ```bash
-python3 tools/bake_sprites.py --max-dex 386 --size 32
+python3 tools/bake_sprites.py --max-dex 386 --size 64
 python3 tools/bake_sprites.py --ids 25 --preview   # see one in your terminal
 ```
 
 Baking crops to the content bbox before downscaling (otherwise a third of the pixel
 budget encodes empty margin), thresholds alpha *before* resizing to keep silhouettes
-crisp, and quantizes to <=15 colors so each pixel fits one nibble.
+crisp, quantizes to <=63 colours (one symbol per pixel from a 64-character alphabet), and
+trims blank rows so a wide sprite does not store half a file of padding.
 
 To extend past Gen 3, re-run with `--max-dex 1025`.
 

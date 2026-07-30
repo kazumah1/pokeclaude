@@ -71,7 +71,7 @@ def fit_columns(term_width, cell_w):
 
 
 def render_grid(
-    entries, sprites_dir, meta, cols=4, cell_w=32, show_uncaught=False, scale=1
+    entries, sprites_dir, meta, cols=4, cell_w=64, show_uncaught=False, scale=1
 ):
     """Render one page.
 

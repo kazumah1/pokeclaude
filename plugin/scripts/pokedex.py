@@ -74,7 +74,8 @@ def main():
     ap.add_argument("--stats", action="store_true")
     ap.add_argument("--width", type=int, default=None, help="override terminal width")
     ap.add_argument(
-        "--scale", type=int, default=2, help="1 = full 32px sprites, 2 = 16px grid"
+        "--scale", type=int, default=4,
+        help="sprite divisor: 1 = full 64px, 2 = 32px, 4 = 16px grid"
     )
     ap.add_argument(
         "--project",
@@ -185,7 +186,7 @@ def main():
     ids = roster if args.all else sorted(int(k) for k in caught)
 
     scale = max(1, args.scale)
-    cell_w = 32 // scale
+    cell_w = 64 // scale
     cols = args.cols or dex.fit_columns(width, cell_w)
     per = max(1, args.per_page or cols * 3)  # three rows per page by default
 

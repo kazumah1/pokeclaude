@@ -43,8 +43,18 @@ OUT_DIR = os.path.join(REPO, "plugin", "assets", "sprites")
 META_PATH = os.path.join(REPO, "plugin", "assets", "pokemon.json")
 CACHE = os.path.join(REPO, ".cache", "png")
 
-MAX_PALETTE = 15  # index 0 reserved for transparent -> one nibble per pixel
+MAX_PALETTE = 63  # index 0 reserved for transparent; base64-ish digit per pixel
 ALPHA_CUTOFF = 128
+
+
+# Pixel indices are one character each. With a palette above 16 entries a single
+# hex digit is not enough, so use a 64-symbol alphabet: same one-char-per-pixel
+# density, four times the colour depth.
+_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-"
+
+
+def _enc(i):
+    return _ALPHABET[i]
 
 
 def fetch(url, dest, retries=3):
@@ -128,11 +138,19 @@ def bake_one(png_path, size):
     if len(out_pal) > MAX_PALETTE:
         raise AssertionError("palette overflow: %d" % len(out_pal))
 
+    # Trim fully transparent rows. The square canvas is only a layout device;
+    # keeping its blank padding would roughly double every wide sprite's file
+    # for no visual gain, and the renderer trims columns already.
+    rows = [indices[y * size:(y + 1) * size] for y in range(size)]
+    keep = [y for y, r in enumerate(rows) if any(v != 0 for v in r)]
+    if not keep:
+        return None
+    rows = rows[keep[0]:keep[-1] + 1]
     return {
         "w": size,
-        "h": size,
+        "h": len(rows),
         "pal": ["%02x%02x%02x" % c for c in out_pal],
-        "px": "".join("%x" % i for i in indices),
+        "px": "".join(_enc(i) for r in rows for i in r),
     }
 
 
@@ -140,7 +158,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--max-dex", type=int, default=386)
     ap.add_argument("--ids", type=str, default=None, help="comma list, overrides range")
-    ap.add_argument("--size", type=int, default=32)
+    ap.add_argument("--size", type=int, default=64)
     ap.add_argument("--preview", action="store_true", help="print sprites as rendered")
     args = ap.parse_args()
 
