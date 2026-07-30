@@ -16,51 +16,94 @@ Works with **Claude Code**, **Codex CLI**, **Cursor**, **Kiro**, and **GitHub Co
 
 Requires Python 3 (system `python3` is fine, no packages) and a truecolor terminal.
 
+Pick your agent below.
+
+### Claude Code
+
+Installs as a plugin, which also adds slash commands (`/pokeclaude:pokedex`).
+
+```bash
+claude plugin marketplace add <you>/pokeclaude
+claude plugin install pokeclaude@pokeclaude
+```
+
+Then restart Claude Code. Use a local path instead of `<you>/pokeclaude` to install from a
+clone.
+
+### Codex CLI
+
+Same marketplace flow, reading the same manifest.
+
+```bash
+codex plugin marketplace add <you>/pokeclaude
+codex plugin add pokeclaude@pokeclaude
+```
+
+`marketplace add` accepts `owner/repo`, a local path, or an HTTPS/SSH Git URL.
+
+### Cursor
+
 ```bash
 git clone https://github.com/<you>/pokeclaude.git
 cd pokeclaude
-python3 install.py
+python3 install.py --host cursor
 ```
 
-That detects which agent CLIs you have and wires each one up. Restart your agent
-afterwards so it picks up the hooks.
+Writes `~/.cursor/hooks.json`.
+
+### Kiro
 
 ```bash
+git clone https://github.com/<you>/pokeclaude.git
+cd pokeclaude
+python3 install.py --host kiro
+```
+
+Writes `~/.kiro/hooks/pokeclaude.json`.
+
+### GitHub Copilot CLI
+
+```bash
+git clone https://github.com/<you>/pokeclaude.git
+cd pokeclaude
+python3 install.py --host copilot
+```
+
+Writes `~/.copilot/hooks.json`.
+
+### Any host: automatic detection
+
+If you use several agents, this wires up every one it finds:
+
+```bash
+python3 install.py               # detect and install
 python3 install.py --list        # show detected hosts and what's installed
 python3 install.py --dry-run     # preview changes without writing
-python3 install.py --host kiro    # one host only
-python3 install.py --all          # wire every supported host
-python3 install.py --uninstall    # remove again
+python3 install.py --all         # wire every supported host
+python3 install.py --uninstall   # remove again
 ```
 
 Existing hook config is merged, not overwritten — your other hooks are left alone, and the
 original is backed up to `<file>.pokeclaude-backup`.
 
-### Per-host details
+Restart your agent after installing so it picks up the hooks.
 
-| Host | Config written | Event | Catch appears via |
-|---|---|---|---|
-| Claude Code | `~/.claude/hooks/hooks.json` | `Stop` | inline, full colour |
-| Codex CLI | `~/.codex/hooks.json` | `stop` | inline, full colour |
-| Cursor | `~/.cursor/hooks.json` | `stop` | stderr |
-| Kiro | `~/.kiro/hooks/pokeclaude.json` | `Stop` | stderr |
-| GitHub Copilot CLI | `~/.copilot/hooks.json` | `stop` | stderr |
+### Where the catch appears
+
+| Host | Install route | Catch appears |
+|---|---|---|
+| Claude Code | plugin marketplace | inline, full colour |
+| Codex CLI | plugin marketplace | inline, full colour |
+| Cursor | `install.py --host cursor` | stderr |
+| Kiro | `install.py --host kiro` | stderr |
+| GitHub Copilot CLI | `install.py --host copilot` | stderr |
 
 Claude Code and Codex render hook output directly, so catches appear inline as you work.
-The other hosts discard hook stdout, so the banner goes to stderr instead — whether that is
-displayed depends on the host. Either way the catch is recorded, and any catch you did not
-see is announced the next time you open your Pokedex.
+The other hosts discard hook stdout, so the banner goes to stderr — whether that is shown
+depends on the host. Either way the catch is recorded, and any catch you did not see is
+announced the next time you open your Pokedex.
 
-Override detection with `POKECLAUDE_HOST=codex` if needed.
-
-### Claude Code as a plugin
-
-Claude Code can also install it as a proper plugin, which adds slash commands:
-
-```bash
-claude plugin marketplace add /path/to/pokeclaude
-claude plugin install pokeclaude@pokeclaude
-```
+Override host detection with `POKECLAUDE_HOST=codex` if needed.
 
 ---
 
@@ -216,7 +259,7 @@ would break your session.
 
 **Multi-host.** Everything above is shared. Each host differs in only two respects — where
 the turn's token count lives, and how to show you a banner — and those live in
-`plugin/lib/pokeclaude/hosts.py`. See [`adapters/README.md`](adapters/README.md) to add
+`plugin/lib/pokeclaude/hosts.py`. See [`docs/HOSTS.md`](docs/HOSTS.md) to add
 another host.
 
 ---
