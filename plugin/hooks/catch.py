@@ -26,14 +26,18 @@ META = os.path.join(ASSETS, "pokemon.json")
 # real catch rate drifts far above the calibrated one. An offset is O(1) to store
 # and guarantees each transcript line is counted exactly once.
 STATE_KEY = "offset"
+CARRY_KEY = "last_msg"  # last message id counted, for blocks split across turns
 
 
-def read_turn_tokens(transcript_path, offset):
+def read_turn_tokens(transcript_path, offset, carry=None):
     """Sum assistant output_tokens written since byte `offset`.
 
-    Returns (tokens, new_offset). Reading forward from a stored offset means each
-    line is counted exactly once and the cost is proportional to what the turn
-    actually appended, not to the size of the whole transcript.
+    Returns (tokens, new_offset, last_message_id). Reading forward from a stored
+    offset means each line is scanned exactly once and the cost is proportional
+    to what the turn actually appended, not to the whole transcript.
+
+    `carry` is the last message id counted by the previous call; it guards the
+    case where one message's blocks are split across a turn boundary.
 
     If the file is shorter than the offset it was replaced or rotated, so we
     restart from the beginning rather than trusting a stale position.
@@ -41,14 +45,22 @@ def read_turn_tokens(transcript_path, offset):
     try:
         size = os.path.getsize(transcript_path)
     except OSError:
-        return 0, offset
+        return 0, offset, carry
 
     if size < offset:  # rotated/truncated: the old position is meaningless
         offset = 0
     if size == offset:  # nothing appended since the last roll
-        return 0, offset
+        return 0, offset, carry
 
-    total = 0
+    # One assistant message is written as several records -- one per content
+    # block (thinking, text, each tool_use) -- and every record repeats the
+    # message's FINAL output_tokens rather than that block's share. Summing per
+    # record therefore counts a multi-block message 2-3x. Measured on this
+    # project's own transcript: 336 records for 173 messages, with all 122
+    # multi-record messages carrying byte-identical counts, giving 2.32x
+    # inflation. Keying on message id collapses them back to one value each.
+    seen = {}
+    last_id = None
     try:
         with open(transcript_path, errors="replace") as f:
             if offset:
@@ -67,11 +79,22 @@ def read_turn_tokens(transcript_path, offset):
                     continue
                 if d.get("type") != "assistant":
                     continue
-                usage = (d.get("message") or {}).get("usage") or {}
-                total += usage.get("output_tokens") or 0
+                msg = d.get("message") or {}
+                tokens = (msg.get("usage") or {}).get("output_tokens") or 0
+                # Fall back to the record uuid when there is no message id, so a
+                # malformed record still contributes at most once.
+                key = msg.get("id") or d.get("uuid") or ("line-%d" % offset)
+                seen[key] = tokens  # replicated value: last write wins
+                last_id = key
     except (IOError, OSError):
-        return 0, offset
-    return total, offset
+        return 0, offset, carry
+
+    # A message whose blocks straddle a turn boundary appears in this window and
+    # the previous one. It was already paid for, so drop it.
+    if carry is not None:
+        seen.pop(carry, None)
+
+    return sum(seen.values()), offset, (last_id if last_id is not None else carry)
 
 
 def load_roster():
@@ -100,19 +123,22 @@ def main():
     if not transcript:
         return 0
 
-    state = store.load_state()
-    sess = state.get(str(session_id)) or {}
+    skey = str(session_id)
+    sess = store.load_state().get(skey) or {}
     offset = sess.get(STATE_KEY) or 0
+    carry = sess.get(CARRY_KEY)
 
-    tokens, new_offset = read_turn_tokens(transcript, offset)
+    tokens, new_offset, last_id = read_turn_tokens(transcript, offset, carry)
     if new_offset == offset:  # nothing new to gamble
         return 0
 
-    # Commit the offset before rolling, so a crash mid-roll cannot let the same
-    # tokens be gambled a second time.
-    sess[STATE_KEY] = new_offset
-    state[str(session_id)] = sess
-    store.save_state(state)
+    # Commit before rolling, so a crash mid-roll cannot let the same tokens be
+    # gambled twice. The update is done under the same lock as the pokedex,
+    # because two sessions ending at once would otherwise clobber each other's
+    # offset with a whole-file write and re-gamble an entire transcript.
+    store.update_session_state(
+        skey, {STATE_KEY: new_offset, CARRY_KEY: last_id}
+    )
 
     if tokens <= 0:
         return 0
