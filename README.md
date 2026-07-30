@@ -34,23 +34,29 @@ Claude Code reports the footprint as **~49 tokens always-on** and classifies the
 
 ## How it works
 
-**Catch rolls.** A `Stop` hook fires once per completed turn, reads that turn's real
-assistant `output_tokens` from the session transcript, and rolls against it. Long
-grinding turns genuinely improve your odds; idle ones do nothing.
+**Catch rolls.** A `Stop` hook fires once per completed turn and rolls against that
+turn's real assistant `output_tokens` — everything produced between your prompt and the
+end of the response. Long grinding turns genuinely improve your odds; short ones barely
+move the needle. Scope is strictly one turn: the session so far never counts, so
+installing mid-session doesn't hand out a free catch.
 
 **Rate.** `TOKENS_PER_CATCH` is calibrated by replaying real turns through the actual
-probability function: across 157 sessions and 30,000+ minutes of active work, it yields one
-catch per **~53 minutes of active work**. Raise it in
+probability function: across 5,057 turns from 157 sessions (30,330 minutes of active work)
+it yields one catch per **~54 minutes of active work**. Raise it in
 [`encounter.py`](plugin/lib/pokeclaude/encounter.py) for rarer catches, lower it for more.
 
-Two traps if you retune it, both of which produced wrong constants here first:
+Real turns are much larger than intuition suggests — median 5,907 output tokens, p90
+32,558, max 338,263 — so don't tune against an assumed "typical turn".
+
+Three traps if you retune it, each of which produced a wrong constant here first:
 
 1. Claude Code writes one transcript record per content block and repeats the message's
    *final* `output_tokens` on every one — naive per-record summing over-counts by 2–3x.
    Deduplicate by `message.id`.
 2. "Tokens per minute" depends entirely on the denominator: wall-clock gives ~1,070
-   tok/min, excluding idle gaps gives ~2,090. Prefer replaying turns over any
-   tokens-per-minute shortcut.
+   tok/min, excluding idle gaps gives ~2,090. Prefer replaying turns.
+3. Tool results are recorded as `type: "user"`. Treating them as turn boundaries splits
+   one agentic turn into dozens.
 
 **It costs you nothing.** The catch banner is delivered via a hook's `systemMessage`,
 which Claude Code renders to the UI *without* injecting it into the model's context.
@@ -138,12 +144,11 @@ missing sprite, unavailable lock, malformed input — all exit 0 and print nothi
 dropped catch is invisible. A crashing or hanging hook would ruin your session, so that
 never happens.
 
-Token accounting is single-spend. Progress is a byte offset into the transcript, keyed on
-the transcript path rather than the session id — a resumed or forked session gets a new
-session id pointing at a transcript that already holds its history, and an id-keyed offset
-would re-gamble all of it. `/compact` rewrites a transcript in place to a size that can be
-unchanged or larger, so the offset is also fingerprinted against the last counted message
-id and reset when the stream turns out to be a different one.
+One roll per turn. The hook records the id of the turn it last rolled for, so a `Stop`
+that fires more than once (a subagent finishing, for example) cannot hand out several
+chances for one prompt. Because scope is a single turn rather than a running byte offset,
+there is nothing to drift, desync on a rewritten transcript, or accumulate — resuming,
+forking and `/compact` all just start the next turn cleanly.
 
 ## Assets
 

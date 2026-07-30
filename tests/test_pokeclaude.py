@@ -86,6 +86,33 @@ def assistant(uuid, tokens, msg_id=None, **extra):
     return d
 
 
+def prompt(uuid, text="hello"):
+    """A real user prompt: what opens a turn."""
+    return {"type": "user", "uuid": uuid, "message": {"role": "user", "content": text}}
+
+
+def tool_result(uuid):
+    """A tool result. Recorded as type=user but must NOT open a new turn."""
+    return {
+        "type": "user",
+        "uuid": uuid,
+        "toolUseResult": {"ok": True},
+        "message": {"role": "user", "content": "result"},
+    }
+
+
+def tool_result_block(uuid):
+    """A tool result expressed as a content block rather than toolUseResult."""
+    return {
+        "type": "user",
+        "uuid": uuid,
+        "message": {
+            "role": "user",
+            "content": [{"type": "tool_result", "tool_use_id": "x", "content": "ok"}],
+        },
+    }
+
+
 def blocks(msg_id, tokens, n):
     """One logical assistant message written as n content-block records.
 
@@ -209,7 +236,7 @@ def test_encounter_probability():
     )
     # Active-time median with per-message dedup (see encounter.py docstring).
     # Validated by replaying 30k+ minutes of real turns: ~53 min/catch.
-    mins = E.TOKENS_PER_CATCH / 1700.0
+    mins = E.TOKENS_PER_CATCH / 1020.0
     check(45 <= mins <= 60, "calibration lands in the 45-60 min target (%.0f min)" % mins)
 
 
@@ -343,172 +370,95 @@ def test_hook_noninterference():
     check(rc == 0 and out == "", "POKECLAUDE_DISABLE=1 suppresses everything")
 
 
-def test_hook_no_double_spend():
-    print("\n[hook] token accounting is single-spend")
+def test_hook_turn_scoping():
+    """The roll must see ONE turn: the user's prompt to the end of the response.
+
+    Earlier versions tracked a byte offset, which meant the first sight of a
+    transcript banked the entire session into one roll -- on a long session that
+    read ~188k tokens and hit the 50% cap, 18x a normal turn.
+    """
+    print("\n[hook] roll is scoped to the last turn only")
     home, _ = fresh_home()
     m = load_hook()
 
-    # The exact shape of the bug that was found and fixed: many small records.
-    recs = [assistant("u%04d" % i, 100) for i in range(600)]
+    # Three turns; only the last one may be counted.
+    recs = []
+    recs += [prompt("p1")] + blocks("m1", 1000, 2)
+    recs += [prompt("p2")] + blocks("m2", 2000, 3)
+    recs += [prompt("p3")] + blocks("m3", 3000, 2)
     t = write_transcript(os.path.join(home, "t.jsonl"), recs)
 
-    tok1, off1, id1 = m.read_turn_tokens(t, 0)
-    check(tok1 == 60000, "first read counts every token (%d)" % tok1)
-    tok2, off2, _ = m.read_turn_tokens(t, off1, id1)
-    check(tok2 == 0, "re-reading an unchanged transcript counts 0 (regression guard)")
-    check(off2 == off1, "offset does not move when nothing was appended")
+    tok, turn = m.read_turn_tokens(t)
+    check(tok == 3000, "only the last turn's tokens count (got %d, want 3000)" % tok)
+    check(turn == "p3", "turn marker identifies the opening prompt")
 
-    with open(t, "a") as f:
-        for i in range(3):
-            f.write(json.dumps(assistant("n%d" % i, 500)) + "\n")
-    tok3, off3, id3 = m.read_turn_tokens(t, off2, id1)
-    check(tok3 == 1500, "only newly appended tokens are counted (%d)" % tok3)
+    # Tool results are also type=user; they must NOT split the turn.
+    recs = [prompt("q1")] + blocks("a1", 500, 2) + [tool_result("tr1")] + blocks("a2", 700, 2)
+    t2 = write_transcript(os.path.join(home, "t2.jsonl"), recs)
+    tok2, turn2 = m.read_turn_tokens(t2)
+    check(tok2 == 1200, "tool results do not split a turn (got %d, want 1200)" % tok2)
+    check(turn2 == "q1", "turn still attributed to the real prompt")
 
-    # /clear and /compact can shrink or replace the transcript.
-    small = write_transcript(os.path.join(home, "s.jsonl"), [assistant("r1", 42)])
-    tok4, _, _ = m.read_turn_tokens(small, 999999)
-    check(tok4 == 42, "offset past EOF restarts cleanly (rotation/compact)")
+    # A tool_result expressed as a content block must also not split.
+    recs = [prompt("r1")] + blocks("b1", 400, 1) + [tool_result_block("trb")] + blocks("b2", 600, 1)
+    t3 = write_transcript(os.path.join(home, "t3.jsonl"), recs)
+    tok3, _ = m.read_turn_tokens(t3)
+    check(tok3 == 1000, "tool_result content block does not split a turn (got %d)" % tok3)
 
-    # A line still being written must not be counted twice.
-    p = os.path.join(home, "part.jsonl")
-    with open(p, "w") as f:
-        f.write(json.dumps(assistant("p1", 10)) + "\n")
-        f.write('{"type":"assistant","uuid":"p2","message":{"usa')
-    tok5, off5, id5 = m.read_turn_tokens(p, 0)
-    check(tok5 == 10, "partial trailing line is skipped")
-    with open(p, "a") as f:
-        f.write('ge":{"output_tokens":77},"id":"msg_p2"}}\n')
-    tok6, _, _ = m.read_turn_tokens(p, off5, id5)
-    check(tok6 == 77, "completed line counted exactly once")
+    # Content-block replication within a turn is still collapsed per message.
+    t4 = write_transcript(os.path.join(home, "t4.jsonl"), [prompt("s1")] + blocks("one", 884, 4))
+    tok4, _ = m.read_turn_tokens(t4)
+    check(tok4 == 884, "4 block records of one message count 884 once (got %d)" % tok4)
 
-    # Multi-byte content must not desync the byte offset.
-    u = os.path.join(home, "uni.jsonl")
-    write_transcript(u, [assistant("完全な絵文字✨", 5), assistant("u2", 9)])
-    tok7, off7, _ = m.read_turn_tokens(u, 0)
-    check(tok7 == 14, "multi-byte transcript counts correctly")
-    check(off7 == os.path.getsize(u), "offset matches byte size exactly (no drift)")
+    # No user prompt at all -> nothing to roll for.
+    t5 = write_transcript(os.path.join(home, "t5.jsonl"), blocks("orphan", 900, 2))
+    tok5, turn5 = m.read_turn_tokens(t5)
+    check(turn5 is None and tok5 == 0, "transcript with no prompt yields no turn")
 
+    # Unreadable transcript degrades quietly.
+    tok6, turn6 = m.read_turn_tokens(os.path.join(home, "nope.jsonl"))
+    check(tok6 == 0 and turn6 is None, "missing transcript returns no turn")
 
-def test_hook_block_replication():
-    """Regression guard for the 2.32x over-count.
-
-    Claude Code writes one record per content block (thinking, text, each
-    tool_use) and repeats the message's FINAL output_tokens on every one.
-    Summing per record inflated the catch rate ~2.3x above the calibrated target.
-    """
-    print("\n[hook] content-block replication is not double-counted")
-    home, _ = fresh_home()
-    m = load_hook()
-
-    # One message, 4 block records, each carrying output_tokens=884.
-    t = write_transcript(os.path.join(home, "b.jsonl"), blocks("msg_a", 884, 4))
-    tok, off, last = m.read_turn_tokens(t, 0)
-    check(tok == 884, "4 block records of one message count 884 once (got %d)" % tok)
-    check(last == "msg_a", "returns the last message id for carry-over")
-
-    # Three messages of differing block counts.
-    recs = blocks("m1", 100, 1) + blocks("m2", 200, 3) + blocks("m3", 300, 2)
-    t2 = write_transcript(os.path.join(home, "b2.jsonl"), recs)
-    tok2, _, _ = m.read_turn_tokens(t2, 0)
-    check(tok2 == 600, "mixed block counts sum per message (100+200+300, got %d)" % tok2)
-
-    # A message split across a turn boundary must be paid for exactly once.
-    t3 = os.path.join(home, "b3.jsonl")
-    write_transcript(t3, blocks("split", 500, 2))
-    tok3, off3, last3 = m.read_turn_tokens(t3, 0)
-    check(tok3 == 500 and last3 == "split", "first half of a split message counts 500")
-    with open(t3, "a") as f:  # remaining blocks of the SAME message arrive later
-        for r in blocks("split", 500, 2):
+    # Multibyte content must not break parsing.
+    t7 = os.path.join(home, "t7.jsonl")
+    with open(t7, "w") as f:
+        f.write(json.dumps(prompt("u1", text="✨完全 café 🎮"), ensure_ascii=False) + "\n")
+        for r in blocks("mb", 250, 2):
             f.write(json.dumps(r) + "\n")
-    tok4, off4, _ = m.read_turn_tokens(t3, off3, last3)
-    check(tok4 == 0, "later blocks of an already-paid message count 0 (got %d)" % tok4)
-
-    # A genuinely new message after a split one still counts.
-    with open(t3, "a") as f:
-        for r in blocks("next", 250, 2):
-            f.write(json.dumps(r) + "\n")
-    tok5, _, _ = m.read_turn_tokens(t3, off4, last3)
-    check(tok5 == 250, "a new message after a split one counts once (got %d)" % tok5)
-
-    # Records lacking a message id must still contribute at most once.
-    t4 = os.path.join(home, "b4.jsonl")
-    with open(t4, "w") as f:
-        f.write('{"type":"assistant","uuid":"x1","message":{"usage":{"output_tokens":11}}}\n')
-    tok6, _, _ = m.read_turn_tokens(t4, 0)
-    check(tok6 == 11, "record without message.id falls back to uuid (got %d)" % tok6)
+    tok7, _ = m.read_turn_tokens(t7)
+    check(tok7 == 250, "multibyte prompt parses correctly (got %d)" % tok7)
 
 
-def test_hook_stream_identity():
-    """Guards against offsets surviving into a different token stream."""
-    print("\n[hook] stream identity and offset keying")
-    home, _ = fresh_home()
-    m = load_hook()
-
-    # /compact rewrites in place; the file can end up the SAME size or larger, so
-    # a size check alone cannot notice. The carried message id must catch it.
-    p = os.path.join(home, "c.jsonl")
-    write_transcript(p, [assistant("a%d" % i, 100, msg_id="old%d" % i) for i in range(6)])
-    tok1, off1, last1 = m.read_turn_tokens(p, 0)
-    check(tok1 == 600, "initial read counts 600")
-
-    # Same byte size, entirely different content.
-    write_transcript(p, [assistant("z%d" % i, 100, msg_id="new%d" % i) for i in range(6)])
-    same = os.path.getsize(p) == off1
-    tok2, off2, _ = m.read_turn_tokens(p, off1, last1)
-    check(same, "rewritten transcript is byte-identical in size (worst case)")
-    check(tok2 == 600, "in-place rewrite is detected and re-read (got %d)" % tok2)
-
-    # A genuinely continuous stream must NOT be reset by the fingerprint check.
-    p2 = os.path.join(home, "d.jsonl")
-    write_transcript(p2, [assistant("k1", 50, msg_id="m1")])
-    t1, o1, l1 = m.read_turn_tokens(p2, 0)
-    with open(p2, "a") as f:
-        f.write(json.dumps(assistant("k2", 70, msg_id="m2")) + "\n")
-    t2, o2, l2 = m.read_turn_tokens(p2, o1, l1)
-    check(t2 == 70, "continuous append is not spuriously reset (got %d)" % t2)
-
-    # Multi-byte content must not desync the byte offset (binary read).
-    p3 = os.path.join(home, "u2.jsonl")
-    with open(p3, "w") as f:
-        f.write(
-            json.dumps(
-                {"type": "assistant", "uuid": "e1",
-                 "message": {"id": "me", "note": "✨完全 café 🎮",
-                             "usage": {"output_tokens": 30}}},
-                ensure_ascii=False,
-            ) + "\n"
-        )
-    t3, o3, _ = m.read_turn_tokens(p3, 0)
-    check(t3 == 30 and o3 == os.path.getsize(p3), "multibyte offset matches byte size")
-
-
-def test_hook_session_keying():
-    """A resumed/forked session must not re-gamble its inherited history."""
-    print("\n[hook] offset keyed on transcript, not session id")
+def test_hook_one_roll_per_turn():
+    """Stop can fire more than once per turn; only the first may roll."""
+    print("\n[hook] one roll per turn")
     home, _ = fresh_home()
     from pokeclaude import store
 
+    # A huge turn so a roll would almost certainly produce output.
     t = write_transcript(
-        os.path.join(home, "t.jsonl"), [assistant("u%d" % i, 5000) for i in range(4)]
+        os.path.join(home, "t.jsonl"), [prompt("p1")] + blocks("m1", 400000, 2)
     )
 
-    rc, out1, err = run_hook({"session_id": "orig", "transcript_path": t}, home)
-    check(rc == 0 and not err, "first run clean")
+    outs = []
+    for i in range(6):
+        rc, out, err = run_hook({"session_id": "s", "transcript_path": t}, home)
+        check(rc == 0 and not err, "run %d clean" % (i + 1))
+        outs.append(out.strip())
+
+    produced = [o for o in outs if o]
+    check(len(produced) <= 1, "at most one roll for one turn (%d rolled)" % len(produced))
     st = store.load_state()
-    check(t in st, "state is keyed on the transcript path")
-    off = st[t].get("offset")
-    check(off == os.path.getsize(t), "offset consumed the whole transcript")
+    check(st.get(t, {}).get("last_turn") == "p1", "state records the rolled turn")
 
-    # Same transcript, brand new session id (what resume/fork looks like).
-    rc, out2, err = run_hook({"session_id": "resumed-new-id", "transcript_path": t}, home)
-    check(rc == 0 and out2 == "", "resumed session with a NEW id re-gambles nothing")
-    check(store.load_state()[t].get("offset") == off, "offset unchanged by the resume")
-
-    # Missing session_id must not collide with other sessions.
-    t2 = write_transcript(os.path.join(home, "t2.jsonl"), [assistant("v1", 100)])
-    run_hook({"transcript_path": t2}, home)
-    st2 = store.load_state()
-    check(t2 in st2 and t in st2, "a session with no id gets its own entry, no collision")
+    # A NEW prompt is a new turn and becomes eligible again.
+    with open(t, "a") as f:
+        f.write(json.dumps(prompt("p2")) + "\n")
+        for r in blocks("m2", 400000, 2):
+            f.write(json.dumps(r) + "\n")
+    rc, out, err = run_hook({"session_id": "s", "transcript_path": t}, home)
+    check(rc == 0 and not err, "next turn runs clean")
+    check(store.load_state().get(t, {}).get("last_turn") == "p2", "new turn is rolled")
 
 
 def test_state_locking():
@@ -567,7 +517,11 @@ def test_state_locking():
 def test_hook_end_to_end():
     print("\n[hook] end-to-end catch")
     home, _ = fresh_home()
-    t = write_transcript(os.path.join(home, "t.jsonl"), [assistant("u%d" % i, 200000) for i in range(3)])
+    # A turn needs an opening prompt now that rolls are turn-scoped.
+    t = write_transcript(
+        os.path.join(home, "t.jsonl"),
+        [prompt("p1")] + [assistant("u%d" % i, 200000) for i in range(3)],
+    )
 
     caught, banners = 0, []
     for i in range(12):  # p=0.5 per fresh session; 12 tries makes a dry run ~0.02%
@@ -833,10 +787,8 @@ def main():
         test_encounter_selection,
         test_sprite,
         test_hook_noninterference,
-        test_hook_no_double_spend,
-        test_hook_block_replication,
-        test_hook_stream_identity,
-        test_hook_session_keying,
+        test_hook_turn_scoping,
+        test_hook_one_roll_per_turn,
         test_state_locking,
         test_hook_end_to_end,
         test_pokedex_cli,

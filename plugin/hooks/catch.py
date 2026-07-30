@@ -20,125 +20,83 @@ ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets"
 SPRITES = os.path.join(ASSETS, "sprites")
 META = os.path.join(ASSETS, "pokemon.json")
 
-# Tokens are counted from a byte offset rather than by remembering message ids.
-# A bounded id cache cannot work here: any id evicted from the cache is reported
-# fresh again on the next turn, so the same tokens get gambled repeatedly and the
-# real catch rate drifts far above the calibrated one. An offset is O(1) to store
-# and guarantees each transcript line is counted exactly once.
-STATE_KEY = "offset"
-CARRY_KEY = "last_msg"  # last message id counted, for blocks split across turns
+# The roll is scoped to a single turn: the tokens the assistant produced between
+# the user's prompt and the end of its response. Only the id of the last-rolled
+# turn is persisted, which is all that is needed to avoid gambling one prompt
+# twice -- and unlike a byte offset it cannot drift, desync on a rewritten
+# transcript, or bank a whole session's history into one roll.
+STATE_KEY = "last_turn"
 
 
-def _same_stream(path, offset, carry):
-    """Is `carry` still the last counted message id at byte `offset`?
+def _is_user_prompt(d):
+    """Does this record represent the human actually typing something?
 
-    A rewritten-in-place transcript (e.g. /compact) can be the same size or
-    larger, so a size check alone cannot detect it. Reading the last complete
-    line before `offset` and comparing its message id is a cheap fingerprint: it
-    seeks straight to the tail of the consumed region rather than rescanning.
+    Tool results are also written as `type: "user"`, so they must be excluded --
+    otherwise every tool call would look like the start of a new turn and the
+    roll would only ever see the tokens after the final tool result.
     """
-    if not carry:
-        return True  # nothing to compare against; treat as continuous
-    try:
-        with open(path, "rb") as f:
-            window = min(offset, 64 * 1024)
-            f.seek(offset - window)
-            chunk = f.read(window)
-    except (IOError, OSError):
-        return True  # unreadable: do not destroy a valid offset on a transient error
-    for raw in reversed(chunk.split(b"\n")):
-        if b'"usage"' not in raw:
-            continue
-        try:
-            d = json.loads(raw.decode("utf-8", "replace"))
-        except ValueError:
-            continue
-        if d.get("type") != "assistant":
-            continue
-        msg = d.get("message") or {}
-        return (msg.get("id") or d.get("uuid")) == carry
-    return True  # no assistant record in the window; nothing contradicts carry
+    if d.get("type") != "user":
+        return False
+    if d.get("toolUseResult") is not None:
+        return False
+    content = (d.get("message") or {}).get("content")
+    if isinstance(content, list):
+        # A tool_result block is a continuation of the same turn, not a prompt.
+        for block in content:
+            if isinstance(block, dict) and block.get("type") == "tool_result":
+                return False
+    return True
 
 
-def read_turn_tokens(transcript_path, offset, carry=None):
-    """Sum assistant output_tokens written since byte `offset`.
+def read_turn_tokens(transcript_path):
+    """Tokens the assistant produced for the most recent user prompt.
 
-    Returns (tokens, new_offset, last_message_id). Reading forward from a stored
-    offset means each line is scanned exactly once and the cost is proportional
-    to what the turn actually appended, not to the whole transcript.
+    Scans back to the last real user prompt and sums the assistant
+    `output_tokens` that follow it, which is exactly "from when the user
+    prompted to when the agent finished". Returns (tokens, turn_marker), where
+    the marker identifies the turn so the same one is never gambled twice.
 
-    `carry` is the last message id counted by the previous call; it guards the
-    case where one message's blocks are split across a turn boundary.
-
-    If the file is shorter than the offset it was replaced or rotated, so we
-    restart from the beginning rather than trusting a stale position.
+    One assistant message is written as several records -- one per content block
+    (thinking, text, each tool_use) -- and every record repeats the message's
+    FINAL output_tokens rather than that block's share. Measured on this
+    project's own transcript: 336 records for 173 messages, with all 122
+    multi-record messages carrying byte-identical counts, so summing per record
+    inflates by 2.32x. Keying on message id collapses them back to one value.
     """
-    try:
-        size = os.path.getsize(transcript_path)
-    except OSError:
-        return 0, offset, carry
-
-    if size < offset:  # rotated/truncated: the old position is meaningless
-        offset = 0
-    elif offset and not _same_stream(transcript_path, offset, carry):
-        # /compact rewrites a transcript in place, so a byte offset can still be
-        # inside a file whose content is entirely different. Only a shrink is
-        # detectable by size, so confirm the carried message id is still at the
-        # recorded position; if not, the stream was replaced and we restart.
-        offset = 0
-        carry = None
-    if size == offset:  # nothing appended since the last roll
-        return 0, offset, carry
-
-    # One assistant message is written as several records -- one per content
-    # block (thinking, text, each tool_use) -- and every record repeats the
-    # message's FINAL output_tokens rather than that block's share. Summing per
-    # record therefore counts a multi-block message 2-3x. Measured on this
-    # project's own transcript: 336 records for 173 messages, with all 122
-    # multi-record messages carrying byte-identical counts, giving 2.32x
-    # inflation. Keying on message id collapses them back to one value each.
+    turn_start = None  # uuid of the prompt that opened the current turn
     seen = {}
-    last_id = None
     try:
-        # Opened in binary so the offset is counted in real bytes. Text mode
-        # would use the locale codec, and on any non-UTF-8 locale the decoded
-        # length would not match the file's byte length, desyncing the offset.
         with open(transcript_path, "rb") as f:
-            if offset:
-                f.seek(offset)
             for raw in f:
                 if not raw.endswith(b"\n"):
-                    # A partial trailing line is still being written; leave the
-                    # offset before it so it is counted once it is complete.
-                    break
-                offset += len(raw)
-                if b'"usage"' not in raw:
+                    break  # a record still being written
+                # Cheap prefilter to skip records that cannot matter. Matches on
+                # bare tokens rather than `"type":"user"`, because JSON may or
+                # may not carry a space after the colon and a whitespace-
+                # sensitive filter would silently drop real prompts.
+                if b'"user"' not in raw and b'"usage"' not in raw:
                     continue
                 try:
                     d = json.loads(raw.decode("utf-8", "replace"))
                 except ValueError:
                     continue
+                if _is_user_prompt(d):
+                    turn_start = d.get("uuid") or d.get("timestamp")
+                    seen = {}  # a new prompt starts a fresh turn
+                    continue
                 if d.get("type") != "assistant":
                     continue
                 msg = d.get("message") or {}
-                tokens = (msg.get("usage") or {}).get("output_tokens") or 0
-                # Fall back to the record uuid when there is no message id, so a
-                # malformed record still contributes at most once.
-                key = msg.get("id") or d.get("uuid") or ("line-%d" % offset)
-                seen[key] = tokens  # replicated value: last write wins
-                last_id = key
+                key = msg.get("id") or d.get("uuid")
+                if key is None:
+                    continue
+                seen[key] = (msg.get("usage") or {}).get("output_tokens") or 0
     except (IOError, OSError):
-        # Keep whatever was already read rather than discarding it: returning
-        # tokens=0 with an advanced offset would let the caller commit past
-        # lines that were never gambled, silently losing them.
-        pass
+        return 0, None
 
-    # A message whose blocks straddle a turn boundary appears in this window and
-    # the previous one. It was already paid for, so drop it.
-    if carry is not None:
-        seen.pop(carry, None)
-
-    return sum(seen.values()), offset, (last_id if last_id is not None else carry)
+    if turn_start is None:
+        return 0, None
+    return sum(seen.values()), turn_start
 
 
 def load_roster():
@@ -175,23 +133,21 @@ def main():
     # exactly the identity of the token stream being counted.
     skey = str(transcript)
     sess = store.load_state().get(skey) or {}
-    offset = sess.get(STATE_KEY) or 0
-    carry = sess.get(CARRY_KEY)
 
-    tokens, new_offset, last_id = read_turn_tokens(transcript, offset, carry)
-    if new_offset == offset:  # nothing new to gamble
+    tokens, turn = read_turn_tokens(transcript)
+    if turn is None or tokens <= 0:
+        return 0
+    if sess.get(STATE_KEY) == turn:
+        # Already rolled for this turn. Stop can fire more than once per turn
+        # (e.g. after a subagent finishes), and rolling again would hand out
+        # several chances for one prompt.
         return 0
 
-    # Commit before rolling, so a crash mid-roll cannot let the same tokens be
-    # gambled twice. The update is done under the same lock as the pokedex,
-    # because two sessions ending at once would otherwise clobber each other's
-    # offset with a whole-file write and re-gamble an entire transcript.
-    store.update_session_state(
-        skey, {STATE_KEY: new_offset, CARRY_KEY: last_id}
-    )
-
-    if tokens <= 0:
-        return 0
+    # Commit before rolling, so a crash mid-roll cannot let the same turn be
+    # gambled twice. Written under the same lock as the pokedex, because two
+    # sessions ending at once would otherwise clobber each other's record with a
+    # whole-file write.
+    store.update_session_state(skey, {STATE_KEY: turn})
 
     hit, _p = encounter.roll(tokens)
     if not hit:
