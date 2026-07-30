@@ -29,6 +29,7 @@ STATE_PATH = os.path.join(ROOT, "state.json")
 
 LOCK_TIMEOUT_S = 2.0  # give up rather than delay the user's turn
 LOCK_STALE_S = 30.0  # assume a lock older than this belongs to a dead process
+MAX_SESSIONS = 200  # cap state.json growth; oldest-progress entries are dropped
 SCHEMA = 1
 
 
@@ -289,8 +290,47 @@ def load_state(path=STATE_PATH):
 
 
 def save_state(state, path=STATE_PATH):
+    """Overwrite the whole state file. Prefer update_session_state: a bare
+    whole-file write is last-writer-wins across processes."""
     try:
         _write_atomic(path, state)
         return True
     except (IOError, OSError):
         return False
+
+
+def update_session_state(session_key, fields, path=STATE_PATH):
+    """Merge `fields` into one session's state under the pokedex lock.
+
+    load-modify-write on a shared file is not made safe by an atomic rename:
+    rename only prevents a torn file, not two processes each writing a whole
+    file from a stale read. Without the lock, two sessions ending at the same
+    moment clobber each other's committed offset, and the loser re-gambles its
+    entire transcript on the next turn. Taking the lock (the same one the
+    pokedex uses) serialises the read-modify-write.
+
+    Returns True on success, False if the lock was unavailable -- in which case
+    nothing was written and the caller must not treat the tokens as spent.
+    """
+    fd = _acquire()
+    if fd is None:
+        return False
+    try:
+        state = load_state(path)
+        sess = state.get(session_key) or {}
+        sess.update(fields)
+        state[session_key] = sess
+        # Bound growth: state accumulates one entry per session forever, and a
+        # heavy user would otherwise carry thousands of dead sessions.
+        if len(state) > MAX_SESSIONS:
+            ordered = sorted(
+                state.items(), key=lambda kv: kv[1].get("offset", 0), reverse=True
+            )
+            state = dict(ordered[:MAX_SESSIONS])
+            state[session_key] = sess
+        _write_atomic(path, state)
+        return True
+    except (IOError, OSError):
+        return False
+    finally:
+        _release(fd)

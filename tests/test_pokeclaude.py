@@ -76,10 +76,23 @@ def write_transcript(path, records):
     return path
 
 
-def assistant(uuid, tokens, **extra):
-    d = {"type": "assistant", "uuid": uuid, "message": {"usage": {"output_tokens": tokens}}}
+def assistant(uuid, tokens, msg_id=None, **extra):
+    d = {
+        "type": "assistant",
+        "uuid": uuid,
+        "message": {"id": msg_id or ("msg_" + uuid), "usage": {"output_tokens": tokens}},
+    }
     d.update(extra)
     return d
+
+
+def blocks(msg_id, tokens, n):
+    """One logical assistant message written as n content-block records.
+
+    Claude Code repeats the message's FINAL output_tokens on every record, so a
+    correct reader must count `tokens` once, not n times.
+    """
+    return [assistant("%s-b%d" % (msg_id, i), tokens, msg_id=msg_id) for i in range(n)]
 
 
 # --------------------------------------------------------------------------
@@ -337,21 +350,21 @@ def test_hook_no_double_spend():
     recs = [assistant("u%04d" % i, 100) for i in range(600)]
     t = write_transcript(os.path.join(home, "t.jsonl"), recs)
 
-    tok1, off1 = m.read_turn_tokens(t, 0)
+    tok1, off1, id1 = m.read_turn_tokens(t, 0)
     check(tok1 == 60000, "first read counts every token (%d)" % tok1)
-    tok2, off2 = m.read_turn_tokens(t, off1)
+    tok2, off2, _ = m.read_turn_tokens(t, off1, id1)
     check(tok2 == 0, "re-reading an unchanged transcript counts 0 (regression guard)")
     check(off2 == off1, "offset does not move when nothing was appended")
 
     with open(t, "a") as f:
         for i in range(3):
             f.write(json.dumps(assistant("n%d" % i, 500)) + "\n")
-    tok3, _ = m.read_turn_tokens(t, off2)
+    tok3, off3, id3 = m.read_turn_tokens(t, off2, id1)
     check(tok3 == 1500, "only newly appended tokens are counted (%d)" % tok3)
 
     # /clear and /compact can shrink or replace the transcript.
     small = write_transcript(os.path.join(home, "s.jsonl"), [assistant("r1", 42)])
-    tok4, _ = m.read_turn_tokens(small, 999999)
+    tok4, _, _ = m.read_turn_tokens(small, 999999)
     check(tok4 == 42, "offset past EOF restarts cleanly (rotation/compact)")
 
     # A line still being written must not be counted twice.
@@ -359,19 +372,121 @@ def test_hook_no_double_spend():
     with open(p, "w") as f:
         f.write(json.dumps(assistant("p1", 10)) + "\n")
         f.write('{"type":"assistant","uuid":"p2","message":{"usa')
-    tok5, off5 = m.read_turn_tokens(p, 0)
+    tok5, off5, id5 = m.read_turn_tokens(p, 0)
     check(tok5 == 10, "partial trailing line is skipped")
     with open(p, "a") as f:
-        f.write('ge":{"output_tokens":77}}}\n')
-    tok6, _ = m.read_turn_tokens(p, off5)
+        f.write('ge":{"output_tokens":77},"id":"msg_p2"}}\n')
+    tok6, _, _ = m.read_turn_tokens(p, off5, id5)
     check(tok6 == 77, "completed line counted exactly once")
 
     # Multi-byte content must not desync the byte offset.
     u = os.path.join(home, "uni.jsonl")
     write_transcript(u, [assistant("完全な絵文字✨", 5), assistant("u2", 9)])
-    tok7, off7 = m.read_turn_tokens(u, 0)
+    tok7, off7, _ = m.read_turn_tokens(u, 0)
     check(tok7 == 14, "multi-byte transcript counts correctly")
     check(off7 == os.path.getsize(u), "offset matches byte size exactly (no drift)")
+
+
+def test_hook_block_replication():
+    """Regression guard for the 2.32x over-count.
+
+    Claude Code writes one record per content block (thinking, text, each
+    tool_use) and repeats the message's FINAL output_tokens on every one.
+    Summing per record inflated the catch rate ~2.3x above the calibrated target.
+    """
+    print("\n[hook] content-block replication is not double-counted")
+    home, _ = fresh_home()
+    m = load_hook()
+
+    # One message, 4 block records, each carrying output_tokens=884.
+    t = write_transcript(os.path.join(home, "b.jsonl"), blocks("msg_a", 884, 4))
+    tok, off, last = m.read_turn_tokens(t, 0)
+    check(tok == 884, "4 block records of one message count 884 once (got %d)" % tok)
+    check(last == "msg_a", "returns the last message id for carry-over")
+
+    # Three messages of differing block counts.
+    recs = blocks("m1", 100, 1) + blocks("m2", 200, 3) + blocks("m3", 300, 2)
+    t2 = write_transcript(os.path.join(home, "b2.jsonl"), recs)
+    tok2, _, _ = m.read_turn_tokens(t2, 0)
+    check(tok2 == 600, "mixed block counts sum per message (100+200+300, got %d)" % tok2)
+
+    # A message split across a turn boundary must be paid for exactly once.
+    t3 = os.path.join(home, "b3.jsonl")
+    write_transcript(t3, blocks("split", 500, 2))
+    tok3, off3, last3 = m.read_turn_tokens(t3, 0)
+    check(tok3 == 500 and last3 == "split", "first half of a split message counts 500")
+    with open(t3, "a") as f:  # remaining blocks of the SAME message arrive later
+        for r in blocks("split", 500, 2):
+            f.write(json.dumps(r) + "\n")
+    tok4, off4, _ = m.read_turn_tokens(t3, off3, last3)
+    check(tok4 == 0, "later blocks of an already-paid message count 0 (got %d)" % tok4)
+
+    # A genuinely new message after a split one still counts.
+    with open(t3, "a") as f:
+        for r in blocks("next", 250, 2):
+            f.write(json.dumps(r) + "\n")
+    tok5, _, _ = m.read_turn_tokens(t3, off4, last3)
+    check(tok5 == 250, "a new message after a split one counts once (got %d)" % tok5)
+
+    # Records lacking a message id must still contribute at most once.
+    t4 = os.path.join(home, "b4.jsonl")
+    with open(t4, "w") as f:
+        f.write('{"type":"assistant","uuid":"x1","message":{"usage":{"output_tokens":11}}}\n')
+    tok6, _, _ = m.read_turn_tokens(t4, 0)
+    check(tok6 == 11, "record without message.id falls back to uuid (got %d)" % tok6)
+
+
+def test_state_locking():
+    """Regression guard: concurrent sessions must not clobber each other's offset.
+
+    save_state wrote the whole file from a stale read, so two sessions ending at
+    once lost one another's committed offset and re-gambled a whole transcript.
+    update_session_state serialises that read-modify-write under the lock.
+    """
+    print("\n[state] concurrent offset commits are not lost")
+    home, store = fresh_home()
+
+    worker = os.path.join(home, "sw.py")
+    with open(worker, "w") as f:
+        f.write(
+            "import sys,os\n"
+            "sys.path.insert(0,%r)\n"
+            "os.environ['POKECLAUDE_HOME']=%r\n"
+            "from pokeclaude import store\n"
+            "n=sys.argv[1]\n"
+            "ok=store.update_session_state('s'+n, {'offset': int(n)*1000, 'last_msg': 'm'+n})\n"
+            "print(1 if ok else 0)\n"
+            % (os.path.join(REPO, "plugin", "lib"), home)
+        )
+
+    n = 12
+    procs = [
+        subprocess.Popen([sys.executable, worker, str(i)], stdout=subprocess.PIPE)
+        for i in range(n)
+    ]
+    oks = sum(int(p.communicate()[0].decode().strip() or 0) for p in procs)
+
+    st = store.load_state()
+    check(oks == n, "all %d concurrent state writes reported success" % n)
+    check(len(st) == n, "state.json retains ALL %d sessions (got %d)" % (n, len(st)))
+    correct = sum(
+        1 for i in range(n) if (st.get("s%d" % i) or {}).get("offset") == i * 1000
+    )
+    check(correct == n, "every session's offset survived (%d/%d)" % (correct, n))
+
+    # Merging must preserve fields written by an earlier call.
+    store.update_session_state("merge", {"offset": 5})
+    store.update_session_state("merge", {"last_msg": "abc"})
+    mg = store.load_state().get("merge") or {}
+    check(mg.get("offset") == 5 and mg.get("last_msg") == "abc", "updates merge, not replace")
+
+    # Growth is bounded so state.json cannot accumulate forever.
+    for i in range(store.MAX_SESSIONS + 40):
+        store.update_session_state("bulk%d" % i, {"offset": i})
+    check(
+        len(store.load_state()) <= store.MAX_SESSIONS + 1,
+        "session count bounded at MAX_SESSIONS (%d)" % len(store.load_state()),
+    )
 
 
 def test_hook_end_to_end():
@@ -644,6 +759,8 @@ def main():
         test_sprite,
         test_hook_noninterference,
         test_hook_no_double_spend,
+        test_hook_block_replication,
+        test_state_locking,
         test_hook_end_to_end,
         test_pokedex_cli,
         test_project_scoping,
