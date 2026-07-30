@@ -19,14 +19,18 @@ project, one collection.
 ## Install
 
 ```bash
-# from a local checkout
-claude plugin install ./plugin
-
-# then browse your collection
-/pokedex
+claude plugin marketplace add /path/to/pokeclaude
+claude plugin install pokeclaude@pokeclaude
 ```
 
+Then start a new session and `/pokedex` to browse your collection. Catches begin
+appearing as you work.
+
 Requires Python 3 (system `python3` is fine) and a truecolor terminal.
+
+Claude Code reports the footprint as **~26 tokens always-on** and classifies the hook as
+`harness-only — no model context cost`; check it yourself with
+`claude plugin details pokeclaude`.
 
 ## How it works
 
