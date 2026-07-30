@@ -46,11 +46,27 @@ import hashlib
 import os
 import random
 
-# One catch per this many assistant output tokens (see module docstring).
-# Replaying 5,057 real turns gives ~72 min of active work per catch at the
-# current cap: ~1.5 catches in a median working session, ~80% chance of at
-# least one. Lower it for more catches, raise it for fewer.
-TOKENS_PER_CATCH = 55_000
+# Difficulty presets, in turn tokens per catch. Calibrated against a real
+# 589k-token, 147-turn session so the numbers describe sessions rather than
+# abstract token counts:
+#
+#   light   ~2 catches in such a session
+#   normal  ~1 catch      (the point where a catch reads as an event)
+#   strict  ~0.5 catches  (a genuine surprise)
+#
+# Beware of specifying these as "1 per N tokens" without checking N against a
+# real session: a 589k-token session makes "1 per 100k" mean six catches, which
+# sounds rare and is not.
+PRESETS = {
+    "light": 300_000,
+    "normal": 600_000,
+    "strict": 1_200_000,
+}
+DEFAULT_PRESET = "normal"
+
+# Resolved at import from the user's config; PRESETS[DEFAULT_PRESET] is the
+# fallback whenever the file is missing or unreadable.
+TOKENS_PER_CATCH = PRESETS[DEFAULT_PRESET]
 
 # A duplicate species is this much as likely as an unseen one.
 DUPLICATE_WEIGHT = 0.25
@@ -78,10 +94,34 @@ RARITY = {
 }
 
 
-def turn_probability(output_tokens, tokens_per_catch=TOKENS_PER_CATCH):
+def resolve_preset(name):
+    """Map a preset name to its tokens-per-catch, tolerating junk.
+
+    Anything unrecognised falls back to the default rather than raising, because
+    this is read by a hook that must never break a turn over a typo'd config.
+    """
+    return PRESETS.get(str(name or "").strip().lower(), PRESETS[DEFAULT_PRESET])
+
+
+def configured_tokens_per_catch(config=None):
+    """Tokens per catch from the user's config, or the default.
+
+    Accepts an explicit numeric `tokens_per_catch` override for anyone who wants
+    a rate between the presets; otherwise reads `preset`.
+    """
+    cfg = config or {}
+    override = cfg.get("tokens_per_catch")
+    if isinstance(override, (int, float)) and override > 0:
+        return int(override)
+    return resolve_preset(cfg.get("preset"))
+
+
+def turn_probability(output_tokens, tokens_per_catch=None):
     """Chance that a turn of `output_tokens` yields a catch."""
     if output_tokens <= 0:
         return 0.0
+    if tokens_per_catch is None:
+        tokens_per_catch = TOKENS_PER_CATCH
     return min(MAX_TURN_PROBABILITY, float(output_tokens) / float(tokens_per_catch))
 
 
@@ -93,7 +133,7 @@ def _rng(seed=None):
     return random.Random(int.from_bytes(os.urandom(8), "big"))
 
 
-def roll(output_tokens, seed=None, tokens_per_catch=TOKENS_PER_CATCH):
+def roll(output_tokens, seed=None, tokens_per_catch=None):
     p = turn_probability(output_tokens, tokens_per_catch)
     return _rng(seed).random() < p, p
 
@@ -136,3 +176,66 @@ def stable_seed(*parts):
     """Deterministic seed from arbitrary parts, for reproducible tests."""
     h = hashlib.sha256("|".join(str(p) for p in parts).encode()).digest()
     return int.from_bytes(h[:8], "big")
+
+
+# --- rarity, for display ----------------------------------------------------
+# Tiers are cut on the RARITY multiplier, not on encounter share, because share
+# depends on roster size: adding Gen 4-9 would push every species' share down and
+# silently reclassify the whole dex. The multiplier is an intrinsic property.
+#
+# The roster is genuinely bimodal -- 365 species at multiplier 1.0 and 21
+# legendaries between 0.04 and 0.12 -- so inventing five evenly spaced tiers
+# would be fiction. These four describe what actually exists, and MYTHICAL
+# separates the true one-offs (Mew, Celebi, Jirachi, Deoxys at <=0.05) from the
+# merely legendary birds and beasts.
+TIERS = (
+    (0.05, "MYTHICAL"),
+    (0.15, "LEGENDARY"),
+    (0.99, "RARE"),
+    (1e9, "COMMON"),
+)
+
+
+def encounter_share(species_id, roster_ids):
+    """This species' share of all encounters, as a percentage.
+
+    Computed on an EMPTY dex, so the number is a stable property of the species
+    rather than something that drifts as the player's collection fills. (With a
+    full dex every weight is scaled by DUPLICATE_WEIGHT, which cancels out and
+    leaves the same shares anyway.)
+    """
+    ids = [int(i) for i in roster_ids]
+    if not ids:
+        return 0.0
+    total = sum(RARITY.get(p, 1.0) for p in ids)
+    if total <= 0:
+        return 0.0
+    return 100.0 * RARITY.get(int(species_id), 1.0) / total
+
+
+def rarity_tier(species_id, roster_ids=None):
+    """Tier label for a species, from its intrinsic rarity multiplier.
+
+    `roster_ids` is accepted but unused: the tier does not depend on roster size,
+    unlike encounter_share. It stays in the signature so callers can pass the same
+    arguments to both.
+    """
+    mult = RARITY.get(int(species_id), 1.0)
+    for limit, label in TIERS:
+        if mult <= limit:
+            return label
+    return "COMMON"
+
+
+def format_rarity(species_id, roster_ids):
+    """'0.04% of encounters  ·  LEGENDARY', ready to display.
+
+    Percentages are shown with enough precision to distinguish tiers: a
+    legendary sits near 0.01% and a common near 0.29%, so two decimals are
+    needed and trailing zeros are trimmed for tidiness.
+    """
+    share = encounter_share(species_id, roster_ids)
+    if share <= 0:
+        return ""
+    text = ("%.3f" % share).rstrip("0").rstrip(".") if share < 0.1 else "%.2f" % share
+    return "%s%% of encounters  ·  %s" % (text, rarity_tier(species_id, roster_ids))

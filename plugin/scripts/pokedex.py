@@ -145,7 +145,9 @@ def main():
 
             blob = spritelib.downscale(blob, detail_scale)
 
-        out += dex.render_detail(pid, blob, meta.get(str(pid)) or {}, caught.get(str(pid)))
+        out += dex.render_detail(
+            pid, blob, meta.get(str(pid)) or {}, caught.get(str(pid)), roster_ids=roster
+        )
         print("\n".join(out))
         return 0
 

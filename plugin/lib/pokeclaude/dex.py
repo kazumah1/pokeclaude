@@ -10,6 +10,7 @@ terminal width, and each cell's caption sits under its art.
 """
 import json
 import os
+import re
 
 from . import sprite as spritelib
 
@@ -20,6 +21,9 @@ GOLD = (246, 200, 60)
 GREY = (110, 110, 110)
 
 CELL_GAP = 2
+
+# Visible width has to be measured with escapes stripped; len() counts them.
+_ANSI = re.compile(r"\x1b\[[0-9;]*m")
 
 
 def _c(rgb, text, bold=False):
@@ -75,8 +79,15 @@ def _cell(blob, caption_lines, width, sprite_h):
     while len(rows) < sprite_h:
         rows.insert(0, blank)  # bottom-align: pad at the top
 
+    # Captions must occupy the same visible width as the art, or a caption
+    # shorter than its cell lets the NEXT cell's caption slide left and the
+    # labels stop lining up with the sprites above them.
     for cap in caption_lines:
-        rows.append(cap)
+        vis_cap = len(_ANSI.sub("", cap))
+        if vis_cap > width:
+            cap = _truncate(cap, width)
+            vis_cap = width
+        rows.append(cap + " " * (width - vis_cap))
     return rows
 
 
@@ -172,7 +183,7 @@ def render_grid(
     return lines
 
 
-def render_detail(pid, blob, info, caught):
+def render_detail(pid, blob, info, caught, roster_ids=None):
     """Large single-entry view."""
     lines = [""]
     art = spritelib.render(blob, indent=2) if blob else []
@@ -185,6 +196,17 @@ def render_detail(pid, blob, info, caught):
         DIM + types + RESET,
         "",
     ]
+    if roster_ids:
+        from . import encounter
+
+        tier = encounter.rarity_tier(pid)
+        share = encounter.encounter_share(pid, roster_ids)
+        colour = GOLD if tier in ("MYTHICAL", "LEGENDARY") else GREY
+        pct = ("%.3f" % share).rstrip("0").rstrip(".") if share < 0.1 else "%.2f" % share
+        meta_lines.append(
+            DIM + "%s%% of encounters" % pct + RESET + "  " + _c(colour, tier)
+        )
+        meta_lines.append("")
     if caught:
         import time as _t
 

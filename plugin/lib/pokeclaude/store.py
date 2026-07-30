@@ -26,6 +26,7 @@ ROOT = os.environ.get(
 DEX_PATH = os.path.join(ROOT, "pokedex.json")
 LOCK_PATH = os.path.join(ROOT, "pokedex.json.lock")
 STATE_PATH = os.path.join(ROOT, "state.json")
+CONFIG_PATH = os.path.join(ROOT, "config.json")
 
 LOCK_TIMEOUT_S = 2.0  # give up rather than delay the user's turn
 LOCK_STALE_S = 30.0  # assume a lock older than this belongs to a dead process
@@ -273,6 +274,42 @@ def release(species_id=None, path=DEX_PATH, project=None):
         }
 
     return transaction(_mutate, path)
+
+
+# --- user config ------------------------------------------------------------
+# Small and separate from the pokedex: it is read by the hook on every turn and
+# must never risk the collection, and a corrupt or missing file simply means
+# "use the defaults" rather than an error.
+
+
+def load_config(path=CONFIG_PATH):
+    """Read config. Never raises; a bad file reads as empty."""
+    try:
+        with open(path) as f:
+            c = json.load(f)
+            return c if isinstance(c, dict) else {}
+    except (IOError, OSError, ValueError):
+        return {}
+
+
+def save_config(fields, path=CONFIG_PATH):
+    """Merge `fields` into the config. Returns True on success.
+
+    Written under the pokedex lock so two sessions changing settings at once
+    cannot clobber each other with a whole-file write.
+    """
+    fd = _acquire()
+    if fd is None:
+        return False
+    try:
+        cfg = load_config(path)
+        cfg.update(fields)
+        _write_atomic(path, cfg)
+        return True
+    except (IOError, OSError):
+        return False
+    finally:
+        _release(fd)
 
 
 # --- per-session roll bookkeeping -------------------------------------------
