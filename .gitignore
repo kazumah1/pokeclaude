@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 spike/*.log
+
+# Publishing scaffolding — not part of the project
+PUBLISH.md
