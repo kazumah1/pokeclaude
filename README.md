@@ -40,13 +40,31 @@ end of the response. Long grinding turns genuinely improve your odds; short ones
 move the needle. Scope is strictly one turn: the session so far never counts, so
 installing mid-session doesn't hand out a free catch.
 
-**Rate.** `TOKENS_PER_CATCH` is calibrated by replaying real turns through the actual
-probability function: across 5,057 turns from 157 sessions (30,330 minutes of active work)
-it yields one catch per **~54 minutes of active work**. Raise it in
-[`encounter.py`](plugin/lib/pokeclaude/encounter.py) for rarer catches, lower it for more.
+**Odds.** `p(catch) = min(0.25, turn_tokens / 55,000)` — linear in the turn's output
+tokens, ceilinged so one enormous turn is lucky rather than inevitable.
+
+| Turn size | p(catch) | |
+|---|---|---|
+| 1,000 tok | 1.8% | |
+| 5,907 tok | 10.7% | median real turn |
+| 13,750 tok+ | 25.0% | cap binds here (~26% of turns) |
+
+**Rate.** Replaying 5,057 real turns from 157 sessions (30,330 active minutes) gives one
+catch per **~72 minutes of active work** — about **1.5 catches in a median working
+session**, with a ~80% chance of at least one. Both knobs live in
+[`encounter.py`](plugin/lib/pokeclaude/encounter.py).
 
 Real turns are much larger than intuition suggests — median 5,907 output tokens, p90
-32,558, max 338,263 — so don't tune against an assumed "typical turn".
+32,558, max 338,263 — so don't tune against an assumed "typical turn". Sessions are also
+bimodal: a median of 2 turns across all 228 sessions, but 17 (p90 123) once you exclude
+one-off questions.
+
+The two knobs fight each other, which is worth knowing before turning either. Lowering
+`MAX_TURN_PROBABILITY` to rein in long sessions barely works: 71% of the catches in a
+marathon session come from *ordinary* turns, because those sessions are long by turn count
+(median 107 turns) rather than turn size. Restoring the average afterwards by lowering
+`TOKENS_PER_CATCH` pushes marathon totals right back up. Scale the whole curve with
+`TOKENS_PER_CATCH`; use the cap only to bound extremes.
 
 Three traps if you retune it, each of which produced a wrong constant here first:
 
