@@ -1,0 +1,1838 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="838" height="820" viewBox="0 0 838.0 820.0" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="15">
+<rect width="100%" height="100%" fill="#0d1117" rx="6"/>
+<rect x="257" y="86" width="36" height="18" fill="#ff9441"/>
+<rect x="482" y="86" width="9" height="18" fill="#b4e6ee"/>
+<rect x="491" y="86" width="27" height="18" fill="#8bc5cd"/>
+<rect x="653" y="86" width="9" height="18" fill="#292929"/>
+<rect x="158" y="104" width="9" height="18" fill="#a4d541"/>
+<rect x="167" y="104" width="9" height="18" fill="#526229"/>
+<rect x="239" y="104" width="9" height="18" fill="#de5239"/>
+<rect x="248" y="104" width="27" height="18" fill="#ff9441"/>
+<rect x="275" y="104" width="9" height="18" fill="#de5239"/>
+<rect x="284" y="104" width="9" height="18" fill="#ff9441"/>
+<rect x="293" y="104" width="9" height="18" fill="#de5239"/>
+<rect x="464" y="104" width="36" height="18" fill="#8bc5cd"/>
+<rect x="500" y="104" width="9" height="18" fill="#5a9ca4"/>
+<rect x="509" y="104" width="27" height="18" fill="#8bc5cd"/>
+<rect x="644" y="104" width="9" height="18" fill="#000000"/>
+<rect x="653" y="104" width="9" height="18" fill="#f6bd20"/>
+<rect x="662" y="104" width="9" height="18" fill="#623108"/>
+<rect x="743" y="104" width="9" height="18" fill="#41414a"/>
+<rect x="95" y="122" width="27" height="18" fill="#bdff73"/>
+<rect x="122" y="122" width="9" height="18" fill="#101010"/>
+<rect x="131" y="122" width="9" height="18" fill="#73ac31"/>
+<rect x="140" y="122" width="18" height="18" fill="#bdff73"/>
+<rect x="158" y="122" width="9" height="18" fill="#a4d541"/>
+<rect x="167" y="122" width="9" height="18" fill="#73ac31"/>
+<rect x="176" y="122" width="9" height="18" fill="#101010"/>
+<rect x="239" y="122" width="9" height="18" fill="#101010"/>
+<rect x="248" y="122" width="36" height="18" fill="#ff9441"/>
+<rect x="284" y="122" width="9" height="18" fill="#08398b"/>
+<rect x="293" y="122" width="9" height="18" fill="#de5239"/>
+<rect x="302" y="122" width="9" height="18" fill="#101010"/>
+<rect x="455" y="122" width="9" height="18" fill="#297383"/>
+<rect x="464" y="122" width="36" height="18" fill="#8bc5cd"/>
+<rect x="500" y="122" width="9" height="18" fill="#101010"/>
+<rect x="509" y="122" width="9" height="18" fill="#832900"/>
+<rect x="518" y="122" width="9" height="18" fill="#297383"/>
+<rect x="527" y="122" width="9" height="18" fill="#5a9ca4"/>
+<rect x="536" y="122" width="9" height="18" fill="#101010"/>
+<rect x="653" y="122" width="9" height="18" fill="#f6bd20"/>
+<rect x="662" y="122" width="9" height="18" fill="#de9400"/>
+<rect x="671" y="122" width="27" height="18" fill="#fff6a4"/>
+<rect x="698" y="122" width="36" height="18" fill="#f6e652"/>
+<rect x="734" y="122" width="9" height="18" fill="#41414a"/>
+<rect x="743" y="122" width="9" height="18" fill="#000000"/>
+<rect x="23" y="140" width="9" height="18" fill="#399494"/>
+<rect x="32" y="140" width="36" height="18" fill="#83eec5"/>
+<rect x="68" y="140" width="18" height="18" fill="#399494"/>
+<rect x="86" y="140" width="9" height="18" fill="#83eec5"/>
+<rect x="95" y="140" width="36" height="18" fill="#62d5b4"/>
+<rect x="131" y="140" width="9" height="18" fill="#101010"/>
+<rect x="140" y="140" width="18" height="18" fill="#bdff73"/>
+<rect x="158" y="140" width="18" height="18" fill="#a4d541"/>
+<rect x="176" y="140" width="9" height="18" fill="#526229"/>
+<rect x="185" y="140" width="9" height="18" fill="#73ac31"/>
+<rect x="239" y="140" width="9" height="18" fill="#8b2900"/>
+<rect x="248" y="140" width="27" height="18" fill="#ff9441"/>
+<rect x="275" y="140" width="27" height="18" fill="#de5239"/>
+<rect x="365" y="140" width="18" height="18" fill="#ffd508"/>
+<rect x="455" y="140" width="9" height="18" fill="#101010"/>
+<rect x="464" y="140" width="36" height="18" fill="#8bc5cd"/>
+<rect x="500" y="140" width="36" height="18" fill="#5a9ca4"/>
+<rect x="536" y="140" width="9" height="18" fill="#101010"/>
+<rect x="653" y="140" width="9" height="18" fill="#000000"/>
+<rect x="662" y="140" width="27" height="18" fill="#f6e652"/>
+<rect x="689" y="140" width="18" height="18" fill="#000000"/>
+<rect x="707" y="140" width="9" height="18" fill="#f6e652"/>
+<rect x="716" y="140" width="9" height="18" fill="#9c5200"/>
+<rect x="770" y="140" width="27" height="18" fill="#f6e652"/>
+<rect x="23" y="158" width="9" height="18" fill="#317373"/>
+<rect x="32" y="158" width="63" height="18" fill="#83eec5"/>
+<rect x="95" y="158" width="9" height="18" fill="#317373"/>
+<rect x="104" y="158" width="9" height="18" fill="#cdcdcd"/>
+<rect x="113" y="158" width="9" height="18" fill="#62d5b4"/>
+<rect x="122" y="158" width="18" height="18" fill="#399494"/>
+<rect x="140" y="158" width="9" height="18" fill="#101010"/>
+<rect x="149" y="158" width="18" height="18" fill="#a4d541"/>
+<rect x="167" y="158" width="18" height="18" fill="#73ac31"/>
+<rect x="185" y="158" width="9" height="18" fill="#526229"/>
+<rect x="194" y="158" width="9" height="18" fill="#73ac31"/>
+<rect x="221" y="158" width="9" height="18" fill="#101010"/>
+<rect x="230" y="158" width="9" height="18" fill="#de5239"/>
+<rect x="239" y="158" width="9" height="18" fill="#ff9441"/>
+<rect x="248" y="158" width="9" height="18" fill="#de5239"/>
+<rect x="257" y="158" width="9" height="18" fill="#101010"/>
+<rect x="266" y="158" width="9" height="18" fill="#ff9441"/>
+<rect x="275" y="158" width="9" height="18" fill="#101010"/>
+<rect x="284" y="158" width="18" height="18" fill="#de5239"/>
+<rect x="302" y="158" width="9" height="18" fill="#ff9441"/>
+<rect x="311" y="158" width="18" height="18" fill="#de5239"/>
+<rect x="329" y="158" width="9" height="18" fill="#101010"/>
+<rect x="356" y="158" width="27" height="18" fill="#e63900"/>
+<rect x="383" y="158" width="9" height="18" fill="#ffd508"/>
+<rect x="437" y="158" width="27" height="18" fill="#8bc5cd"/>
+<rect x="464" y="158" width="9" height="18" fill="#101010"/>
+<rect x="473" y="158" width="36" height="18" fill="#5a9ca4"/>
+<rect x="509" y="158" width="9" height="18" fill="#101010"/>
+<rect x="518" y="158" width="9" height="18" fill="#cd7b29"/>
+<rect x="527" y="158" width="18" height="18" fill="#8bc5cd"/>
+<rect x="545" y="158" width="18" height="18" fill="#5a9ca4"/>
+<rect x="644" y="158" width="9" height="18" fill="#623108"/>
+<rect x="653" y="158" width="54" height="18" fill="#f6bd20"/>
+<rect x="707" y="158" width="9" height="18" fill="#c52018"/>
+<rect x="716" y="158" width="9" height="18" fill="#f6bd20"/>
+<rect x="725" y="158" width="9" height="18" fill="#000000"/>
+<rect x="743" y="158" width="9" height="18" fill="#f6bd20"/>
+<rect x="752" y="158" width="54" height="18" fill="#f6e652"/>
+<rect x="14" y="176" width="9" height="18" fill="#317373"/>
+<rect x="23" y="176" width="9" height="18" fill="#ffffff"/>
+<rect x="32" y="176" width="9" height="18" fill="#399494"/>
+<rect x="41" y="176" width="18" height="18" fill="#83eec5"/>
+<rect x="59" y="176" width="9" height="18" fill="#399494"/>
+<rect x="68" y="176" width="18" height="18" fill="#83eec5"/>
+<rect x="86" y="176" width="9" height="18" fill="#399494"/>
+<rect x="95" y="176" width="9" height="18" fill="#ffffff"/>
+<rect x="104" y="176" width="9" height="18" fill="#ac0031"/>
+<rect x="113" y="176" width="9" height="18" fill="#ffffff"/>
+<rect x="122" y="176" width="18" height="18" fill="#399494"/>
+<rect x="140" y="176" width="9" height="18" fill="#184a4a"/>
+<rect x="149" y="176" width="9" height="18" fill="#399494"/>
+<rect x="158" y="176" width="18" height="18" fill="#73ac31"/>
+<rect x="176" y="176" width="9" height="18" fill="#526229"/>
+<rect x="185" y="176" width="18" height="18" fill="#73ac31"/>
+<rect x="239" y="176" width="9" height="18" fill="#101010"/>
+<rect x="248" y="176" width="18" height="18" fill="#de5239"/>
+<rect x="266" y="176" width="18" height="18" fill="#e6ac5a"/>
+<rect x="284" y="176" width="18" height="18" fill="#de5239"/>
+<rect x="302" y="176" width="9" height="18" fill="#ff9441"/>
+<rect x="311" y="176" width="9" height="18" fill="#101010"/>
+<rect x="356" y="176" width="9" height="18" fill="#e63900"/>
+<rect x="365" y="176" width="18" height="18" fill="#f6a400"/>
+<rect x="383" y="176" width="9" height="18" fill="#e63900"/>
+<rect x="446" y="176" width="9" height="18" fill="#297383"/>
+<rect x="455" y="176" width="9" height="18" fill="#101010"/>
+<rect x="464" y="176" width="9" height="18" fill="#5a9ca4"/>
+<rect x="473" y="176" width="27" height="18" fill="#cd7b29"/>
+<rect x="500" y="176" width="18" height="18" fill="#ffd56a"/>
+<rect x="518" y="176" width="9" height="18" fill="#297383"/>
+<rect x="527" y="176" width="18" height="18" fill="#5a9ca4"/>
+<rect x="545" y="176" width="9" height="18" fill="#101010"/>
+<rect x="554" y="176" width="9" height="18" fill="#622900"/>
+<rect x="653" y="176" width="9" height="18" fill="#000000"/>
+<rect x="662" y="176" width="63" height="18" fill="#f6bd20"/>
+<rect x="725" y="176" width="9" height="18" fill="#f6e652"/>
+<rect x="734" y="176" width="9" height="18" fill="#623108"/>
+<rect x="743" y="176" width="27" height="18" fill="#f6bd20"/>
+<rect x="770" y="176" width="9" height="18" fill="#000000"/>
+<rect x="14" y="194" width="9" height="18" fill="#184a4a"/>
+<rect x="23" y="194" width="90" height="18" fill="#62d5b4"/>
+<rect x="113" y="194" width="63" height="18" fill="#399494"/>
+<rect x="176" y="194" width="9" height="18" fill="#184a4a"/>
+<rect x="185" y="194" width="9" height="18" fill="#73ac31"/>
+<rect x="257" y="194" width="9" height="18" fill="#8b2900"/>
+<rect x="266" y="194" width="27" height="18" fill="#ffd57b"/>
+<rect x="293" y="194" width="27" height="18" fill="#ff9441"/>
+<rect x="365" y="194" width="9" height="18" fill="#8b2900"/>
+<rect x="374" y="194" width="18" height="18" fill="#101010"/>
+<rect x="464" y="194" width="9" height="18" fill="#cd7b29"/>
+<rect x="473" y="194" width="9" height="18" fill="#ffe69c"/>
+<rect x="482" y="194" width="9" height="18" fill="#e6ac5a"/>
+<rect x="491" y="194" width="18" height="18" fill="#ffe69c"/>
+<rect x="509" y="194" width="18" height="18" fill="#ffd56a"/>
+<rect x="527" y="194" width="9" height="18" fill="#e6ac5a"/>
+<rect x="536" y="194" width="9" height="18" fill="#d5cdcd"/>
+<rect x="545" y="194" width="9" height="18" fill="#bd6a00"/>
+<rect x="554" y="194" width="9" height="18" fill="#101010"/>
+<rect x="563" y="194" width="18" height="18" fill="#5a9ca4"/>
+<rect x="581" y="194" width="9" height="18" fill="#8bc5cd"/>
+<rect x="590" y="194" width="9" height="18" fill="#297383"/>
+<rect x="599" y="194" width="9" height="18" fill="#8bc5cd"/>
+<rect x="608" y="194" width="9" height="18" fill="#101010"/>
+<rect x="653" y="194" width="9" height="18" fill="#f6e652"/>
+<rect x="662" y="194" width="9" height="18" fill="#de9400"/>
+<rect x="671" y="194" width="63" height="18" fill="#f6e652"/>
+<rect x="743" y="194" width="9" height="18" fill="#000000"/>
+<rect x="752" y="194" width="9" height="18" fill="#f6bd20"/>
+<rect x="23" y="212" width="18" height="18" fill="#101010"/>
+<rect x="41" y="212" width="9" height="18" fill="#399494"/>
+<rect x="50" y="212" width="9" height="18" fill="#317373"/>
+<rect x="59" y="212" width="9" height="18" fill="#ac0031"/>
+<rect x="68" y="212" width="27" height="18" fill="#ff6a62"/>
+<rect x="95" y="212" width="99" height="18" fill="#399494"/>
+<rect x="248" y="212" width="9" height="18" fill="#ff9441"/>
+<rect x="257" y="212" width="36" height="18" fill="#ffd57b"/>
+<rect x="293" y="212" width="9" height="18" fill="#de5239"/>
+<rect x="302" y="212" width="27" height="18" fill="#ff9441"/>
+<rect x="347" y="212" width="27" height="18" fill="#ff9441"/>
+<rect x="374" y="212" width="9" height="18" fill="#101010"/>
+<rect x="464" y="212" width="9" height="18" fill="#cd7b29"/>
+<rect x="473" y="212" width="9" height="18" fill="#ffe69c"/>
+<rect x="482" y="212" width="9" height="18" fill="#e6ac5a"/>
+<rect x="491" y="212" width="18" height="18" fill="#ffe69c"/>
+<rect x="509" y="212" width="9" height="18" fill="#e6ac5a"/>
+<rect x="518" y="212" width="9" height="18" fill="#cd7b29"/>
+<rect x="527" y="212" width="9" height="18" fill="#5a9ca4"/>
+<rect x="536" y="212" width="9" height="18" fill="#297383"/>
+<rect x="545" y="212" width="9" height="18" fill="#d5cdcd"/>
+<rect x="554" y="212" width="9" height="18" fill="#101010"/>
+<rect x="563" y="212" width="45" height="18" fill="#5a9ca4"/>
+<rect x="608" y="212" width="9" height="18" fill="#101010"/>
+<rect x="644" y="212" width="9" height="18" fill="#000000"/>
+<rect x="653" y="212" width="9" height="18" fill="#9c5200"/>
+<rect x="662" y="212" width="63" height="18" fill="#f6e652"/>
+<rect x="725" y="212" width="9" height="18" fill="#f6bd20"/>
+<rect x="734" y="212" width="27" height="18" fill="#000000"/>
+<rect x="41" y="230" width="9" height="18" fill="#399494"/>
+<rect x="50" y="230" width="18" height="18" fill="#62d5b4"/>
+<rect x="68" y="230" width="9" height="18" fill="#184a4a"/>
+<rect x="77" y="230" width="27" height="18" fill="#399494"/>
+<rect x="104" y="230" width="9" height="18" fill="#184a4a"/>
+<rect x="113" y="230" width="9" height="18" fill="#62d5b4"/>
+<rect x="122" y="230" width="18" height="18" fill="#399494"/>
+<rect x="140" y="230" width="9" height="18" fill="#184a4a"/>
+<rect x="149" y="230" width="18" height="18" fill="#399494"/>
+<rect x="167" y="230" width="18" height="18" fill="#184a4a"/>
+<rect x="185" y="230" width="9" height="18" fill="#399494"/>
+<rect x="194" y="230" width="9" height="18" fill="#101010"/>
+<rect x="239" y="230" width="9" height="18" fill="#101010"/>
+<rect x="248" y="230" width="18" height="18" fill="#ff9441"/>
+<rect x="266" y="230" width="27" height="18" fill="#e6ac5a"/>
+<rect x="293" y="230" width="9" height="18" fill="#de5239"/>
+<rect x="302" y="230" width="18" height="18" fill="#ff9441"/>
+<rect x="320" y="230" width="18" height="18" fill="#de5239"/>
+<rect x="338" y="230" width="18" height="18" fill="#e6ac5a"/>
+<rect x="356" y="230" width="9" height="18" fill="#101010"/>
+<rect x="455" y="230" width="18" height="18" fill="#8bc5cd"/>
+<rect x="473" y="230" width="9" height="18" fill="#cd7b29"/>
+<rect x="482" y="230" width="36" height="18" fill="#e6ac5a"/>
+<rect x="518" y="230" width="9" height="18" fill="#297383"/>
+<rect x="527" y="230" width="18" height="18" fill="#8bc5cd"/>
+<rect x="545" y="230" width="9" height="18" fill="#5a9ca4"/>
+<rect x="554" y="230" width="9" height="18" fill="#101010"/>
+<rect x="563" y="230" width="18" height="18" fill="#5a9ca4"/>
+<rect x="581" y="230" width="9" height="18" fill="#101010"/>
+<rect x="644" y="230" width="9" height="18" fill="#f6bd20"/>
+<rect x="653" y="230" width="54" height="18" fill="#f6e652"/>
+<rect x="707" y="230" width="9" height="18" fill="#f6bd20"/>
+<rect x="716" y="230" width="9" height="18" fill="#f6e652"/>
+<rect x="725" y="230" width="18" height="18" fill="#f6bd20"/>
+<rect x="743" y="230" width="9" height="18" fill="#000000"/>
+<rect x="50" y="248" width="27" height="18" fill="#62d5b4"/>
+<rect x="77" y="248" width="9" height="18" fill="#399494"/>
+<rect x="86" y="248" width="9" height="18" fill="#101010"/>
+<rect x="95" y="248" width="9" height="18" fill="#399494"/>
+<rect x="104" y="248" width="9" height="18" fill="#62d5b4"/>
+<rect x="113" y="248" width="27" height="18" fill="#399494"/>
+<rect x="140" y="248" width="9" height="18" fill="#184a4a"/>
+<rect x="149" y="248" width="9" height="18" fill="#101010"/>
+<rect x="158" y="248" width="9" height="18" fill="#399494"/>
+<rect x="167" y="248" width="18" height="18" fill="#317373"/>
+<rect x="185" y="248" width="9" height="18" fill="#399494"/>
+<rect x="248" y="248" width="27" height="18" fill="#de5239"/>
+<rect x="302" y="248" width="9" height="18" fill="#8b2900"/>
+<rect x="311" y="248" width="9" height="18" fill="#ff9441"/>
+<rect x="320" y="248" width="9" height="18" fill="#de5239"/>
+<rect x="329" y="248" width="9" height="18" fill="#101010"/>
+<rect x="455" y="248" width="9" height="18" fill="#297383"/>
+<rect x="464" y="248" width="18" height="18" fill="#5a9ca4"/>
+<rect x="482" y="248" width="9" height="18" fill="#101010"/>
+<rect x="527" y="248" width="36" height="18" fill="#5a9ca4"/>
+<rect x="644" y="248" width="9" height="18" fill="#623108"/>
+<rect x="653" y="248" width="9" height="18" fill="#de9400"/>
+<rect x="662" y="248" width="9" height="18" fill="#9c5200"/>
+<rect x="671" y="248" width="36" height="18" fill="#000000"/>
+<rect x="707" y="248" width="9" height="18" fill="#9c5200"/>
+<rect x="716" y="248" width="9" height="18" fill="#de9400"/>
+<rect x="725" y="248" width="9" height="18" fill="#000000"/>
+<rect x="59" y="266" width="18" height="18" fill="#101010"/>
+<rect x="95" y="266" width="9" height="18" fill="#184a4a"/>
+<rect x="104" y="266" width="27" height="18" fill="#101010"/>
+<rect x="320" y="266" width="9" height="18" fill="#101010"/>
+<rect x="536" y="266" width="9" height="18" fill="#101010"/>
+<rect x="95" y="320" width="9" height="18" fill="#ffcdc5"/>
+<rect x="104" y="320" width="9" height="18" fill="#ffaca4"/>
+<rect x="158" y="320" width="27" height="18" fill="#ffcdc5"/>
+<rect x="185" y="320" width="9" height="18" fill="#101010"/>
+<rect x="257" y="320" width="9" height="18" fill="#8b6a00"/>
+<rect x="266" y="320" width="9" height="18" fill="#ffe683"/>
+<rect x="509" y="320" width="27" height="18" fill="#101010"/>
+<rect x="68" y="338" width="27" height="18" fill="#ffcdc5"/>
+<rect x="95" y="338" width="63" height="18" fill="#ffaca4"/>
+<rect x="158" y="338" width="9" height="18" fill="#6a5262"/>
+<rect x="167" y="338" width="36" height="18" fill="#101010"/>
+<rect x="239" y="338" width="9" height="18" fill="#101010"/>
+<rect x="248" y="338" width="9" height="18" fill="#ff7352"/>
+<rect x="257" y="338" width="9" height="18" fill="#8b6a00"/>
+<rect x="266" y="338" width="9" height="18" fill="#cda400"/>
+<rect x="275" y="338" width="18" height="18" fill="#ffd500"/>
+<rect x="302" y="338" width="9" height="18" fill="#ffe683"/>
+<rect x="311" y="338" width="9" height="18" fill="#101010"/>
+<rect x="320" y="338" width="9" height="18" fill="#d55a39"/>
+<rect x="329" y="338" width="18" height="18" fill="#101010"/>
+<rect x="455" y="338" width="9" height="18" fill="#e6a452"/>
+<rect x="464" y="338" width="9" height="18" fill="#101010"/>
+<rect x="482" y="338" width="18" height="18" fill="#ffe6a4"/>
+<rect x="500" y="338" width="27" height="18" fill="#ffd54a"/>
+<rect x="527" y="338" width="9" height="18" fill="#101010"/>
+<rect x="716" y="338" width="9" height="18" fill="#835a10"/>
+<rect x="725" y="338" width="18" height="18" fill="#ffe629"/>
+<rect x="23" y="356" width="9" height="18" fill="#ffaca4"/>
+<rect x="32" y="356" width="18" height="18" fill="#101010"/>
+<rect x="50" y="356" width="9" height="18" fill="#ffaca4"/>
+<rect x="59" y="356" width="9" height="18" fill="#ffcdc5"/>
+<rect x="68" y="356" width="36" height="18" fill="#ffaca4"/>
+<rect x="104" y="356" width="9" height="18" fill="#101010"/>
+<rect x="113" y="356" width="81" height="18" fill="#ffaca4"/>
+<rect x="239" y="356" width="18" height="18" fill="#101010"/>
+<rect x="257" y="356" width="9" height="18" fill="#ffffb4"/>
+<rect x="266" y="356" width="9" height="18" fill="#cda400"/>
+<rect x="275" y="356" width="18" height="18" fill="#ffd500"/>
+<rect x="293" y="356" width="9" height="18" fill="#ffffb4"/>
+<rect x="302" y="356" width="9" height="18" fill="#ffe683"/>
+<rect x="311" y="356" width="18" height="18" fill="#debd39"/>
+<rect x="329" y="356" width="18" height="18" fill="#101010"/>
+<rect x="446" y="356" width="9" height="18" fill="#e6a452"/>
+<rect x="455" y="356" width="18" height="18" fill="#ffffff"/>
+<rect x="473" y="356" width="81" height="18" fill="#ffd54a"/>
+<rect x="716" y="356" width="18" height="18" fill="#ffe629"/>
+<rect x="734" y="356" width="9" height="18" fill="#f6f6a4"/>
+<rect x="743" y="356" width="36" height="18" fill="#ffe629"/>
+<rect x="779" y="356" width="18" height="18" fill="#f6f6a4"/>
+<rect x="23" y="374" width="9" height="18" fill="#a41020"/>
+<rect x="32" y="374" width="9" height="18" fill="#ffaca4"/>
+<rect x="41" y="374" width="27" height="18" fill="#ffcdc5"/>
+<rect x="68" y="374" width="36" height="18" fill="#ffaca4"/>
+<rect x="104" y="374" width="18" height="18" fill="#e67383"/>
+<rect x="122" y="374" width="9" height="18" fill="#e6e6e6"/>
+<rect x="131" y="374" width="9" height="18" fill="#104a8b"/>
+<rect x="140" y="374" width="9" height="18" fill="#1873c5"/>
+<rect x="149" y="374" width="9" height="18" fill="#e6e6e6"/>
+<rect x="158" y="374" width="36" height="18" fill="#ffaca4"/>
+<rect x="221" y="374" width="9" height="18" fill="#8b6a00"/>
+<rect x="239" y="374" width="9" height="18" fill="#101010"/>
+<rect x="248" y="374" width="9" height="18" fill="#ffe683"/>
+<rect x="257" y="374" width="9" height="18" fill="#101010"/>
+<rect x="266" y="374" width="9" height="18" fill="#ffffff"/>
+<rect x="275" y="374" width="18" height="18" fill="#ffffb4"/>
+<rect x="293" y="374" width="9" height="18" fill="#8b6a00"/>
+<rect x="302" y="374" width="18" height="18" fill="#ffffff"/>
+<rect x="320" y="374" width="18" height="18" fill="#ffe683"/>
+<rect x="338" y="374" width="18" height="18" fill="#101010"/>
+<rect x="356" y="374" width="9" height="18" fill="#944100"/>
+<rect x="428" y="374" width="9" height="18" fill="#945a10"/>
+<rect x="437" y="374" width="27" height="18" fill="#e6a452"/>
+<rect x="464" y="374" width="9" height="18" fill="#deb452"/>
+<rect x="473" y="374" width="18" height="18" fill="#ffeebd"/>
+<rect x="491" y="374" width="9" height="18" fill="#ffd54a"/>
+<rect x="500" y="374" width="9" height="18" fill="#deb452"/>
+<rect x="509" y="374" width="18" height="18" fill="#ffffff"/>
+<rect x="527" y="374" width="9" height="18" fill="#101010"/>
+<rect x="536" y="374" width="18" height="18" fill="#ffd54a"/>
+<rect x="707" y="374" width="9" height="18" fill="#101010"/>
+<rect x="716" y="374" width="54" height="18" fill="#ffe629"/>
+<rect x="770" y="374" width="18" height="18" fill="#cdbd20"/>
+<rect x="815" y="374" width="9" height="18" fill="#ffe629"/>
+<rect x="32" y="392" width="9" height="18" fill="#a41020"/>
+<rect x="41" y="392" width="9" height="18" fill="#ffaca4"/>
+<rect x="50" y="392" width="9" height="18" fill="#ffffff"/>
+<rect x="59" y="392" width="9" height="18" fill="#1873c5"/>
+<rect x="68" y="392" width="9" height="18" fill="#a41020"/>
+<rect x="77" y="392" width="36" height="18" fill="#ffaca4"/>
+<rect x="113" y="392" width="9" height="18" fill="#a41020"/>
+<rect x="122" y="392" width="9" height="18" fill="#1873c5"/>
+<rect x="131" y="392" width="9" height="18" fill="#104a8b"/>
+<rect x="140" y="392" width="9" height="18" fill="#1873c5"/>
+<rect x="149" y="392" width="9" height="18" fill="#104a8b"/>
+<rect x="158" y="392" width="9" height="18" fill="#a41020"/>
+<rect x="167" y="392" width="18" height="18" fill="#ffaca4"/>
+<rect x="185" y="392" width="9" height="18" fill="#e67383"/>
+<rect x="194" y="392" width="9" height="18" fill="#101010"/>
+<rect x="248" y="392" width="9" height="18" fill="#8b6a00"/>
+<rect x="257" y="392" width="9" height="18" fill="#ffe683"/>
+<rect x="266" y="392" width="9" height="18" fill="#8b6a00"/>
+<rect x="275" y="392" width="72" height="18" fill="#ffe683"/>
+<rect x="347" y="392" width="18" height="18" fill="#101010"/>
+<rect x="365" y="392" width="9" height="18" fill="#c57b08"/>
+<rect x="437" y="392" width="9" height="18" fill="#835a00"/>
+<rect x="446" y="392" width="54" height="18" fill="#ffeebd"/>
+<rect x="500" y="392" width="9" height="18" fill="#f6de8b"/>
+<rect x="509" y="392" width="18" height="18" fill="#e6a452"/>
+<rect x="527" y="392" width="36" height="18" fill="#ffd54a"/>
+<rect x="716" y="392" width="9" height="18" fill="#ac8329"/>
+<rect x="725" y="392" width="9" height="18" fill="#ffe629"/>
+<rect x="734" y="392" width="9" height="18" fill="#f6f6a4"/>
+<rect x="743" y="392" width="36" height="18" fill="#cdbd20"/>
+<rect x="779" y="392" width="9" height="18" fill="#5a3908"/>
+<rect x="806" y="392" width="9" height="18" fill="#ac8329"/>
+<rect x="815" y="392" width="9" height="18" fill="#5a3908"/>
+<rect x="32" y="410" width="9" height="18" fill="#a41020"/>
+<rect x="41" y="410" width="9" height="18" fill="#ffaca4"/>
+<rect x="50" y="410" width="9" height="18" fill="#ffffff"/>
+<rect x="59" y="410" width="9" height="18" fill="#1873c5"/>
+<rect x="68" y="410" width="9" height="18" fill="#104a8b"/>
+<rect x="77" y="410" width="54" height="18" fill="#ffaca4"/>
+<rect x="131" y="410" width="18" height="18" fill="#a41020"/>
+<rect x="149" y="410" width="36" height="18" fill="#ffaca4"/>
+<rect x="185" y="410" width="9" height="18" fill="#a41020"/>
+<rect x="194" y="410" width="9" height="18" fill="#101010"/>
+<rect x="257" y="410" width="9" height="18" fill="#8b6a00"/>
+<rect x="266" y="410" width="9" height="18" fill="#101010"/>
+<rect x="275" y="410" width="9" height="18" fill="#debd39"/>
+<rect x="284" y="410" width="9" height="18" fill="#ff7352"/>
+<rect x="293" y="410" width="18" height="18" fill="#debd39"/>
+<rect x="311" y="410" width="27" height="18" fill="#ffe683"/>
+<rect x="347" y="410" width="18" height="18" fill="#101010"/>
+<rect x="365" y="410" width="18" height="18" fill="#c57b08"/>
+<rect x="437" y="410" width="9" height="18" fill="#101010"/>
+<rect x="446" y="410" width="9" height="18" fill="#deb452"/>
+<rect x="455" y="410" width="36" height="18" fill="#ffeebd"/>
+<rect x="491" y="410" width="9" height="18" fill="#deb452"/>
+<rect x="500" y="410" width="63" height="18" fill="#e6a452"/>
+<rect x="716" y="410" width="18" height="18" fill="#101010"/>
+<rect x="734" y="410" width="18" height="18" fill="#ac8329"/>
+<rect x="752" y="410" width="18" height="18" fill="#101010"/>
+<rect x="770" y="410" width="9" height="18" fill="#836208"/>
+<rect x="779" y="410" width="9" height="18" fill="#101010"/>
+<rect x="797" y="410" width="18" height="18" fill="#ffe629"/>
+<rect x="815" y="410" width="9" height="18" fill="#101010"/>
+<rect x="32" y="428" width="27" height="18" fill="#ffcdc5"/>
+<rect x="59" y="428" width="90" height="18" fill="#ffaca4"/>
+<rect x="149" y="428" width="18" height="18" fill="#e67383"/>
+<rect x="167" y="428" width="9" height="18" fill="#101010"/>
+<rect x="176" y="428" width="18" height="18" fill="#ffaca4"/>
+<rect x="194" y="428" width="9" height="18" fill="#a41020"/>
+<rect x="239" y="428" width="9" height="18" fill="#101010"/>
+<rect x="248" y="428" width="18" height="18" fill="#debd39"/>
+<rect x="266" y="428" width="36" height="18" fill="#ffe683"/>
+<rect x="302" y="428" width="9" height="18" fill="#debd39"/>
+<rect x="311" y="428" width="27" height="18" fill="#101010"/>
+<rect x="356" y="428" width="18" height="18" fill="#c57b08"/>
+<rect x="446" y="428" width="63" height="18" fill="#ffd54a"/>
+<rect x="509" y="428" width="36" height="18" fill="#e6a452"/>
+<rect x="545" y="428" width="9" height="18" fill="#945a10"/>
+<rect x="653" y="428" width="18" height="18" fill="#ffe629"/>
+<rect x="707" y="428" width="18" height="18" fill="#cdbd20"/>
+<rect x="725" y="428" width="9" height="18" fill="#f6f6a4"/>
+<rect x="734" y="428" width="18" height="18" fill="#ffe629"/>
+<rect x="752" y="428" width="18" height="18" fill="#cdbd20"/>
+<rect x="770" y="428" width="9" height="18" fill="#5a3908"/>
+<rect x="779" y="428" width="9" height="18" fill="#101010"/>
+<rect x="788" y="428" width="27" height="18" fill="#cdbd20"/>
+<rect x="23" y="446" width="9" height="18" fill="#a41020"/>
+<rect x="32" y="446" width="18" height="18" fill="#101010"/>
+<rect x="50" y="446" width="9" height="18" fill="#a41020"/>
+<rect x="59" y="446" width="18" height="18" fill="#e67383"/>
+<rect x="77" y="446" width="45" height="18" fill="#ffaca4"/>
+<rect x="122" y="446" width="54" height="18" fill="#e67383"/>
+<rect x="176" y="446" width="9" height="18" fill="#101010"/>
+<rect x="266" y="446" width="27" height="18" fill="#ffe683"/>
+<rect x="293" y="446" width="27" height="18" fill="#debd39"/>
+<rect x="329" y="446" width="9" height="18" fill="#debd39"/>
+<rect x="338" y="446" width="9" height="18" fill="#ffe683"/>
+<rect x="347" y="446" width="9" height="18" fill="#101010"/>
+<rect x="437" y="446" width="9" height="18" fill="#945a10"/>
+<rect x="446" y="446" width="90" height="18" fill="#ffd54a"/>
+<rect x="536" y="446" width="18" height="18" fill="#e6a452"/>
+<rect x="554" y="446" width="9" height="18" fill="#945a10"/>
+<rect x="563" y="446" width="9" height="18" fill="#e6a452"/>
+<rect x="572" y="446" width="9" height="18" fill="#945a10"/>
+<rect x="644" y="446" width="9" height="18" fill="#101010"/>
+<rect x="653" y="446" width="36" height="18" fill="#ffe629"/>
+<rect x="689" y="446" width="27" height="18" fill="#cdbd20"/>
+<rect x="716" y="446" width="9" height="18" fill="#101010"/>
+<rect x="725" y="446" width="9" height="18" fill="#cdbd20"/>
+<rect x="734" y="446" width="9" height="18" fill="#101010"/>
+<rect x="743" y="446" width="18" height="18" fill="#ffe629"/>
+<rect x="761" y="446" width="54" height="18" fill="#cdbd20"/>
+<rect x="59" y="464" width="9" height="18" fill="#101010"/>
+<rect x="68" y="464" width="9" height="18" fill="#a41020"/>
+<rect x="77" y="464" width="81" height="18" fill="#e67383"/>
+<rect x="158" y="464" width="9" height="18" fill="#101010"/>
+<rect x="266" y="464" width="9" height="18" fill="#101010"/>
+<rect x="275" y="464" width="9" height="18" fill="#debd39"/>
+<rect x="284" y="464" width="18" height="18" fill="#101010"/>
+<rect x="302" y="464" width="18" height="18" fill="#debd39"/>
+<rect x="446" y="464" width="18" height="18" fill="#e6a452"/>
+<rect x="464" y="464" width="27" height="18" fill="#ffd54a"/>
+<rect x="491" y="464" width="63" height="18" fill="#e6a452"/>
+<rect x="554" y="464" width="9" height="18" fill="#945a10"/>
+<rect x="653" y="464" width="9" height="18" fill="#835a10"/>
+<rect x="662" y="464" width="9" height="18" fill="#ffe629"/>
+<rect x="671" y="464" width="9" height="18" fill="#cdbd20"/>
+<rect x="680" y="464" width="9" height="18" fill="#101010"/>
+<rect x="743" y="464" width="9" height="18" fill="#101010"/>
+<rect x="752" y="464" width="18" height="18" fill="#cdbd20"/>
+<rect x="770" y="464" width="27" height="18" fill="#101010"/>
+<rect x="59" y="482" width="27" height="18" fill="#e67383"/>
+<rect x="140" y="482" width="9" height="18" fill="#a41020"/>
+<rect x="149" y="482" width="9" height="18" fill="#e67383"/>
+<rect x="158" y="482" width="18" height="18" fill="#ffaca4"/>
+<rect x="248" y="482" width="9" height="18" fill="#944100"/>
+<rect x="257" y="482" width="9" height="18" fill="#c57b08"/>
+<rect x="266" y="482" width="9" height="18" fill="#ffe683"/>
+<rect x="275" y="482" width="9" height="18" fill="#101010"/>
+<rect x="302" y="482" width="9" height="18" fill="#101010"/>
+<rect x="311" y="482" width="9" height="18" fill="#debd39"/>
+<rect x="320" y="482" width="9" height="18" fill="#ffe683"/>
+<rect x="329" y="482" width="9" height="18" fill="#c57b08"/>
+<rect x="437" y="482" width="9" height="18" fill="#101010"/>
+<rect x="446" y="482" width="18" height="18" fill="#ffeebd"/>
+<rect x="464" y="482" width="9" height="18" fill="#deb452"/>
+<rect x="473" y="482" width="45" height="18" fill="#101010"/>
+<rect x="518" y="482" width="27" height="18" fill="#deb452"/>
+<rect x="545" y="482" width="9" height="18" fill="#101010"/>
+<rect x="752" y="482" width="9" height="18" fill="#101010"/>
+<rect x="761" y="482" width="9" height="18" fill="#ffe629"/>
+<rect x="158" y="500" width="18" height="18" fill="#101010"/>
+<rect x="329" y="500" width="18" height="18" fill="#101010"/>
+<rect x="536" y="500" width="9" height="18" fill="#101010"/>
+<rect x="41" y="554" width="18" height="18" fill="#a4b4b4"/>
+<rect x="95" y="554" width="18" height="18" fill="#ac9c41"/>
+<rect x="140" y="554" width="9" height="18" fill="#415262"/>
+<rect x="149" y="554" width="18" height="18" fill="#c5d5de"/>
+<rect x="365" y="554" width="9" height="18" fill="#b48bbd"/>
+<rect x="374" y="554" width="9" height="18" fill="#101010"/>
+<rect x="509" y="554" width="9" height="18" fill="#ffffff"/>
+<rect x="518" y="554" width="9" height="18" fill="#c5c5d5"/>
+<rect x="545" y="554" width="9" height="18" fill="#ffffff"/>
+<rect x="554" y="554" width="9" height="18" fill="#e6e6ee"/>
+<rect x="716" y="554" width="9" height="18" fill="#d5acee"/>
+<rect x="725" y="554" width="9" height="18" fill="#8b73bd"/>
+<rect x="23" y="572" width="27" height="18" fill="#838b94"/>
+<rect x="50" y="572" width="9" height="18" fill="#000000"/>
+<rect x="77" y="572" width="9" height="18" fill="#415262"/>
+<rect x="86" y="572" width="9" height="18" fill="#ac9c41"/>
+<rect x="95" y="572" width="9" height="18" fill="#524100"/>
+<rect x="104" y="572" width="27" height="18" fill="#838b94"/>
+<rect x="140" y="572" width="9" height="18" fill="#415262"/>
+<rect x="149" y="572" width="9" height="18" fill="#000000"/>
+<rect x="158" y="572" width="18" height="18" fill="#838b94"/>
+<rect x="176" y="572" width="9" height="18" fill="#000000"/>
+<rect x="239" y="572" width="9" height="18" fill="#9473b4"/>
+<rect x="275" y="572" width="9" height="18" fill="#b48bbd"/>
+<rect x="284" y="572" width="9" height="18" fill="#9473b4"/>
+<rect x="302" y="572" width="36" height="18" fill="#9473b4"/>
+<rect x="338" y="572" width="18" height="18" fill="#b48bbd"/>
+<rect x="356" y="572" width="9" height="18" fill="#9473b4"/>
+<rect x="365" y="572" width="9" height="18" fill="#5a4a9c"/>
+<rect x="518" y="572" width="36" height="18" fill="#ffffff"/>
+<rect x="554" y="572" width="36" height="18" fill="#e6e6ee"/>
+<rect x="662" y="572" width="18" height="18" fill="#5a529c"/>
+<rect x="680" y="572" width="9" height="18" fill="#8b73bd"/>
+<rect x="707" y="572" width="9" height="18" fill="#d5acee"/>
+<rect x="716" y="572" width="9" height="18" fill="#5a529c"/>
+<rect x="725" y="572" width="18" height="18" fill="#8b73bd"/>
+<rect x="752" y="572" width="18" height="18" fill="#8b73bd"/>
+<rect x="770" y="572" width="18" height="18" fill="#5a529c"/>
+<rect x="32" y="590" width="9" height="18" fill="#a4b4b4"/>
+<rect x="41" y="590" width="36" height="18" fill="#838b94"/>
+<rect x="77" y="590" width="9" height="18" fill="#000000"/>
+<rect x="86" y="590" width="9" height="18" fill="#cdc562"/>
+<rect x="95" y="590" width="9" height="18" fill="#ff4a39"/>
+<rect x="104" y="590" width="9" height="18" fill="#bd0000"/>
+<rect x="113" y="590" width="9" height="18" fill="#ac9c41"/>
+<rect x="122" y="590" width="45" height="18" fill="#838b94"/>
+<rect x="167" y="590" width="9" height="18" fill="#a4b4b4"/>
+<rect x="176" y="590" width="18" height="18" fill="#838b94"/>
+<rect x="248" y="590" width="9" height="18" fill="#4a294a"/>
+<rect x="257" y="590" width="18" height="18" fill="#9473b4"/>
+<rect x="275" y="590" width="18" height="18" fill="#b48bbd"/>
+<rect x="293" y="590" width="63" height="18" fill="#9473b4"/>
+<rect x="356" y="590" width="9" height="18" fill="#5a4a9c"/>
+<rect x="365" y="590" width="9" height="18" fill="#101010"/>
+<rect x="437" y="590" width="9" height="18" fill="#ffffff"/>
+<rect x="446" y="590" width="9" height="18" fill="#525239"/>
+<rect x="455" y="590" width="9" height="18" fill="#ffffff"/>
+<rect x="464" y="590" width="9" height="18" fill="#101010"/>
+<rect x="509" y="590" width="36" height="18" fill="#ffffff"/>
+<rect x="545" y="590" width="18" height="18" fill="#101010"/>
+<rect x="563" y="590" width="9" height="18" fill="#946a5a"/>
+<rect x="572" y="590" width="27" height="18" fill="#c5c5d5"/>
+<rect x="662" y="590" width="9" height="18" fill="#000000"/>
+<rect x="671" y="590" width="18" height="18" fill="#5a529c"/>
+<rect x="689" y="590" width="9" height="18" fill="#8b73bd"/>
+<rect x="698" y="590" width="9" height="18" fill="#b48bd5"/>
+<rect x="707" y="590" width="9" height="18" fill="#5a4131"/>
+<rect x="716" y="590" width="9" height="18" fill="#c59420"/>
+<rect x="725" y="590" width="27" height="18" fill="#8b73bd"/>
+<rect x="752" y="590" width="27" height="18" fill="#5a529c"/>
+<rect x="779" y="590" width="9" height="18" fill="#000000"/>
+<rect x="41" y="608" width="18" height="18" fill="#838b94"/>
+<rect x="59" y="608" width="27" height="18" fill="#a4b4b4"/>
+<rect x="86" y="608" width="27" height="18" fill="#838b94"/>
+<rect x="113" y="608" width="9" height="18" fill="#a4b4b4"/>
+<rect x="122" y="608" width="18" height="18" fill="#838b94"/>
+<rect x="140" y="608" width="18" height="18" fill="#a4b4b4"/>
+<rect x="158" y="608" width="36" height="18" fill="#838b94"/>
+<rect x="221" y="608" width="9" height="18" fill="#4a294a"/>
+<rect x="230" y="608" width="18" height="18" fill="#b48bbd"/>
+<rect x="257" y="608" width="90" height="18" fill="#9473b4"/>
+<rect x="347" y="608" width="18" height="18" fill="#5a4a9c"/>
+<rect x="365" y="608" width="18" height="18" fill="#9473b4"/>
+<rect x="383" y="608" width="18" height="18" fill="#b48bbd"/>
+<rect x="401" y="608" width="9" height="18" fill="#9473b4"/>
+<rect x="437" y="608" width="9" height="18" fill="#525239"/>
+<rect x="446" y="608" width="9" height="18" fill="#e6e6ee"/>
+<rect x="455" y="608" width="9" height="18" fill="#ffffff"/>
+<rect x="464" y="608" width="9" height="18" fill="#101010"/>
+<rect x="509" y="608" width="18" height="18" fill="#ffffff"/>
+<rect x="527" y="608" width="18" height="18" fill="#e6e6ee"/>
+<rect x="545" y="608" width="9" height="18" fill="#946a5a"/>
+<rect x="554" y="608" width="18" height="18" fill="#101010"/>
+<rect x="572" y="608" width="18" height="18" fill="#c5c5d5"/>
+<rect x="590" y="608" width="9" height="18" fill="#101010"/>
+<rect x="635" y="608" width="9" height="18" fill="#313973"/>
+<rect x="644" y="608" width="9" height="18" fill="#8b73bd"/>
+<rect x="653" y="608" width="9" height="18" fill="#5a529c"/>
+<rect x="662" y="608" width="18" height="18" fill="#d5acee"/>
+<rect x="680" y="608" width="9" height="18" fill="#ffe694"/>
+<rect x="689" y="608" width="27" height="18" fill="#c59420"/>
+<rect x="716" y="608" width="18" height="18" fill="#947341"/>
+<rect x="734" y="608" width="18" height="18" fill="#eec54a"/>
+<rect x="752" y="608" width="9" height="18" fill="#c59420"/>
+<rect x="761" y="608" width="18" height="18" fill="#8b73bd"/>
+<rect x="779" y="608" width="18" height="18" fill="#b48bd5"/>
+<rect x="797" y="608" width="9" height="18" fill="#8b73bd"/>
+<rect x="806" y="608" width="9" height="18" fill="#313973"/>
+<rect x="41" y="626" width="18" height="18" fill="#a4b4b4"/>
+<rect x="59" y="626" width="9" height="18" fill="#838b94"/>
+<rect x="68" y="626" width="9" height="18" fill="#000000"/>
+<rect x="77" y="626" width="9" height="18" fill="#a4b4b4"/>
+<rect x="86" y="626" width="9" height="18" fill="#838b94"/>
+<rect x="95" y="626" width="36" height="18" fill="#a4b4b4"/>
+<rect x="131" y="626" width="27" height="18" fill="#838b94"/>
+<rect x="158" y="626" width="18" height="18" fill="#a4b4b4"/>
+<rect x="230" y="626" width="18" height="18" fill="#9473b4"/>
+<rect x="248" y="626" width="9" height="18" fill="#5a4a9c"/>
+<rect x="257" y="626" width="9" height="18" fill="#9473b4"/>
+<rect x="266" y="626" width="9" height="18" fill="#ff5a5a"/>
+<rect x="275" y="626" width="9" height="18" fill="#4a294a"/>
+<rect x="284" y="626" width="27" height="18" fill="#9473b4"/>
+<rect x="311" y="626" width="18" height="18" fill="#ff9494"/>
+<rect x="329" y="626" width="27" height="18" fill="#9473b4"/>
+<rect x="356" y="626" width="9" height="18" fill="#5a4a9c"/>
+<rect x="365" y="626" width="27" height="18" fill="#9473b4"/>
+<rect x="392" y="626" width="9" height="18" fill="#101010"/>
+<rect x="455" y="626" width="9" height="18" fill="#101010"/>
+<rect x="464" y="626" width="18" height="18" fill="#ffffff"/>
+<rect x="491" y="626" width="9" height="18" fill="#525239"/>
+<rect x="500" y="626" width="9" height="18" fill="#e6e6ee"/>
+<rect x="509" y="626" width="9" height="18" fill="#c5c5d5"/>
+<rect x="518" y="626" width="9" height="18" fill="#101010"/>
+<rect x="527" y="626" width="9" height="18" fill="#525239"/>
+<rect x="536" y="626" width="9" height="18" fill="#c5c5d5"/>
+<rect x="545" y="626" width="9" height="18" fill="#525239"/>
+<rect x="554" y="626" width="36" height="18" fill="#101010"/>
+<rect x="653" y="626" width="9" height="18" fill="#000000"/>
+<rect x="662" y="626" width="18" height="18" fill="#8b73bd"/>
+<rect x="680" y="626" width="9" height="18" fill="#5a4131"/>
+<rect x="689" y="626" width="9" height="18" fill="#ffe694"/>
+<rect x="698" y="626" width="18" height="18" fill="#eeb4cd"/>
+<rect x="716" y="626" width="9" height="18" fill="#cd205a"/>
+<rect x="725" y="626" width="9" height="18" fill="#f65273"/>
+<rect x="734" y="626" width="9" height="18" fill="#c59420"/>
+<rect x="743" y="626" width="18" height="18" fill="#eec54a"/>
+<rect x="761" y="626" width="36" height="18" fill="#8b73bd"/>
+<rect x="41" y="644" width="27" height="18" fill="#a4b4b4"/>
+<rect x="68" y="644" width="18" height="18" fill="#000000"/>
+<rect x="86" y="644" width="18" height="18" fill="#bd0000"/>
+<rect x="104" y="644" width="9" height="18" fill="#000000"/>
+<rect x="113" y="644" width="9" height="18" fill="#838b94"/>
+<rect x="122" y="644" width="9" height="18" fill="#415262"/>
+<rect x="131" y="644" width="9" height="18" fill="#000000"/>
+<rect x="149" y="644" width="18" height="18" fill="#a4b4b4"/>
+<rect x="167" y="644" width="9" height="18" fill="#838b94"/>
+<rect x="248" y="644" width="9" height="18" fill="#101010"/>
+<rect x="257" y="644" width="9" height="18" fill="#9473b4"/>
+<rect x="266" y="644" width="9" height="18" fill="#5a4a9c"/>
+<rect x="275" y="644" width="9" height="18" fill="#4a294a"/>
+<rect x="284" y="644" width="27" height="18" fill="#9473b4"/>
+<rect x="311" y="644" width="27" height="18" fill="#fff6ff"/>
+<rect x="338" y="644" width="18" height="18" fill="#9473b4"/>
+<rect x="356" y="644" width="27" height="18" fill="#5a4a9c"/>
+<rect x="383" y="644" width="9" height="18" fill="#4a294a"/>
+<rect x="464" y="644" width="9" height="18" fill="#c59c4a"/>
+<rect x="473" y="644" width="18" height="18" fill="#e6e6ee"/>
+<rect x="491" y="644" width="18" height="18" fill="#c59c4a"/>
+<rect x="509" y="644" width="54" height="18" fill="#946a5a"/>
+<rect x="563" y="644" width="9" height="18" fill="#cdac8b"/>
+<rect x="572" y="644" width="9" height="18" fill="#523910"/>
+<rect x="581" y="644" width="9" height="18" fill="#946a5a"/>
+<rect x="590" y="644" width="9" height="18" fill="#c59c4a"/>
+<rect x="662" y="644" width="9" height="18" fill="#313973"/>
+<rect x="671" y="644" width="9" height="18" fill="#ffe694"/>
+<rect x="680" y="644" width="9" height="18" fill="#eec54a"/>
+<rect x="689" y="644" width="9" height="18" fill="#5a4131"/>
+<rect x="698" y="644" width="18" height="18" fill="#cd205a"/>
+<rect x="716" y="644" width="18" height="18" fill="#8b1052"/>
+<rect x="734" y="644" width="9" height="18" fill="#f65273"/>
+<rect x="743" y="644" width="18" height="18" fill="#c59420"/>
+<rect x="761" y="644" width="18" height="18" fill="#eec54a"/>
+<rect x="779" y="644" width="9" height="18" fill="#5a529c"/>
+<rect x="59" y="662" width="9" height="18" fill="#000000"/>
+<rect x="68" y="662" width="18" height="18" fill="#a4b4b4"/>
+<rect x="86" y="662" width="9" height="18" fill="#252531"/>
+<rect x="95" y="662" width="27" height="18" fill="#000000"/>
+<rect x="122" y="662" width="27" height="18" fill="#838b94"/>
+<rect x="149" y="662" width="9" height="18" fill="#415262"/>
+<rect x="257" y="662" width="27" height="18" fill="#9473b4"/>
+<rect x="284" y="662" width="36" height="18" fill="#fff6ff"/>
+<rect x="320" y="662" width="27" height="18" fill="#9473b4"/>
+<rect x="347" y="662" width="36" height="18" fill="#5a4a9c"/>
+<rect x="383" y="662" width="9" height="18" fill="#4a294a"/>
+<rect x="473" y="662" width="9" height="18" fill="#101010"/>
+<rect x="482" y="662" width="9" height="18" fill="#e6e6ee"/>
+<rect x="491" y="662" width="18" height="18" fill="#523910"/>
+<rect x="518" y="662" width="18" height="18" fill="#946a5a"/>
+<rect x="536" y="662" width="9" height="18" fill="#cdac8b"/>
+<rect x="545" y="662" width="45" height="18" fill="#f6d5b4"/>
+<rect x="590" y="662" width="9" height="18" fill="#523910"/>
+<rect x="599" y="662" width="18" height="18" fill="#101010"/>
+<rect x="653" y="662" width="9" height="18" fill="#8b73bd"/>
+<rect x="662" y="662" width="9" height="18" fill="#b48bd5"/>
+<rect x="671" y="662" width="9" height="18" fill="#313973"/>
+<rect x="680" y="662" width="9" height="18" fill="#947341"/>
+<rect x="689" y="662" width="18" height="18" fill="#5a4131"/>
+<rect x="707" y="662" width="18" height="18" fill="#cd205a"/>
+<rect x="725" y="662" width="9" height="18" fill="#000000"/>
+<rect x="734" y="662" width="18" height="18" fill="#947341"/>
+<rect x="752" y="662" width="9" height="18" fill="#000000"/>
+<rect x="761" y="662" width="36" height="18" fill="#5a529c"/>
+<rect x="797" y="662" width="9" height="18" fill="#8b73bd"/>
+<rect x="59" y="680" width="27" height="18" fill="#a4b4b4"/>
+<rect x="86" y="680" width="9" height="18" fill="#838b94"/>
+<rect x="95" y="680" width="18" height="18" fill="#000000"/>
+<rect x="113" y="680" width="18" height="18" fill="#838b94"/>
+<rect x="131" y="680" width="27" height="18" fill="#a4b4b4"/>
+<rect x="266" y="680" width="9" height="18" fill="#4a294a"/>
+<rect x="275" y="680" width="9" height="18" fill="#5a4a9c"/>
+<rect x="284" y="680" width="45" height="18" fill="#9473b4"/>
+<rect x="329" y="680" width="63" height="18" fill="#5a4a9c"/>
+<rect x="392" y="680" width="9" height="18" fill="#101010"/>
+<rect x="509" y="680" width="9" height="18" fill="#c59c4a"/>
+<rect x="518" y="680" width="18" height="18" fill="#debd6a"/>
+<rect x="536" y="680" width="9" height="18" fill="#c59c4a"/>
+<rect x="545" y="680" width="36" height="18" fill="#f6d5b4"/>
+<rect x="581" y="680" width="9" height="18" fill="#cdac8b"/>
+<rect x="590" y="680" width="9" height="18" fill="#946a5a"/>
+<rect x="644" y="680" width="18" height="18" fill="#5a529c"/>
+<rect x="662" y="680" width="18" height="18" fill="#000000"/>
+<rect x="680" y="680" width="9" height="18" fill="#c59420"/>
+<rect x="689" y="680" width="18" height="18" fill="#000000"/>
+<rect x="707" y="680" width="9" height="18" fill="#947341"/>
+<rect x="716" y="680" width="9" height="18" fill="#c59420"/>
+<rect x="725" y="680" width="9" height="18" fill="#947341"/>
+<rect x="734" y="680" width="18" height="18" fill="#000000"/>
+<rect x="752" y="680" width="9" height="18" fill="#c59420"/>
+<rect x="761" y="680" width="9" height="18" fill="#000000"/>
+<rect x="770" y="680" width="36" height="18" fill="#5a529c"/>
+<rect x="806" y="680" width="9" height="18" fill="#8b73bd"/>
+<rect x="50" y="698" width="9" height="18" fill="#000000"/>
+<rect x="59" y="698" width="9" height="18" fill="#838b94"/>
+<rect x="68" y="698" width="18" height="18" fill="#415262"/>
+<rect x="131" y="698" width="9" height="18" fill="#838b94"/>
+<rect x="140" y="698" width="9" height="18" fill="#415262"/>
+<rect x="149" y="698" width="9" height="18" fill="#838b94"/>
+<rect x="158" y="698" width="9" height="18" fill="#415262"/>
+<rect x="266" y="698" width="9" height="18" fill="#4a294a"/>
+<rect x="275" y="698" width="63" height="18" fill="#5a4a9c"/>
+<rect x="338" y="698" width="18" height="18" fill="#9473b4"/>
+<rect x="356" y="698" width="18" height="18" fill="#b48bbd"/>
+<rect x="374" y="698" width="9" height="18" fill="#9473b4"/>
+<rect x="482" y="698" width="9" height="18" fill="#101010"/>
+<rect x="491" y="698" width="9" height="18" fill="#946a5a"/>
+<rect x="500" y="698" width="9" height="18" fill="#101010"/>
+<rect x="509" y="698" width="9" height="18" fill="#946a5a"/>
+<rect x="518" y="698" width="18" height="18" fill="#c59c4a"/>
+<rect x="536" y="698" width="9" height="18" fill="#946a5a"/>
+<rect x="545" y="698" width="9" height="18" fill="#523910"/>
+<rect x="554" y="698" width="18" height="18" fill="#cdac8b"/>
+<rect x="572" y="698" width="27" height="18" fill="#946a5a"/>
+<rect x="599" y="698" width="9" height="18" fill="#523910"/>
+<rect x="671" y="698" width="9" height="18" fill="#b48bd5"/>
+<rect x="680" y="698" width="9" height="18" fill="#8b73bd"/>
+<rect x="689" y="698" width="27" height="18" fill="#5a529c"/>
+<rect x="716" y="698" width="9" height="18" fill="#eec54a"/>
+<rect x="725" y="698" width="9" height="18" fill="#000000"/>
+<rect x="734" y="698" width="27" height="18" fill="#5a529c"/>
+<rect x="761" y="698" width="18" height="18" fill="#8b73bd"/>
+<rect x="779" y="698" width="9" height="18" fill="#5a529c"/>
+<rect x="59" y="716" width="9" height="18" fill="#838b94"/>
+<rect x="68" y="716" width="18" height="18" fill="#415262"/>
+<rect x="140" y="716" width="9" height="18" fill="#000000"/>
+<rect x="149" y="716" width="9" height="18" fill="#415262"/>
+<rect x="158" y="716" width="9" height="18" fill="#838b94"/>
+<rect x="266" y="716" width="27" height="18" fill="#101010"/>
+<rect x="347" y="716" width="27" height="18" fill="#9473b4"/>
+<rect x="374" y="716" width="9" height="18" fill="#101010"/>
+<rect x="509" y="716" width="9" height="18" fill="#101010"/>
+<rect x="518" y="716" width="9" height="18" fill="#e6e6ee"/>
+<rect x="527" y="716" width="9" height="18" fill="#946a5a"/>
+<rect x="581" y="716" width="18" height="18" fill="#101010"/>
+<rect x="662" y="716" width="9" height="18" fill="#313973"/>
+<rect x="671" y="716" width="18" height="18" fill="#5a529c"/>
+<rect x="689" y="716" width="9" height="18" fill="#000000"/>
+<rect x="707" y="716" width="9" height="18" fill="#313973"/>
+<rect x="716" y="716" width="9" height="18" fill="#8b73bd"/>
+<rect x="725" y="716" width="9" height="18" fill="#5a529c"/>
+<rect x="752" y="716" width="9" height="18" fill="#000000"/>
+<rect x="761" y="716" width="27" height="18" fill="#5a529c"/>
+<rect x="167" y="734" width="9" height="18" fill="#000000"/>
+<rect x="779" y="734" width="9" height="18" fill="#000000"/>
+<text x="32.00" y="27.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">POKEDEX</text>
+<text x="113.00" y="27.70" fill="#797b7d" xml:space="preserve">·  pokeclaude</text>
+<text x="32.00" y="45.70" fill="#f6c83c" xml:space="preserve">███</text>
+<text x="59.00" y="45.70" fill="#797b7d" xml:space="preserve">░░░░░░░░░░░░░░░░░░░░░░░░░░░░░</text>
+<text x="32.00" y="63.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">85</text>
+<text x="50.00" y="63.70" fill="#797b7d" xml:space="preserve">/1025 caught  (8%)   ·  100 total catches</text>
+<text x="248.00" y="99.70" fill="#ffc562" xml:space="preserve">▄</text>
+<text x="257.00" y="99.70" fill="#de5239" xml:space="preserve">▀▀</text>
+<text x="275.00" y="99.70" fill="#8b2900" xml:space="preserve">▀▀</text>
+<text x="293.00" y="99.70" fill="#101010" xml:space="preserve">▄</text>
+<text x="464.00" y="99.70" fill="#5a9ca4" xml:space="preserve">▄</text>
+<text x="473.00" y="99.70" fill="#b4e6ee" xml:space="preserve">▄</text>
+<text x="482.00" y="99.70" fill="#5a9ca4" xml:space="preserve">▀▀</text>
+<text x="500.00" y="99.70" fill="#297383" xml:space="preserve">▀▀</text>
+<text x="518.00" y="99.70" fill="#8bc5cd" xml:space="preserve">▄</text>
+<text x="527.00" y="99.70" fill="#297383" xml:space="preserve">▄</text>
+<text x="644.00" y="99.70" fill="#000000" xml:space="preserve">▄▀</text>
+<text x="95.00" y="117.70" fill="#73ac31" xml:space="preserve">▄▄▄</text>
+<text x="122.00" y="117.70" fill="#bdff73" xml:space="preserve">▄</text>
+<text x="131.00" y="117.70" fill="#526229" xml:space="preserve">▄▄</text>
+<text x="149.00" y="117.70" fill="#a4d541" xml:space="preserve">▄</text>
+<text x="158.00" y="117.70" fill="#526229" xml:space="preserve">▀</text>
+<text x="167.00" y="117.70" fill="#101010" xml:space="preserve">▀▄</text>
+<text x="239.00" y="117.70" fill="#de5239" xml:space="preserve">▀</text>
+<text x="248.00" y="117.70" fill="#ffc562" xml:space="preserve">▀</text>
+<text x="257.00" y="117.70" fill="#ff9441" xml:space="preserve">▀▀▀▀▀</text>
+<text x="302.00" y="117.70" fill="#101010" xml:space="preserve">▄</text>
+<text x="455.00" y="117.70" fill="#297383" xml:space="preserve">▄</text>
+<text x="464.00" y="117.70" fill="#8bc5cd" xml:space="preserve">▀</text>
+<text x="473.00" y="117.70" fill="#b4e6ee" xml:space="preserve">▀</text>
+<text x="482.00" y="117.70" fill="#8bc5cd" xml:space="preserve">▀▀▀▀▀▀</text>
+<text x="536.00" y="117.70" fill="#297383" xml:space="preserve">▄</text>
+<text x="644.00" y="117.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="653.00" y="117.70" fill="#292929" xml:space="preserve">▀</text>
+<text x="662.00" y="117.70" fill="#623108" xml:space="preserve">▀</text>
+<text x="716.00" y="117.70" fill="#9c5200" xml:space="preserve">▄</text>
+<text x="725.00" y="117.70" fill="#292929" xml:space="preserve">▄</text>
+<text x="734.00" y="117.70" fill="#41414a" xml:space="preserve">▄</text>
+<text x="743.00" y="117.70" fill="#292929" xml:space="preserve">▀▄</text>
+<text x="23.00" y="135.70" fill="#184a4a" xml:space="preserve">▄▄▄</text>
+<text x="59.00" y="135.70" fill="#317373" xml:space="preserve">▄▄▄</text>
+<text x="86.00" y="135.70" fill="#73ac31" xml:space="preserve">▄</text>
+<text x="95.00" y="135.70" fill="#bdff73" xml:space="preserve">▀▀▀▀▀▀</text>
+<text x="149.00" y="135.70" fill="#73ac31" xml:space="preserve">▀</text>
+<text x="158.00" y="135.70" fill="#a4d541" xml:space="preserve">▀</text>
+<text x="167.00" y="135.70" fill="#73ac31" xml:space="preserve">▀</text>
+<text x="176.00" y="135.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="239.00" y="135.70" fill="#188bb4" xml:space="preserve">▀</text>
+<text x="248.00" y="135.70" fill="#ff9441" xml:space="preserve">▀▀▀▀</text>
+<text x="284.00" y="135.70" fill="#08398b" xml:space="preserve">▀</text>
+<text x="293.00" y="135.70" fill="#8b2900" xml:space="preserve">▀</text>
+<text x="302.00" y="135.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="365.00" y="135.70" fill="#e63900" xml:space="preserve">▄</text>
+<text x="455.00" y="135.70" fill="#297383" xml:space="preserve">▀</text>
+<text x="464.00" y="135.70" fill="#8bc5cd" xml:space="preserve">▀▀▀▀</text>
+<text x="500.00" y="135.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="509.00" y="135.70" fill="#d5cdcd" xml:space="preserve">▀</text>
+<text x="518.00" y="135.70" fill="#5a9ca4" xml:space="preserve">▀▀</text>
+<text x="536.00" y="135.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="644.00" y="135.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="653.00" y="135.70" fill="#f6bd20" xml:space="preserve">▀</text>
+<text x="662.00" y="135.70" fill="#623108" xml:space="preserve">▀</text>
+<text x="671.00" y="135.70" fill="#9c5200" xml:space="preserve">▀▀▀</text>
+<text x="698.00" y="135.70" fill="#de9400" xml:space="preserve">▀</text>
+<text x="707.00" y="135.70" fill="#9c5200" xml:space="preserve">▀</text>
+<text x="716.00" y="135.70" fill="#f6e652" xml:space="preserve">▀▀</text>
+<text x="734.00" y="135.70" fill="#41414a" xml:space="preserve">▀▀</text>
+<text x="752.00" y="135.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="779.00" y="135.70" fill="#9c5200" xml:space="preserve">▄</text>
+<text x="23.00" y="153.70" fill="#399494" xml:space="preserve">▀</text>
+<text x="32.00" y="153.70" fill="#83eec5" xml:space="preserve">▀▀</text>
+<text x="50.00" y="153.70" fill="#317373" xml:space="preserve">▀</text>
+<text x="59.00" y="153.70" fill="#83eec5" xml:space="preserve">▀▀▀</text>
+<text x="86.00" y="153.70" fill="#62d5b4" xml:space="preserve">▀▀</text>
+<text x="104.00" y="153.70" fill="#184a4a" xml:space="preserve">▀</text>
+<text x="113.00" y="153.70" fill="#83eec5" xml:space="preserve">▀▀</text>
+<text x="131.00" y="153.70" fill="#bdff73" xml:space="preserve">▀▀▀</text>
+<text x="158.00" y="153.70" fill="#a4d541" xml:space="preserve">▀▀</text>
+<text x="176.00" y="153.70" fill="#73ac31" xml:space="preserve">▀</text>
+<text x="185.00" y="153.70" fill="#101010" xml:space="preserve">▀▄</text>
+<text x="230.00" y="153.70" fill="#8b2900" xml:space="preserve">▀</text>
+<text x="239.00" y="153.70" fill="#ffc562" xml:space="preserve">▀</text>
+<text x="248.00" y="153.70" fill="#ff9441" xml:space="preserve">▀▀▀▀</text>
+<text x="284.00" y="153.70" fill="#de5239" xml:space="preserve">▀▀</text>
+<text x="302.00" y="153.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="320.00" y="153.70" fill="#8b2900" xml:space="preserve">▄▄▄</text>
+<text x="356.00" y="153.70" fill="#e63900" xml:space="preserve">▄▀</text>
+<text x="374.00" y="153.70" fill="#ffd508" xml:space="preserve">▀</text>
+<text x="446.00" y="153.70" fill="#297383" xml:space="preserve">▀</text>
+<text x="455.00" y="153.70" fill="#b4e6ee" xml:space="preserve">▀</text>
+<text x="464.00" y="153.70" fill="#8bc5cd" xml:space="preserve">▀▀▀▀</text>
+<text x="500.00" y="153.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="509.00" y="153.70" fill="#832900" xml:space="preserve">▀</text>
+<text x="518.00" y="153.70" fill="#5a9ca4" xml:space="preserve">▀▀</text>
+<text x="536.00" y="153.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="545.00" y="153.70" fill="#5a9ca4" xml:space="preserve">▄</text>
+<text x="554.00" y="153.70" fill="#297383" xml:space="preserve">▄▄</text>
+<text x="644.00" y="153.70" fill="#623108" xml:space="preserve">▄</text>
+<text x="653.00" y="153.70" fill="#de9400" xml:space="preserve">▀</text>
+<text x="662.00" y="153.70" fill="#f6e652" xml:space="preserve">▀▀▀▀</text>
+<text x="698.00" y="153.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="707.00" y="153.70" fill="#f6e652" xml:space="preserve">▀</text>
+<text x="716.00" y="153.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="752.00" y="153.70" fill="#de9400" xml:space="preserve">▄</text>
+<text x="761.00" y="153.70" fill="#f6e652" xml:space="preserve">▄▀▀▀</text>
+<text x="797.00" y="153.70" fill="#9c5200" xml:space="preserve">▄</text>
+<text x="23.00" y="171.70" fill="#317373" xml:space="preserve">▀</text>
+<text x="32.00" y="171.70" fill="#83eec5" xml:space="preserve">▀▀▀</text>
+<text x="59.00" y="171.70" fill="#399494" xml:space="preserve">▀▀</text>
+<text x="77.00" y="171.70" fill="#83eec5" xml:space="preserve">▀▀</text>
+<text x="95.00" y="171.70" fill="#62d5b4" xml:space="preserve">▀▀▀▀</text>
+<text x="131.00" y="171.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="140.00" y="171.70" fill="#bdff73" xml:space="preserve">▀</text>
+<text x="149.00" y="171.70" fill="#a4d541" xml:space="preserve">▀▀</text>
+<text x="167.00" y="171.70" fill="#73ac31" xml:space="preserve">▀▀</text>
+<text x="185.00" y="171.70" fill="#526229" xml:space="preserve">▀</text>
+<text x="194.00" y="171.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="221.00" y="171.70" fill="#8b2900" xml:space="preserve">▀▀▀</text>
+<text x="248.00" y="171.70" fill="#101010" xml:space="preserve">▀▀</text>
+<text x="266.00" y="171.70" fill="#e63900" xml:space="preserve">▀</text>
+<text x="275.00" y="171.70" fill="#de5239" xml:space="preserve">▀▀▀</text>
+<text x="302.00" y="171.70" fill="#8b2900" xml:space="preserve">▀</text>
+<text x="311.00" y="171.70" fill="#ff9441" xml:space="preserve">▀▀</text>
+<text x="329.00" y="171.70" fill="#de5239" xml:space="preserve">▀</text>
+<text x="338.00" y="171.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="356.00" y="171.70" fill="#e63900" xml:space="preserve">▀▀</text>
+<text x="374.00" y="171.70" fill="#ffd508" xml:space="preserve">▀</text>
+<text x="383.00" y="171.70" fill="#f6a400" xml:space="preserve">▀</text>
+<text x="392.00" y="171.70" fill="#e63900" xml:space="preserve">▄</text>
+<text x="428.00" y="171.70" fill="#297383" xml:space="preserve">▄</text>
+<text x="437.00" y="171.70" fill="#8bc5cd" xml:space="preserve">▀</text>
+<text x="446.00" y="171.70" fill="#5a9ca4" xml:space="preserve">▀</text>
+<text x="455.00" y="171.70" fill="#101010" xml:space="preserve">▀▀</text>
+<text x="473.00" y="171.70" fill="#5a9ca4" xml:space="preserve">▀</text>
+<text x="482.00" y="171.70" fill="#832900" xml:space="preserve">▀</text>
+<text x="491.00" y="171.70" fill="#297383" xml:space="preserve">▀▀</text>
+<text x="509.00" y="171.70" fill="#832900" xml:space="preserve">▀</text>
+<text x="518.00" y="171.70" fill="#5a9ca4" xml:space="preserve">▀▀</text>
+<text x="536.00" y="171.70" fill="#8bc5cd" xml:space="preserve">▀▀</text>
+<text x="554.00" y="171.70" fill="#5a9ca4" xml:space="preserve">▀</text>
+<text x="563.00" y="171.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="644.00" y="171.70" fill="#623108" xml:space="preserve">▀</text>
+<text x="653.00" y="171.70" fill="#f6e652" xml:space="preserve">▀▀▀▀▀▀</text>
+<text x="707.00" y="171.70" fill="#e65a41" xml:space="preserve">▀</text>
+<text x="716.00" y="171.70" fill="#f6bd20" xml:space="preserve">▀</text>
+<text x="725.00" y="171.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="734.00" y="171.70" fill="#9c5200" xml:space="preserve">▄▀</text>
+<text x="752.00" y="171.70" fill="#f6e652" xml:space="preserve">▀▀▀▀▀</text>
+<text x="797.00" y="171.70" fill="#9c5200" xml:space="preserve">▀</text>
+<text x="14.00" y="189.70" fill="#184a4a" xml:space="preserve">▀▀</text>
+<text x="32.00" y="189.70" fill="#83eec5" xml:space="preserve">▀</text>
+<text x="41.00" y="189.70" fill="#62d5b4" xml:space="preserve">▀</text>
+<text x="50.00" y="189.70" fill="#83eec5" xml:space="preserve">▀</text>
+<text x="59.00" y="189.70" fill="#399494" xml:space="preserve">▀▀</text>
+<text x="77.00" y="189.70" fill="#62d5b4" xml:space="preserve">▀</text>
+<text x="86.00" y="189.70" fill="#83eec5" xml:space="preserve">▀</text>
+<text x="95.00" y="189.70" fill="#ee2039" xml:space="preserve">▀</text>
+<text x="104.00" y="189.70" fill="#ffffff" xml:space="preserve">▀▀</text>
+<text x="122.00" y="189.70" fill="#399494" xml:space="preserve">▀▀</text>
+<text x="140.00" y="189.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="149.00" y="189.70" fill="#73ac31" xml:space="preserve">▀▀▀▀▀▀</text>
+<text x="230.00" y="189.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="239.00" y="189.70" fill="#de5239" xml:space="preserve">▀▀▀▀▀▀▀▀▀</text>
+<text x="320.00" y="189.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="356.00" y="189.70" fill="#e63900" xml:space="preserve">▀</text>
+<text x="365.00" y="189.70" fill="#f6a400" xml:space="preserve">▀</text>
+<text x="374.00" y="189.70" fill="#ffd508" xml:space="preserve">▀▀</text>
+<text x="392.00" y="189.70" fill="#e63900" xml:space="preserve">▀</text>
+<text x="437.00" y="189.70" fill="#297383" xml:space="preserve">▀</text>
+<text x="446.00" y="189.70" fill="#5a9ca4" xml:space="preserve">▀▀▀▀</text>
+<text x="482.00" y="189.70" fill="#ffd56a" xml:space="preserve">▀▀</text>
+<text x="500.00" y="189.70" fill="#e6ac5a" xml:space="preserve">▀▀</text>
+<text x="518.00" y="189.70" fill="#297383" xml:space="preserve">▀</text>
+<text x="527.00" y="189.70" fill="#8bc5cd" xml:space="preserve">▀▀</text>
+<text x="545.00" y="189.70" fill="#5a9ca4" xml:space="preserve">▀</text>
+<text x="554.00" y="189.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="572.00" y="189.70" fill="#297383" xml:space="preserve">▄▄</text>
+<text x="590.00" y="189.70" fill="#8bc5cd" xml:space="preserve">▄</text>
+<text x="599.00" y="189.70" fill="#297383" xml:space="preserve">▄</text>
+<text x="644.00" y="189.70" fill="#623108" xml:space="preserve">▀</text>
+<text x="653.00" y="189.70" fill="#f6bd20" xml:space="preserve">▀▀▀▀▀▀▀▀</text>
+<text x="725.00" y="189.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="734.00" y="189.70" fill="#f6bd20" xml:space="preserve">▀▀▀▀</text>
+<text x="770.00" y="189.70" fill="#f6e652" xml:space="preserve">▀▀</text>
+<text x="788.00" y="189.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="14.00" y="207.70" fill="#317373" xml:space="preserve">▀</text>
+<text x="23.00" y="207.70" fill="#ac0031" xml:space="preserve">▀</text>
+<text x="32.00" y="207.70" fill="#399494" xml:space="preserve">▀</text>
+<text x="41.00" y="207.70" fill="#62d5b4" xml:space="preserve">▀▀▀▀▀</text>
+<text x="86.00" y="207.70" fill="#399494" xml:space="preserve">▀</text>
+<text x="95.00" y="207.70" fill="#ac0031" xml:space="preserve">▀</text>
+<text x="104.00" y="207.70" fill="#ff6a62" xml:space="preserve">▀</text>
+<text x="113.00" y="207.70" fill="#cdcdcd" xml:space="preserve">▀</text>
+<text x="122.00" y="207.70" fill="#399494" xml:space="preserve">▀▀▀▀</text>
+<text x="158.00" y="207.70" fill="#184a4a" xml:space="preserve">▀</text>
+<text x="167.00" y="207.70" fill="#73ac31" xml:space="preserve">▀▀▀</text>
+<text x="194.00" y="207.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="257.00" y="207.70" fill="#8b2900" xml:space="preserve">▀</text>
+<text x="266.00" y="207.70" fill="#ffd57b" xml:space="preserve">▀▀▀</text>
+<text x="293.00" y="207.70" fill="#ff9441" xml:space="preserve">▀▀</text>
+<text x="311.00" y="207.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="365.00" y="207.70" fill="#e63900" xml:space="preserve">▀</text>
+<text x="374.00" y="207.70" fill="#8b2900" xml:space="preserve">▀</text>
+<text x="383.00" y="207.70" fill="#e63900" xml:space="preserve">▀</text>
+<text x="464.00" y="207.70" fill="#cd7b29" xml:space="preserve">▀</text>
+<text x="473.00" y="207.70" fill="#ffe69c" xml:space="preserve">▀</text>
+<text x="482.00" y="207.70" fill="#e6ac5a" xml:space="preserve">▀</text>
+<text x="491.00" y="207.70" fill="#ffe69c" xml:space="preserve">▀▀</text>
+<text x="509.00" y="207.70" fill="#ffd56a" xml:space="preserve">▀</text>
+<text x="518.00" y="207.70" fill="#e6ac5a" xml:space="preserve">▀▀</text>
+<text x="536.00" y="207.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="545.00" y="207.70" fill="#bd6a00" xml:space="preserve">▀</text>
+<text x="554.00" y="207.70" fill="#622900" xml:space="preserve">▀</text>
+<text x="563.00" y="207.70" fill="#297383" xml:space="preserve">▀</text>
+<text x="572.00" y="207.70" fill="#8bc5cd" xml:space="preserve">▀▀▀▀</text>
+<text x="608.00" y="207.70" fill="#297383" xml:space="preserve">▀</text>
+<text x="653.00" y="207.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="662.00" y="207.70" fill="#f6e652" xml:space="preserve">▀</text>
+<text x="671.00" y="207.70" fill="#f6bd20" xml:space="preserve">▀▀▀▀▀</text>
+<text x="716.00" y="207.70" fill="#f6e652" xml:space="preserve">▀▀</text>
+<text x="734.00" y="207.70" fill="#000000" xml:space="preserve">▄</text>
+<text x="743.00" y="207.70" fill="#623108" xml:space="preserve">▀</text>
+<text x="752.00" y="207.70" fill="#f6bd20" xml:space="preserve">▀</text>
+<text x="761.00" y="207.70" fill="#623108" xml:space="preserve">▄</text>
+<text x="23.00" y="225.70" fill="#184a4a" xml:space="preserve">▀</text>
+<text x="32.00" y="225.70" fill="#ac0031" xml:space="preserve">▀▀</text>
+<text x="50.00" y="225.70" fill="#62d5b4" xml:space="preserve">▀▀▀</text>
+<text x="77.00" y="225.70" fill="#184a4a" xml:space="preserve">▀</text>
+<text x="86.00" y="225.70" fill="#101010" xml:space="preserve">▀▀</text>
+<text x="104.00" y="225.70" fill="#317373" xml:space="preserve">▀</text>
+<text x="113.00" y="225.70" fill="#399494" xml:space="preserve">▀▀</text>
+<text x="131.00" y="225.70" fill="#184a4a" xml:space="preserve">▀</text>
+<text x="140.00" y="225.70" fill="#399494" xml:space="preserve">▀▀</text>
+<text x="158.00" y="225.70" fill="#184a4a" xml:space="preserve">▀▀</text>
+<text x="176.00" y="225.70" fill="#399494" xml:space="preserve">▀</text>
+<text x="185.00" y="225.70" fill="#184a4a" xml:space="preserve">▀</text>
+<text x="248.00" y="225.70" fill="#8b2900" xml:space="preserve">▀</text>
+<text x="257.00" y="225.70" fill="#ffd57b" xml:space="preserve">▀▀▀▀▀</text>
+<text x="302.00" y="225.70" fill="#ff9441" xml:space="preserve">▀▀</text>
+<text x="320.00" y="225.70" fill="#101010" xml:space="preserve">▀▄</text>
+<text x="338.00" y="225.70" fill="#8b2900" xml:space="preserve">▄▀▀</text>
+<text x="365.00" y="225.70" fill="#ff9441" xml:space="preserve">▀▀</text>
+<text x="464.00" y="225.70" fill="#cd7b29" xml:space="preserve">▀</text>
+<text x="473.00" y="225.70" fill="#ffe69c" xml:space="preserve">▀</text>
+<text x="482.00" y="225.70" fill="#cd7b29" xml:space="preserve">▀</text>
+<text x="491.00" y="225.70" fill="#ffe69c" xml:space="preserve">▀</text>
+<text x="500.00" y="225.70" fill="#ffd56a" xml:space="preserve">▀</text>
+<text x="509.00" y="225.70" fill="#cd7b29" xml:space="preserve">▀</text>
+<text x="518.00" y="225.70" fill="#ffd56a" xml:space="preserve">▀</text>
+<text x="527.00" y="225.70" fill="#e6ac5a" xml:space="preserve">▀</text>
+<text x="536.00" y="225.70" fill="#bd6a00" xml:space="preserve">▀</text>
+<text x="545.00" y="225.70" fill="#d5cdcd" xml:space="preserve">▀</text>
+<text x="554.00" y="225.70" fill="#622900" xml:space="preserve">▀</text>
+<text x="563.00" y="225.70" fill="#5a9ca4" xml:space="preserve">▀▀▀</text>
+<text x="590.00" y="225.70" fill="#8bc5cd" xml:space="preserve">▀</text>
+<text x="599.00" y="225.70" fill="#5a9ca4" xml:space="preserve">▀</text>
+<text x="608.00" y="225.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="644.00" y="225.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="653.00" y="225.70" fill="#f6e652" xml:space="preserve">▀▀▀▀▀▀▀▀▀</text>
+<text x="734.00" y="225.70" fill="#de9400" xml:space="preserve">▀▀</text>
+<text x="752.00" y="225.70" fill="#623108" xml:space="preserve">▀▀</text>
+<text x="41.00" y="243.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="50.00" y="243.70" fill="#399494" xml:space="preserve">▀▀▀▀▀▀</text>
+<text x="104.00" y="243.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="113.00" y="243.70" fill="#399494" xml:space="preserve">▀▀</text>
+<text x="131.00" y="243.70" fill="#317373" xml:space="preserve">▀</text>
+<text x="140.00" y="243.70" fill="#399494" xml:space="preserve">▀</text>
+<text x="149.00" y="243.70" fill="#184a4a" xml:space="preserve">▀</text>
+<text x="158.00" y="243.70" fill="#399494" xml:space="preserve">▀</text>
+<text x="167.00" y="243.70" fill="#184a4a" xml:space="preserve">▀▀</text>
+<text x="185.00" y="243.70" fill="#399494" xml:space="preserve">▀</text>
+<text x="194.00" y="243.70" fill="#101010" xml:space="preserve">▀    ▀</text>
+<text x="248.00" y="243.70" fill="#ff9441" xml:space="preserve">▀</text>
+<text x="257.00" y="243.70" fill="#de5239" xml:space="preserve">▀</text>
+<text x="266.00" y="243.70" fill="#e6ac5a" xml:space="preserve">▀▀▀</text>
+<text x="293.00" y="243.70" fill="#de5239" xml:space="preserve">▀</text>
+<text x="302.00" y="243.70" fill="#ff9441" xml:space="preserve">▀▀▀</text>
+<text x="329.00" y="243.70" fill="#de5239" xml:space="preserve">▀▀▀</text>
+<text x="356.00" y="243.70" fill="#e6ac5a" xml:space="preserve">▀▀</text>
+<text x="446.00" y="243.70" fill="#5a9ca4" xml:space="preserve">▄</text>
+<text x="455.00" y="243.70" fill="#8bc5cd" xml:space="preserve">▀▀</text>
+<text x="473.00" y="243.70" fill="#e6ac5a" xml:space="preserve">▀▀▀▀▀</text>
+<text x="518.00" y="243.70" fill="#5a9ca4" xml:space="preserve">▀</text>
+<text x="527.00" y="243.70" fill="#8bc5cd" xml:space="preserve">▀▀</text>
+<text x="545.00" y="243.70" fill="#5a9ca4" xml:space="preserve">▀▀▀▀▀</text>
+<text x="590.00" y="243.70" fill="#101010" xml:space="preserve">▀▀</text>
+<text x="635.00" y="243.70" fill="#000000" xml:space="preserve">▄</text>
+<text x="644.00" y="243.70" fill="#f6e652" xml:space="preserve">▀▀▀▀▀▀▀▀▀</text>
+<text x="725.00" y="243.70" fill="#f6bd20" xml:space="preserve">▀▀</text>
+<text x="743.00" y="243.70" fill="#9c5200" xml:space="preserve">▀▀</text>
+<text x="41.00" y="261.70" fill="#317373" xml:space="preserve">▀</text>
+<text x="50.00" y="261.70" fill="#399494" xml:space="preserve">▀</text>
+<text x="59.00" y="261.70" fill="#62d5b4" xml:space="preserve">▀</text>
+<text x="68.00" y="261.70" fill="#399494" xml:space="preserve">▀▀</text>
+<text x="86.00" y="261.70" fill="#101010" xml:space="preserve">▀▀</text>
+<text x="104.00" y="261.70" fill="#399494" xml:space="preserve">▀▀▀▀</text>
+<text x="140.00" y="261.70" fill="#184a4a" xml:space="preserve">▀</text>
+<text x="149.00" y="261.70" fill="#399494" xml:space="preserve">▀▀</text>
+<text x="167.00" y="261.70" fill="#184a4a" xml:space="preserve">▀▀</text>
+<text x="185.00" y="261.70" fill="#399494" xml:space="preserve">▀</text>
+<text x="239.00" y="261.70" fill="#101010" xml:space="preserve">▄▀</text>
+<text x="257.00" y="261.70" fill="#de5239" xml:space="preserve">▀▀</text>
+<text x="275.00" y="261.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="284.00" y="261.70" fill="#e6ac5a" xml:space="preserve">▀</text>
+<text x="293.00" y="261.70" fill="#8b2900" xml:space="preserve">▀</text>
+<text x="302.00" y="261.70" fill="#de5239" xml:space="preserve">▀▀▀</text>
+<text x="329.00" y="261.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="338.00" y="261.70" fill="#8b2900" xml:space="preserve">▀</text>
+<text x="455.00" y="261.70" fill="#5a9ca4" xml:space="preserve">▀▀▀▀</text>
+<text x="491.00" y="261.70" fill="#832900" xml:space="preserve">▀</text>
+<text x="500.00" y="261.70" fill="#e6ac5a" xml:space="preserve">▀▀</text>
+<text x="518.00" y="261.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="527.00" y="261.70" fill="#5a9ca4" xml:space="preserve">▀</text>
+<text x="536.00" y="261.70" fill="#8bc5cd" xml:space="preserve">▀</text>
+<text x="545.00" y="261.70" fill="#5a9ca4" xml:space="preserve">▀</text>
+<text x="554.00" y="261.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="644.00" y="261.70" fill="#9c5200" xml:space="preserve">▀</text>
+<text x="653.00" y="261.70" fill="#f6bd20" xml:space="preserve">▀▀▀▀▀▀▀▀▀▀</text>
+<text x="50.00" y="279.70" fill="#317373" xml:space="preserve">▀</text>
+<text x="59.00" y="279.70" fill="#101010" xml:space="preserve">▀▀</text>
+<text x="77.00" y="279.70" fill="#399494" xml:space="preserve">▀</text>
+<text x="95.00" y="279.70" fill="#184a4a" xml:space="preserve">▀</text>
+<text x="104.00" y="279.70" fill="#62d5b4" xml:space="preserve">▀▀▀</text>
+<text x="131.00" y="279.70" fill="#101010" xml:space="preserve">▀  ▀▀▀      ▀▀</text>
+<text x="257.00" y="279.70" fill="#de5239" xml:space="preserve">▀</text>
+<text x="302.00" y="279.70" fill="#8b2900" xml:space="preserve">▀</text>
+<text x="311.00" y="279.70" fill="#101010" xml:space="preserve">▀▀▀             ▀</text>
+<text x="464.00" y="279.70" fill="#297383" xml:space="preserve">▀</text>
+<text x="473.00" y="279.70" fill="#101010" xml:space="preserve">▀▀    ▀</text>
+<text x="536.00" y="279.70" fill="#5a9ca4" xml:space="preserve">▀▀▀</text>
+<text x="563.00" y="279.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="644.00" y="279.70" fill="#000000" xml:space="preserve">▀▀▀    ▀</text>
+<text x="716.00" y="279.70" fill="#f6e652" xml:space="preserve">▀</text>
+<text x="725.00" y="279.70" fill="#9c5200" xml:space="preserve">▀</text>
+<text x="734.00" y="279.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="14.00" y="297.70" fill="#f6c83c" xml:space="preserve">#001</text>
+<text x="59.00" y="297.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">bulbasaur</text>
+<text x="221.00" y="297.70" fill="#f6c83c" xml:space="preserve">#004</text>
+<text x="266.00" y="297.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">charmander</text>
+<text x="428.00" y="297.70" fill="#f6c83c" xml:space="preserve">#007</text>
+<text x="473.00" y="297.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">squirtle</text>
+<text x="635.00" y="297.70" fill="#f6c83c" xml:space="preserve">#025</text>
+<text x="680.00" y="297.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">pikachu</text>
+<text x="752.00" y="297.70" fill="#797b7d" xml:space="preserve">×4</text>
+<text x="77.00" y="333.70" fill="#e67383" xml:space="preserve">▄</text>
+<text x="86.00" y="333.70" fill="#ffcdc5" xml:space="preserve">▄</text>
+<text x="95.00" y="333.70" fill="#e67383" xml:space="preserve">▀▀</text>
+<text x="113.00" y="333.70" fill="#ffaca4" xml:space="preserve">▄</text>
+<text x="122.00" y="333.70" fill="#a41020" xml:space="preserve">▄▄▄▄▀▀▀▀</text>
+<text x="194.00" y="333.70" fill="#101010" xml:space="preserve">▄</text>
+<text x="257.00" y="333.70" fill="#8b6a00" xml:space="preserve">▀▀   ▄▄</text>
+<text x="329.00" y="333.70" fill="#101010" xml:space="preserve">▄</text>
+<text x="509.00" y="333.70" fill="#7b7b7b" xml:space="preserve">▀</text>
+<text x="518.00" y="333.70" fill="#101010" xml:space="preserve">▀▀▀</text>
+<text x="23.00" y="351.70" fill="#e67383" xml:space="preserve">▄▄▄▄▄▀</text>
+<text x="77.00" y="351.70" fill="#ffcdc5" xml:space="preserve">▀▀▀</text>
+<text x="104.00" y="351.70" fill="#ffaca4" xml:space="preserve">▀▀▀▀▀▀</text>
+<text x="158.00" y="351.70" fill="#ffcdc5" xml:space="preserve">▀</text>
+<text x="167.00" y="351.70" fill="#6a5262" xml:space="preserve">▀</text>
+<text x="176.00" y="351.70" fill="#101010" xml:space="preserve">▀▀▀    ▀▀</text>
+<text x="257.00" y="351.70" fill="#8b6a00" xml:space="preserve">▀</text>
+<text x="266.00" y="351.70" fill="#ffe683" xml:space="preserve">▀</text>
+<text x="275.00" y="351.70" fill="#cda400" xml:space="preserve">▀▀</text>
+<text x="293.00" y="351.70" fill="#8b6a00" xml:space="preserve">▄▀▀</text>
+<text x="320.00" y="351.70" fill="#101010" xml:space="preserve">▀▀▀</text>
+<text x="455.00" y="351.70" fill="#945a10" xml:space="preserve">▀▀</text>
+<text x="473.00" y="351.70" fill="#ffd54a" xml:space="preserve">▄</text>
+<text x="482.00" y="351.70" fill="#945a10" xml:space="preserve">▀▀▀▀</text>
+<text x="518.00" y="351.70" fill="#101010" xml:space="preserve">▀▀▀</text>
+<text x="716.00" y="351.70" fill="#835a10" xml:space="preserve">▀</text>
+<text x="725.00" y="351.70" fill="#ffe629" xml:space="preserve">▀</text>
+<text x="734.00" y="351.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="743.00" y="351.70" fill="#835a10" xml:space="preserve">▄    ▄</text>
+<text x="14.00" y="369.70" fill="#a41020" xml:space="preserve">▀</text>
+<text x="23.00" y="369.70" fill="#ffaca4" xml:space="preserve">▀</text>
+<text x="32.00" y="369.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="41.00" y="369.70" fill="#ffaca4" xml:space="preserve">▀▀▀</text>
+<text x="68.00" y="369.70" fill="#ffcdc5" xml:space="preserve">▀▀▀</text>
+<text x="95.00" y="369.70" fill="#ffaca4" xml:space="preserve">▀▀▀▀▀▀▀▀</text>
+<text x="167.00" y="369.70" fill="#6a5262" xml:space="preserve">▀</text>
+<text x="176.00" y="369.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="185.00" y="369.70" fill="#ffaca4" xml:space="preserve">▀</text>
+<text x="194.00" y="369.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="221.00" y="369.70" fill="#8b6a00" xml:space="preserve">▄▄</text>
+<text x="239.00" y="369.70" fill="#101010" xml:space="preserve">▀▀</text>
+<text x="257.00" y="369.70" fill="#8b6a00" xml:space="preserve">▀</text>
+<text x="266.00" y="369.70" fill="#cda400" xml:space="preserve">▀</text>
+<text x="275.00" y="369.70" fill="#ffffff" xml:space="preserve">▀</text>
+<text x="284.00" y="369.70" fill="#ffd500" xml:space="preserve">▀</text>
+<text x="293.00" y="369.70" fill="#8b6a00" xml:space="preserve">▀</text>
+<text x="302.00" y="369.70" fill="#ffe683" xml:space="preserve">▀</text>
+<text x="311.00" y="369.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="320.00" y="369.70" fill="#ff7352" xml:space="preserve">▀</text>
+<text x="329.00" y="369.70" fill="#101010" xml:space="preserve">▀▀</text>
+<text x="437.00" y="369.70" fill="#945a10" xml:space="preserve">▄</text>
+<text x="446.00" y="369.70" fill="#e6a452" xml:space="preserve">▀</text>
+<text x="455.00" y="369.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="464.00" y="369.70" fill="#ffd54a" xml:space="preserve">▀▀</text>
+<text x="482.00" y="369.70" fill="#ffe6a4" xml:space="preserve">▀▀</text>
+<text x="500.00" y="369.70" fill="#ffd54a" xml:space="preserve">▀▀▀▀</text>
+<text x="536.00" y="369.70" fill="#945a10" xml:space="preserve">▀▀</text>
+<text x="716.00" y="369.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="725.00" y="369.70" fill="#ac8b18" xml:space="preserve">▀</text>
+<text x="734.00" y="369.70" fill="#f6f6a4" xml:space="preserve">▀</text>
+<text x="743.00" y="369.70" fill="#ffe629" xml:space="preserve">▀▀▀▀▀</text>
+<text x="788.00" y="369.70" fill="#ac8329" xml:space="preserve">▀</text>
+<text x="797.00" y="369.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="23.00" y="387.70" fill="#a41020" xml:space="preserve">▀</text>
+<text x="32.00" y="387.70" fill="#6a5262" xml:space="preserve">▀</text>
+<text x="41.00" y="387.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="50.00" y="387.70" fill="#ffcdc5" xml:space="preserve">▀▀</text>
+<text x="68.00" y="387.70" fill="#ffaca4" xml:space="preserve">▀▀▀</text>
+<text x="95.00" y="387.70" fill="#a41020" xml:space="preserve">▀</text>
+<text x="104.00" y="387.70" fill="#e67383" xml:space="preserve">▀</text>
+<text x="113.00" y="387.70" fill="#ffaca4" xml:space="preserve">▀</text>
+<text x="122.00" y="387.70" fill="#e67383" xml:space="preserve">▀</text>
+<text x="131.00" y="387.70" fill="#a41020" xml:space="preserve">▀▀</text>
+<text x="149.00" y="387.70" fill="#e67383" xml:space="preserve">▀</text>
+<text x="158.00" y="387.70" fill="#ffaca4" xml:space="preserve">▀▀▀▀</text>
+<text x="221.00" y="387.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="230.00" y="387.70" fill="#ffe683" xml:space="preserve">▀</text>
+<text x="239.00" y="387.70" fill="#8b6a00" xml:space="preserve">▀▀▀</text>
+<text x="266.00" y="387.70" fill="#ffffb4" xml:space="preserve">▀</text>
+<text x="275.00" y="387.70" fill="#945a00" xml:space="preserve">▀</text>
+<text x="284.00" y="387.70" fill="#ffffb4" xml:space="preserve">▀▀</text>
+<text x="302.00" y="387.70" fill="#ffe683" xml:space="preserve">▀▀</text>
+<text x="320.00" y="387.70" fill="#debd39" xml:space="preserve">▀▀</text>
+<text x="338.00" y="387.70" fill="#8b6a00" xml:space="preserve">▀▀▀</text>
+<text x="428.00" y="387.70" fill="#945a10" xml:space="preserve">▀</text>
+<text x="437.00" y="387.70" fill="#e6a452" xml:space="preserve">▀▀</text>
+<text x="455.00" y="387.70" fill="#ffffff" xml:space="preserve">▀▀</text>
+<text x="473.00" y="387.70" fill="#deb452" xml:space="preserve">▀</text>
+<text x="482.00" y="387.70" fill="#ffd54a" xml:space="preserve">▀▀</text>
+<text x="500.00" y="387.70" fill="#ffffff" xml:space="preserve">▀▀▀</text>
+<text x="527.00" y="387.70" fill="#945a10" xml:space="preserve">▀</text>
+<text x="536.00" y="387.70" fill="#ffd54a" xml:space="preserve">▀▀</text>
+<text x="554.00" y="387.70" fill="#101010" xml:space="preserve">▄</text>
+<text x="707.00" y="387.70" fill="#ffe629" xml:space="preserve">▀▀▀▀▀▀▀</text>
+<text x="770.00" y="387.70" fill="#ac8329" xml:space="preserve">▀</text>
+<text x="779.00" y="387.70" fill="#cdbd20" xml:space="preserve">▀</text>
+<text x="788.00" y="387.70" fill="#5a3908" xml:space="preserve">▀</text>
+<text x="806.00" y="387.70" fill="#ac8b18" xml:space="preserve">▄▀</text>
+<text x="32.00" y="405.70" fill="#a41020" xml:space="preserve">▀</text>
+<text x="41.00" y="405.70" fill="#ffcdc5" xml:space="preserve">▀▀</text>
+<text x="59.00" y="405.70" fill="#e67383" xml:space="preserve">▀</text>
+<text x="68.00" y="405.70" fill="#101010" xml:space="preserve">▀▀</text>
+<text x="86.00" y="405.70" fill="#ffaca4" xml:space="preserve">▀</text>
+<text x="95.00" y="405.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="104.00" y="405.70" fill="#ffaca4" xml:space="preserve">▀</text>
+<text x="113.00" y="405.70" fill="#a41020" xml:space="preserve">▀</text>
+<text x="122.00" y="405.70" fill="#ffffff" xml:space="preserve">▀</text>
+<text x="131.00" y="405.70" fill="#cdeeff" xml:space="preserve">▀</text>
+<text x="140.00" y="405.70" fill="#104a8b" xml:space="preserve">▀</text>
+<text x="149.00" y="405.70" fill="#1873c5" xml:space="preserve">▀</text>
+<text x="158.00" y="405.70" fill="#a41020" xml:space="preserve">▀</text>
+<text x="167.00" y="405.70" fill="#ffaca4" xml:space="preserve">▀▀▀</text>
+<text x="194.00" y="405.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="221.00" y="405.70" fill="#ffe683" xml:space="preserve">▀▀</text>
+<text x="239.00" y="405.70" fill="#8b6a00" xml:space="preserve">▀▀</text>
+<text x="257.00" y="405.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="266.00" y="405.70" fill="#ffe683" xml:space="preserve">▀▀▀</text>
+<text x="293.00" y="405.70" fill="#ffffff" xml:space="preserve">▀</text>
+<text x="302.00" y="405.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="311.00" y="405.70" fill="#e6e6e6" xml:space="preserve">▀</text>
+<text x="320.00" y="405.70" fill="#ffe683" xml:space="preserve">▀</text>
+<text x="329.00" y="405.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="338.00" y="405.70" fill="#8b6a00" xml:space="preserve">▀▀</text>
+<text x="356.00" y="405.70" fill="#ee9c31" xml:space="preserve">▀▀</text>
+<text x="374.00" y="405.70" fill="#c57b08" xml:space="preserve">▄</text>
+<text x="437.00" y="405.70" fill="#945a10" xml:space="preserve">▀</text>
+<text x="446.00" y="405.70" fill="#e6a452" xml:space="preserve">▀</text>
+<text x="455.00" y="405.70" fill="#835a00" xml:space="preserve">▀</text>
+<text x="464.00" y="405.70" fill="#ffeebd" xml:space="preserve">▀▀</text>
+<text x="482.00" y="405.70" fill="#deb452" xml:space="preserve">▀</text>
+<text x="491.00" y="405.70" fill="#f6de8b" xml:space="preserve">▀</text>
+<text x="500.00" y="405.70" fill="#835a00" xml:space="preserve">▀</text>
+<text x="509.00" y="405.70" fill="#e6a452" xml:space="preserve">▀▀</text>
+<text x="527.00" y="405.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="536.00" y="405.70" fill="#ffd54a" xml:space="preserve">▀▀▀</text>
+<text x="563.00" y="405.70" fill="#101010" xml:space="preserve">▄</text>
+<text x="707.00" y="405.70" fill="#5a3900" xml:space="preserve">▄</text>
+<text x="716.00" y="405.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="725.00" y="405.70" fill="#ffe629" xml:space="preserve">▀▀▀▀</text>
+<text x="761.00" y="405.70" fill="#cdbd20" xml:space="preserve">▀▀▀</text>
+<text x="788.00" y="405.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="797.00" y="405.70" fill="#5a3908" xml:space="preserve">▄</text>
+<text x="806.00" y="405.70" fill="#ffe629" xml:space="preserve">▀</text>
+<text x="815.00" y="405.70" fill="#835a10" xml:space="preserve">▀</text>
+<text x="32.00" y="423.70" fill="#a41020" xml:space="preserve">▀</text>
+<text x="41.00" y="423.70" fill="#ffaca4" xml:space="preserve">▀</text>
+<text x="50.00" y="423.70" fill="#ffffff" xml:space="preserve">▀</text>
+<text x="59.00" y="423.70" fill="#104a8b" xml:space="preserve">▀▀</text>
+<text x="77.00" y="423.70" fill="#e67383" xml:space="preserve">▀</text>
+<text x="86.00" y="423.70" fill="#ffaca4" xml:space="preserve">▀▀▀▀</text>
+<text x="122.00" y="423.70" fill="#104a8b" xml:space="preserve">▀</text>
+<text x="131.00" y="423.70" fill="#10b4ee" xml:space="preserve">▀</text>
+<text x="140.00" y="423.70" fill="#104a8b" xml:space="preserve">▀</text>
+<text x="149.00" y="423.70" fill="#e6e6e6" xml:space="preserve">▀</text>
+<text x="158.00" y="423.70" fill="#ffaca4" xml:space="preserve">▀▀</text>
+<text x="176.00" y="423.70" fill="#e67383" xml:space="preserve">▀▀</text>
+<text x="194.00" y="423.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="239.00" y="423.70" fill="#ffe683" xml:space="preserve">▄▄</text>
+<text x="257.00" y="423.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="266.00" y="423.70" fill="#debd39" xml:space="preserve">▀</text>
+<text x="275.00" y="423.70" fill="#d55a39" xml:space="preserve">▀</text>
+<text x="284.00" y="423.70" fill="#ff7352" xml:space="preserve">▀</text>
+<text x="293.00" y="423.70" fill="#8b6a00" xml:space="preserve">▀</text>
+<text x="302.00" y="423.70" fill="#debd39" xml:space="preserve">▀</text>
+<text x="311.00" y="423.70" fill="#ffe683" xml:space="preserve">▀</text>
+<text x="320.00" y="423.70" fill="#8b6a00" xml:space="preserve">▀</text>
+<text x="329.00" y="423.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="338.00" y="423.70" fill="#944100" xml:space="preserve">▀</text>
+<text x="347.00" y="423.70" fill="#c57b08" xml:space="preserve">▀▀▀▀</text>
+<text x="437.00" y="423.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="446.00" y="423.70" fill="#ffeebd" xml:space="preserve">▀▀▀▀▀▀</text>
+<text x="500.00" y="423.70" fill="#deb452" xml:space="preserve">▀</text>
+<text x="509.00" y="423.70" fill="#945a10" xml:space="preserve">▀</text>
+<text x="518.00" y="423.70" fill="#e6a452" xml:space="preserve">▀▀</text>
+<text x="536.00" y="423.70" fill="#ffd54a" xml:space="preserve">▀▀</text>
+<text x="554.00" y="423.70" fill="#e6a452" xml:space="preserve">▀</text>
+<text x="563.00" y="423.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="707.00" y="423.70" fill="#836208" xml:space="preserve">▀▀</text>
+<text x="725.00" y="423.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="734.00" y="423.70" fill="#f6f6a4" xml:space="preserve">▀</text>
+<text x="743.00" y="423.70" fill="#101010" xml:space="preserve">▀▀▀</text>
+<text x="770.00" y="423.70" fill="#ac8329" xml:space="preserve">▀▀</text>
+<text x="797.00" y="423.70" fill="#ffe629" xml:space="preserve">▀▀</text>
+<text x="815.00" y="423.70" fill="#5a3908" xml:space="preserve">▀</text>
+<text x="32.00" y="441.70" fill="#e67383" xml:space="preserve">▀</text>
+<text x="41.00" y="441.70" fill="#ffcdc5" xml:space="preserve">▀▀</text>
+<text x="59.00" y="441.70" fill="#10b4ee" xml:space="preserve">▀</text>
+<text x="68.00" y="441.70" fill="#ffaca4" xml:space="preserve">▀▀▀▀▀▀▀▀▀▀▀▀▀▀</text>
+<text x="194.00" y="441.70" fill="#a41020" xml:space="preserve">▀</text>
+<text x="230.00" y="441.70" fill="#8b6a00" xml:space="preserve">▀</text>
+<text x="239.00" y="441.70" fill="#ffe683" xml:space="preserve">▀▀▀</text>
+<text x="266.00" y="441.70" fill="#8b6a00" xml:space="preserve">▀</text>
+<text x="275.00" y="441.70" fill="#ffe683" xml:space="preserve">▀</text>
+<text x="284.00" y="441.70" fill="#debd39" xml:space="preserve">▀▀▀▀</text>
+<text x="320.00" y="441.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="329.00" y="441.70" fill="#ffe683" xml:space="preserve">▀</text>
+<text x="338.00" y="441.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="347.00" y="441.70" fill="#8b6a00" xml:space="preserve">▄</text>
+<text x="356.00" y="441.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="365.00" y="441.70" fill="#c57b08" xml:space="preserve">▀</text>
+<text x="374.00" y="441.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="437.00" y="441.70" fill="#945a10" xml:space="preserve">▄</text>
+<text x="446.00" y="441.70" fill="#ffd54a" xml:space="preserve">▀</text>
+<text x="455.00" y="441.70" fill="#deb452" xml:space="preserve">▀▀▀</text>
+<text x="482.00" y="441.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="491.00" y="441.70" fill="#e6a452" xml:space="preserve">▀▀▀▀▀▀▀</text>
+<text x="635.00" y="441.70" fill="#ac8b18" xml:space="preserve">▄</text>
+<text x="644.00" y="441.70" fill="#835a10" xml:space="preserve">▄</text>
+<text x="653.00" y="441.70" fill="#ac8b18" xml:space="preserve">▀</text>
+<text x="662.00" y="441.70" fill="#835a10" xml:space="preserve">▀</text>
+<text x="698.00" y="441.70" fill="#5a3908" xml:space="preserve">▄▀</text>
+<text x="716.00" y="441.70" fill="#cdbd20" xml:space="preserve">▀</text>
+<text x="725.00" y="441.70" fill="#ac8329" xml:space="preserve">▀</text>
+<text x="734.00" y="441.70" fill="#ffe629" xml:space="preserve">▀</text>
+<text x="743.00" y="441.70" fill="#ac8329" xml:space="preserve">▀</text>
+<text x="752.00" y="441.70" fill="#836208" xml:space="preserve">▀</text>
+<text x="761.00" y="441.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="770.00" y="441.70" fill="#5a3908" xml:space="preserve">▀▀</text>
+<text x="788.00" y="441.70" fill="#835a10" xml:space="preserve">▀</text>
+<text x="797.00" y="441.70" fill="#ffe629" xml:space="preserve">▀</text>
+<text x="806.00" y="441.70" fill="#cdbd20" xml:space="preserve">▀</text>
+<text x="815.00" y="441.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="23.00" y="459.70" fill="#e67383" xml:space="preserve">▀</text>
+<text x="32.00" y="459.70" fill="#ffcdc5" xml:space="preserve">▀▀</text>
+<text x="50.00" y="459.70" fill="#e67383" xml:space="preserve">▀</text>
+<text x="59.00" y="459.70" fill="#ffaca4" xml:space="preserve">▀▀▀▀▀▀▀▀▀</text>
+<text x="140.00" y="459.70" fill="#e67383" xml:space="preserve">▀▀▀▀</text>
+<text x="176.00" y="459.70" fill="#101010" xml:space="preserve">▀▀</text>
+<text x="248.00" y="459.70" fill="#8b6a00" xml:space="preserve">▀</text>
+<text x="257.00" y="459.70" fill="#debd39" xml:space="preserve">▀</text>
+<text x="266.00" y="459.70" fill="#ffe683" xml:space="preserve">▀▀▀▀</text>
+<text x="302.00" y="459.70" fill="#debd39" xml:space="preserve">▀▀</text>
+<text x="320.00" y="459.70" fill="#8b6a00" xml:space="preserve">▄▀</text>
+<text x="338.00" y="459.70" fill="#ffe683" xml:space="preserve">▀▀</text>
+<text x="356.00" y="459.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="437.00" y="459.70" fill="#945a10" xml:space="preserve">▀</text>
+<text x="446.00" y="459.70" fill="#ffd54a" xml:space="preserve">▀▀▀▀▀▀▀▀▀</text>
+<text x="527.00" y="459.70" fill="#e6a452" xml:space="preserve">▀▀▀</text>
+<text x="554.00" y="459.70" fill="#945a10" xml:space="preserve">▀▀▀</text>
+<text x="644.00" y="459.70" fill="#cdbd20" xml:space="preserve">▀▀</text>
+<text x="662.00" y="459.70" fill="#ffe629" xml:space="preserve">▀</text>
+<text x="671.00" y="459.70" fill="#835a10" xml:space="preserve">▀</text>
+<text x="680.00" y="459.70" fill="#ac8b18" xml:space="preserve">▀</text>
+<text x="689.00" y="459.70" fill="#ffe629" xml:space="preserve">▀</text>
+<text x="698.00" y="459.70" fill="#101010" xml:space="preserve">▀▀▀</text>
+<text x="725.00" y="459.70" fill="#ffe629" xml:space="preserve">▀</text>
+<text x="734.00" y="459.70" fill="#835a10" xml:space="preserve">▀</text>
+<text x="743.00" y="459.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="752.00" y="459.70" fill="#ffe629" xml:space="preserve">▀</text>
+<text x="761.00" y="459.70" fill="#835a10" xml:space="preserve">▀</text>
+<text x="770.00" y="459.70" fill="#cdbd20" xml:space="preserve">▀▀</text>
+<text x="788.00" y="459.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="797.00" y="459.70" fill="#cdbd20" xml:space="preserve">▀▀</text>
+<text x="59.00" y="477.70" fill="#a41020" xml:space="preserve">▀</text>
+<text x="68.00" y="477.70" fill="#e67383" xml:space="preserve">▀▀▀▀▀▀▀▀▀▀▀</text>
+<text x="167.00" y="477.70" fill="#101010" xml:space="preserve">▀          ▀</text>
+<text x="275.00" y="477.70" fill="#debd39" xml:space="preserve">▀▀▀▀▀</text>
+<text x="320.00" y="477.70" fill="#101010" xml:space="preserve">▀▀</text>
+<text x="437.00" y="477.70" fill="#945a10" xml:space="preserve">▀</text>
+<text x="446.00" y="477.70" fill="#ffd54a" xml:space="preserve">▀▀▀▀▀▀▀▀</text>
+<text x="518.00" y="477.70" fill="#e6a452" xml:space="preserve">▀▀▀</text>
+<text x="545.00" y="477.70" fill="#945a10" xml:space="preserve">▀</text>
+<text x="554.00" y="477.70" fill="#e6a452" xml:space="preserve">▀▀</text>
+<text x="653.00" y="477.70" fill="#835a10" xml:space="preserve">▀</text>
+<text x="662.00" y="477.70" fill="#ffe629" xml:space="preserve">▀▀</text>
+<text x="680.00" y="477.70" fill="#cdbd20" xml:space="preserve">▀▀▀</text>
+<text x="707.00" y="477.70" fill="#101010" xml:space="preserve">▀▀</text>
+<text x="725.00" y="477.70" fill="#cdbd20" xml:space="preserve">▀</text>
+<text x="734.00" y="477.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="743.00" y="477.70" fill="#ffe629" xml:space="preserve">▀▀</text>
+<text x="761.00" y="477.70" fill="#cdbd20" xml:space="preserve">▀</text>
+<text x="770.00" y="477.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="779.00" y="477.70" fill="#835a10" xml:space="preserve">▀</text>
+<text x="788.00" y="477.70" fill="#cdbd20" xml:space="preserve">▀</text>
+<text x="797.00" y="477.70" fill="#835a10" xml:space="preserve">▀</text>
+<text x="50.00" y="495.70" fill="#a41020" xml:space="preserve">▄</text>
+<text x="59.00" y="495.70" fill="#e67383" xml:space="preserve">▀▀▀▀</text>
+<text x="95.00" y="495.70" fill="#101010" xml:space="preserve">▀▀▀▀▀</text>
+<text x="140.00" y="495.70" fill="#e67383" xml:space="preserve">▀▀▀</text>
+<text x="167.00" y="495.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="239.00" y="495.70" fill="#944100" xml:space="preserve">▄▀</text>
+<text x="257.00" y="495.70" fill="#8b6a00" xml:space="preserve">▀</text>
+<text x="266.00" y="495.70" fill="#debd39" xml:space="preserve">▀▀</text>
+<text x="302.00" y="495.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="311.00" y="495.70" fill="#debd39" xml:space="preserve">▀</text>
+<text x="320.00" y="495.70" fill="#101010" xml:space="preserve">▀▀▄</text>
+<text x="437.00" y="495.70" fill="#835a00" xml:space="preserve">▀▀</text>
+<text x="455.00" y="495.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="464.00" y="495.70" fill="#e6a452" xml:space="preserve">▀▀▀▀▀▀▀▀</text>
+<text x="536.00" y="495.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="545.00" y="495.70" fill="#945a10" xml:space="preserve">▀</text>
+<text x="653.00" y="495.70" fill="#ffe629" xml:space="preserve">▀▀</text>
+<text x="671.00" y="495.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="752.00" y="495.70" fill="#cdbd20" xml:space="preserve">▀▀</text>
+<text x="770.00" y="495.70" fill="#101010" xml:space="preserve">▄</text>
+<text x="59.00" y="513.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="149.00" y="513.70" fill="#a41020" xml:space="preserve">▀</text>
+<text x="158.00" y="513.70" fill="#ffaca4" xml:space="preserve">▀▀</text>
+<text x="176.00" y="513.70" fill="#101010" xml:space="preserve">▀      ▀▀▀     ▀▀</text>
+<text x="329.00" y="513.70" fill="#c57b08" xml:space="preserve">▀</text>
+<text x="338.00" y="513.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="347.00" y="513.70" fill="#c57b08" xml:space="preserve">▀</text>
+<text x="446.00" y="513.70" fill="#101010" xml:space="preserve">▀▀▀</text>
+<text x="509.00" y="513.70" fill="#835a00" xml:space="preserve">▀</text>
+<text x="518.00" y="513.70" fill="#ffeebd" xml:space="preserve">▀▀▀</text>
+<text x="545.00" y="513.70" fill="#835a00" xml:space="preserve">▀▀</text>
+<text x="14.00" y="531.70" fill="#f6c83c" xml:space="preserve">#039</text>
+<text x="59.00" y="531.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">jigglypuff</text>
+<text x="221.00" y="531.70" fill="#f6c83c" xml:space="preserve">#052</text>
+<text x="266.00" y="531.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">meowth</text>
+<text x="428.00" y="531.70" fill="#f6c83c" xml:space="preserve">#054</text>
+<text x="473.00" y="531.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">psyduck</text>
+<text x="635.00" y="531.70" fill="#f6c83c" xml:space="preserve">#063</text>
+<text x="680.00" y="531.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">abra</text>
+<text x="23.00" y="567.70" fill="#415262" xml:space="preserve">▄</text>
+<text x="32.00" y="567.70" fill="#a4b4b4" xml:space="preserve">▄</text>
+<text x="41.00" y="567.70" fill="#c5d5de" xml:space="preserve">▀</text>
+<text x="50.00" y="567.70" fill="#415262" xml:space="preserve">▀</text>
+<text x="77.00" y="567.70" fill="#ac9c41" xml:space="preserve">▄▄▀</text>
+<text x="104.00" y="567.70" fill="#837329" xml:space="preserve">▀▄</text>
+<text x="140.00" y="567.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="149.00" y="567.70" fill="#c5d5de" xml:space="preserve">▀</text>
+<text x="158.00" y="567.70" fill="#415262" xml:space="preserve">▀</text>
+<text x="167.00" y="567.70" fill="#a4b4b4" xml:space="preserve">▄</text>
+<text x="311.00" y="567.70" fill="#5a4a9c" xml:space="preserve">▄</text>
+<text x="320.00" y="567.70" fill="#4a294a" xml:space="preserve">▄</text>
+<text x="347.00" y="567.70" fill="#5a4a9c" xml:space="preserve">▄</text>
+<text x="356.00" y="567.70" fill="#b48bbd" xml:space="preserve">▄</text>
+<text x="365.00" y="567.70" fill="#5a4a9c" xml:space="preserve">▀</text>
+<text x="374.00" y="567.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="509.00" y="567.70" fill="#8b836a" xml:space="preserve">▀</text>
+<text x="518.00" y="567.70" fill="#525239" xml:space="preserve">▀</text>
+<text x="527.00" y="567.70" fill="#8b836a" xml:space="preserve">▄</text>
+<text x="536.00" y="567.70" fill="#e6e6ee" xml:space="preserve">▄</text>
+<text x="545.00" y="567.70" fill="#101010" xml:space="preserve">▀▀</text>
+<text x="563.00" y="567.70" fill="#8b836a" xml:space="preserve">▄▄</text>
+<text x="581.00" y="567.70" fill="#ffffff" xml:space="preserve">▄</text>
+<text x="590.00" y="567.70" fill="#101010" xml:space="preserve">▄</text>
+<text x="662.00" y="567.70" fill="#313973" xml:space="preserve">▄▄</text>
+<text x="707.00" y="567.70" fill="#5a529c" xml:space="preserve">▄▀</text>
+<text x="725.00" y="567.70" fill="#313973" xml:space="preserve">▀</text>
+<text x="734.00" y="567.70" fill="#000000" xml:space="preserve">▄</text>
+<text x="770.00" y="567.70" fill="#313973" xml:space="preserve">▄</text>
+<text x="779.00" y="567.70" fill="#8b73bd" xml:space="preserve">▄</text>
+<text x="788.00" y="567.70" fill="#5a529c" xml:space="preserve">▄</text>
+<text x="14.00" y="585.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="23.00" y="585.70" fill="#a4b4b4" xml:space="preserve">▀</text>
+<text x="32.00" y="585.70" fill="#838b94" xml:space="preserve">▀▀</text>
+<text x="50.00" y="585.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="68.00" y="585.70" fill="#415262" xml:space="preserve">▄</text>
+<text x="77.00" y="585.70" fill="#524100" xml:space="preserve">▀</text>
+<text x="86.00" y="585.70" fill="#ac9c41" xml:space="preserve">▀▀▀▀</text>
+<text x="122.00" y="585.70" fill="#524100" xml:space="preserve">▀</text>
+<text x="131.00" y="585.70" fill="#415262" xml:space="preserve">▄▀</text>
+<text x="149.00" y="585.70" fill="#838b94" xml:space="preserve">▀</text>
+<text x="158.00" y="585.70" fill="#c5d5de" xml:space="preserve">▀</text>
+<text x="167.00" y="585.70" fill="#838b94" xml:space="preserve">▀</text>
+<text x="176.00" y="585.70" fill="#415262" xml:space="preserve">▀</text>
+<text x="239.00" y="585.70" fill="#5a4a9c" xml:space="preserve">▀</text>
+<text x="248.00" y="585.70" fill="#b48bbd" xml:space="preserve">▄▄</text>
+<text x="266.00" y="585.70" fill="#5a4a9c" xml:space="preserve">▄▀▀</text>
+<text x="293.00" y="585.70" fill="#9473b4" xml:space="preserve">▄</text>
+<text x="302.00" y="585.70" fill="#5a4a9c" xml:space="preserve">▀</text>
+<text x="311.00" y="585.70" fill="#9473b4" xml:space="preserve">▀</text>
+<text x="320.00" y="585.70" fill="#4a294a" xml:space="preserve">▀</text>
+<text x="329.00" y="585.70" fill="#5a4a9c" xml:space="preserve">▀▀</text>
+<text x="347.00" y="585.70" fill="#b48bbd" xml:space="preserve">▀</text>
+<text x="356.00" y="585.70" fill="#9473b4" xml:space="preserve">▀▀</text>
+<text x="374.00" y="585.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="455.00" y="585.70" fill="#525239" xml:space="preserve">▄     ▀</text>
+<text x="518.00" y="585.70" fill="#8b836a" xml:space="preserve">▀</text>
+<text x="527.00" y="585.70" fill="#ffffff" xml:space="preserve">▀▀▀</text>
+<text x="554.00" y="585.70" fill="#e6e6ee" xml:space="preserve">▀▀</text>
+<text x="572.00" y="585.70" fill="#ffffff" xml:space="preserve">▀</text>
+<text x="581.00" y="585.70" fill="#c5c5d5" xml:space="preserve">▀</text>
+<text x="590.00" y="585.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="653.00" y="585.70" fill="#313973" xml:space="preserve">▀</text>
+<text x="662.00" y="585.70" fill="#5a529c" xml:space="preserve">▀</text>
+<text x="671.00" y="585.70" fill="#8b73bd" xml:space="preserve">▀</text>
+<text x="680.00" y="585.70" fill="#313973" xml:space="preserve">▀</text>
+<text x="689.00" y="585.70" fill="#8b73bd" xml:space="preserve">▄</text>
+<text x="698.00" y="585.70" fill="#313973" xml:space="preserve">▄</text>
+<text x="707.00" y="585.70" fill="#d5acee" xml:space="preserve">▀▀</text>
+<text x="725.00" y="585.70" fill="#8b73bd" xml:space="preserve">▀▀</text>
+<text x="743.00" y="585.70" fill="#5a529c" xml:space="preserve">▄</text>
+<text x="752.00" y="585.70" fill="#313973" xml:space="preserve">▀</text>
+<text x="761.00" y="585.70" fill="#8b73bd" xml:space="preserve">▀▀</text>
+<text x="779.00" y="585.70" fill="#5a529c" xml:space="preserve">▀</text>
+<text x="788.00" y="585.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="23.00" y="603.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="32.00" y="603.70" fill="#838b94" xml:space="preserve">▀▀▀</text>
+<text x="59.00" y="603.70" fill="#415262" xml:space="preserve">▀</text>
+<text x="68.00" y="603.70" fill="#a4b4b4" xml:space="preserve">▀</text>
+<text x="77.00" y="603.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="86.00" y="603.70" fill="#a4b4b4" xml:space="preserve">▀</text>
+<text x="95.00" y="603.70" fill="#f6ee9c" xml:space="preserve">▀▀</text>
+<text x="113.00" y="603.70" fill="#cdc562" xml:space="preserve">▀</text>
+<text x="122.00" y="603.70" fill="#ac9c41" xml:space="preserve">▀</text>
+<text x="131.00" y="603.70" fill="#a4b4b4" xml:space="preserve">▀▀</text>
+<text x="149.00" y="603.70" fill="#000000" xml:space="preserve">▀▀</text>
+<text x="167.00" y="603.70" fill="#838b94" xml:space="preserve">▀▀</text>
+<text x="185.00" y="603.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="239.00" y="603.70" fill="#4a294a" xml:space="preserve">▀</text>
+<text x="248.00" y="603.70" fill="#9473b4" xml:space="preserve">▀</text>
+<text x="257.00" y="603.70" fill="#b48bbd" xml:space="preserve">▀▀</text>
+<text x="275.00" y="603.70" fill="#9473b4" xml:space="preserve">▀▀▀▀▀▀▀▀▀</text>
+<text x="356.00" y="603.70" fill="#5a4a9c" xml:space="preserve">▀▀</text>
+<text x="392.00" y="603.70" fill="#4a294a" xml:space="preserve">▄</text>
+<text x="428.00" y="603.70" fill="#525239" xml:space="preserve">▄▀</text>
+<text x="446.00" y="603.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="455.00" y="603.70" fill="#ffffff" xml:space="preserve">▀</text>
+<text x="464.00" y="603.70" fill="#525239" xml:space="preserve">▀    ▀</text>
+<text x="518.00" y="603.70" fill="#ffffff" xml:space="preserve">▀▀▀▀</text>
+<text x="554.00" y="603.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="563.00" y="603.70" fill="#946a5a" xml:space="preserve">▀</text>
+<text x="572.00" y="603.70" fill="#e6e6ee" xml:space="preserve">▀</text>
+<text x="581.00" y="603.70" fill="#c5c5d5" xml:space="preserve">▀</text>
+<text x="590.00" y="603.70" fill="#525239" xml:space="preserve">▀▄</text>
+<text x="662.00" y="603.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="671.00" y="603.70" fill="#5a529c" xml:space="preserve">▀</text>
+<text x="680.00" y="603.70" fill="#8b73bd" xml:space="preserve">▀▀</text>
+<text x="698.00" y="603.70" fill="#313973" xml:space="preserve">▀</text>
+<text x="707.00" y="603.70" fill="#b48bd5" xml:space="preserve">▀</text>
+<text x="716.00" y="603.70" fill="#c59420" xml:space="preserve">▀</text>
+<text x="725.00" y="603.70" fill="#8b73bd" xml:space="preserve">▀▀</text>
+<text x="743.00" y="603.70" fill="#5a529c" xml:space="preserve">▀▀▀▀▀</text>
+<text x="788.00" y="603.70" fill="#313973" xml:space="preserve">▄▄</text>
+<text x="806.00" y="603.70" fill="#5a529c" xml:space="preserve">▄</text>
+<text x="32.00" y="621.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="41.00" y="621.70" fill="#838b94" xml:space="preserve">▀▀▀</text>
+<text x="68.00" y="621.70" fill="#c5d5de" xml:space="preserve">▀</text>
+<text x="77.00" y="621.70" fill="#a4b4b4" xml:space="preserve">▀</text>
+<text x="86.00" y="621.70" fill="#524100" xml:space="preserve">▀▀</text>
+<text x="104.00" y="621.70" fill="#ac9c41" xml:space="preserve">▀</text>
+<text x="113.00" y="621.70" fill="#415262" xml:space="preserve">▀</text>
+<text x="122.00" y="621.70" fill="#838b94" xml:space="preserve">▀</text>
+<text x="131.00" y="621.70" fill="#a4b4b4" xml:space="preserve">▀</text>
+<text x="140.00" y="621.70" fill="#c5d5de" xml:space="preserve">▀</text>
+<text x="149.00" y="621.70" fill="#a4b4b4" xml:space="preserve">▀</text>
+<text x="158.00" y="621.70" fill="#838b94" xml:space="preserve">▀</text>
+<text x="167.00" y="621.70" fill="#a4b4b4" xml:space="preserve">▀</text>
+<text x="176.00" y="621.70" fill="#838b94" xml:space="preserve">▀▀</text>
+<text x="221.00" y="621.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="230.00" y="621.70" fill="#4a294a" xml:space="preserve">▀</text>
+<text x="239.00" y="621.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="248.00" y="621.70" fill="#4a294a" xml:space="preserve">▄</text>
+<text x="257.00" y="621.70" fill="#9473b4" xml:space="preserve">▀</text>
+<text x="266.00" y="621.70" fill="#b48bbd" xml:space="preserve">▀▀▀</text>
+<text x="293.00" y="621.70" fill="#9473b4" xml:space="preserve">▀▀▀▀▀▀</text>
+<text x="347.00" y="621.70" fill="#5a4a9c" xml:space="preserve">▀▀</text>
+<text x="365.00" y="621.70" fill="#101010" xml:space="preserve">▀▀</text>
+<text x="383.00" y="621.70" fill="#b48bbd" xml:space="preserve">▀</text>
+<text x="392.00" y="621.70" fill="#9473b4" xml:space="preserve">▀▀</text>
+<text x="428.00" y="621.70" fill="#525239" xml:space="preserve">▀</text>
+<text x="437.00" y="621.70" fill="#ffffff" xml:space="preserve">▀▀</text>
+<text x="455.00" y="621.70" fill="#c5c5d5" xml:space="preserve">▀</text>
+<text x="464.00" y="621.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="491.00" y="621.70" fill="#8b836a" xml:space="preserve">▄</text>
+<text x="500.00" y="621.70" fill="#ffffff" xml:space="preserve">▄▀▀▀</text>
+<text x="536.00" y="621.70" fill="#101010" xml:space="preserve">▀▀▀</text>
+<text x="563.00" y="621.70" fill="#946a5a" xml:space="preserve">▀</text>
+<text x="572.00" y="621.70" fill="#c5c5d5" xml:space="preserve">▀▀▀▀</text>
+<text x="635.00" y="621.70" fill="#5a529c" xml:space="preserve">▀</text>
+<text x="644.00" y="621.70" fill="#d5acee" xml:space="preserve">▀▀▀</text>
+<text x="671.00" y="621.70" fill="#5a529c" xml:space="preserve">▀</text>
+<text x="680.00" y="621.70" fill="#c59420" xml:space="preserve">▀</text>
+<text x="689.00" y="621.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="698.00" y="621.70" fill="#b48bd5" xml:space="preserve">▀</text>
+<text x="707.00" y="621.70" fill="#5a4131" xml:space="preserve">▀</text>
+<text x="716.00" y="621.70" fill="#c59420" xml:space="preserve">▀▀</text>
+<text x="734.00" y="621.70" fill="#8b73bd" xml:space="preserve">▀▀</text>
+<text x="752.00" y="621.70" fill="#ffe694" xml:space="preserve">▀</text>
+<text x="761.00" y="621.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="770.00" y="621.70" fill="#b48bd5" xml:space="preserve">▀▀▀▀▀</text>
+<text x="815.00" y="621.70" fill="#313973" xml:space="preserve">▀</text>
+<text x="41.00" y="639.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="50.00" y="639.70" fill="#a4b4b4" xml:space="preserve">▀▀</text>
+<text x="68.00" y="639.70" fill="#415262" xml:space="preserve">▀</text>
+<text x="77.00" y="639.70" fill="#c5d5de" xml:space="preserve">▀</text>
+<text x="86.00" y="639.70" fill="#a4b4b4" xml:space="preserve">▀▀▀▀▀</text>
+<text x="131.00" y="639.70" fill="#838b94" xml:space="preserve">▀</text>
+<text x="140.00" y="639.70" fill="#a4b4b4" xml:space="preserve">▀▀▀▀</text>
+<text x="176.00" y="639.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="221.00" y="639.70" fill="#9473b4" xml:space="preserve">▀▀▀▀▀</text>
+<text x="266.00" y="639.70" fill="#4a294a" xml:space="preserve">▀</text>
+<text x="275.00" y="639.70" fill="#9473b4" xml:space="preserve">▀▀▀</text>
+<text x="302.00" y="639.70" fill="#b48bbd" xml:space="preserve">▀</text>
+<text x="311.00" y="639.70" fill="#9473b4" xml:space="preserve">▀</text>
+<text x="320.00" y="639.70" fill="#ff5a5a" xml:space="preserve">▀</text>
+<text x="329.00" y="639.70" fill="#5a4a9c" xml:space="preserve">▀</text>
+<text x="338.00" y="639.70" fill="#9473b4" xml:space="preserve">▀</text>
+<text x="347.00" y="639.70" fill="#5a4a9c" xml:space="preserve">▀▀</text>
+<text x="365.00" y="639.70" fill="#9473b4" xml:space="preserve">▀▀▀▀</text>
+<text x="401.00" y="639.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="446.00" y="639.70" fill="#525239" xml:space="preserve">▀</text>
+<text x="455.00" y="639.70" fill="#ffffff" xml:space="preserve">▀▀</text>
+<text x="473.00" y="639.70" fill="#525239" xml:space="preserve">▀</text>
+<text x="491.00" y="639.70" fill="#ffffff" xml:space="preserve">▀▀▀</text>
+<text x="518.00" y="639.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="527.00" y="639.70" fill="#e6e6ee" xml:space="preserve">▀▀▀▀</text>
+<text x="563.00" y="639.70" fill="#8b836a" xml:space="preserve">▀</text>
+<text x="572.00" y="639.70" fill="#c5c5d5" xml:space="preserve">▀▀</text>
+<text x="644.00" y="639.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="653.00" y="639.70" fill="#8b73bd" xml:space="preserve">▀▀</text>
+<text x="671.00" y="639.70" fill="#313973" xml:space="preserve">▀</text>
+<text x="680.00" y="639.70" fill="#5a4131" xml:space="preserve">▀</text>
+<text x="689.00" y="639.70" fill="#eec54a" xml:space="preserve">▀</text>
+<text x="698.00" y="639.70" fill="#c59420" xml:space="preserve">▀</text>
+<text x="707.00" y="639.70" fill="#f65273" xml:space="preserve">▀</text>
+<text x="716.00" y="639.70" fill="#5a4131" xml:space="preserve">▀</text>
+<text x="725.00" y="639.70" fill="#c59420" xml:space="preserve">▀</text>
+<text x="734.00" y="639.70" fill="#eec54a" xml:space="preserve">▀▀</text>
+<text x="752.00" y="639.70" fill="#c59420" xml:space="preserve">▀</text>
+<text x="761.00" y="639.70" fill="#8b73bd" xml:space="preserve">▀▀▀▀▀</text>
+<text x="41.00" y="657.70" fill="#a4b4b4" xml:space="preserve">▀▀</text>
+<text x="59.00" y="657.70" fill="#838b94" xml:space="preserve">▀</text>
+<text x="68.00" y="657.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="77.00" y="657.70" fill="#838b94" xml:space="preserve">▀▀▀▀▀▀▀</text>
+<text x="140.00" y="657.70" fill="#a4b4b4" xml:space="preserve">▄</text>
+<text x="149.00" y="657.70" fill="#415262" xml:space="preserve">▀</text>
+<text x="158.00" y="657.70" fill="#a4b4b4" xml:space="preserve">▀▀</text>
+<text x="176.00" y="657.70" fill="#838b94" xml:space="preserve">▀</text>
+<text x="239.00" y="657.70" fill="#4a294a" xml:space="preserve">▀</text>
+<text x="248.00" y="657.70" fill="#5a4a9c" xml:space="preserve">▀</text>
+<text x="257.00" y="657.70" fill="#9473b4" xml:space="preserve">▀</text>
+<text x="266.00" y="657.70" fill="#5a4a9c" xml:space="preserve">▀</text>
+<text x="275.00" y="657.70" fill="#ff9494" xml:space="preserve">▀</text>
+<text x="284.00" y="657.70" fill="#9473b4" xml:space="preserve">▀▀▀▀▀</text>
+<text x="329.00" y="657.70" fill="#4a294a" xml:space="preserve">▀</text>
+<text x="338.00" y="657.70" fill="#9473b4" xml:space="preserve">▀▀</text>
+<text x="356.00" y="657.70" fill="#5a4a9c" xml:space="preserve">▀▀▀</text>
+<text x="383.00" y="657.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="464.00" y="657.70" fill="#ffffff" xml:space="preserve">▀▀</text>
+<text x="482.00" y="657.70" fill="#101010" xml:space="preserve">▀▀▀</text>
+<text x="509.00" y="657.70" fill="#c5c5d5" xml:space="preserve">▀</text>
+<text x="518.00" y="657.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="527.00" y="657.70" fill="#946a5a" xml:space="preserve">▀</text>
+<text x="536.00" y="657.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="545.00" y="657.70" fill="#946a5a" xml:space="preserve">▀▀▀▀▀</text>
+<text x="590.00" y="657.70" fill="#523910" xml:space="preserve">▀</text>
+<text x="599.00" y="657.70" fill="#c59c4a" xml:space="preserve">▄</text>
+<text x="608.00" y="657.70" fill="#523910" xml:space="preserve">▄</text>
+<text x="653.00" y="657.70" fill="#313973" xml:space="preserve">▄▀</text>
+<text x="671.00" y="657.70" fill="#ffe694" xml:space="preserve">▀▀</text>
+<text x="689.00" y="657.70" fill="#5a4131" xml:space="preserve">▀</text>
+<text x="698.00" y="657.70" fill="#eeb4cd" xml:space="preserve">▀</text>
+<text x="707.00" y="657.70" fill="#cd205a" xml:space="preserve">▀</text>
+<text x="716.00" y="657.70" fill="#f65273" xml:space="preserve">▀▀▀</text>
+<text x="743.00" y="657.70" fill="#c59420" xml:space="preserve">▀</text>
+<text x="752.00" y="657.70" fill="#eec54a" xml:space="preserve">▀</text>
+<text x="761.00" y="657.70" fill="#c59420" xml:space="preserve">▀</text>
+<text x="770.00" y="657.70" fill="#8b73bd" xml:space="preserve">▀</text>
+<text x="779.00" y="657.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="788.00" y="657.70" fill="#313973" xml:space="preserve">▄</text>
+<text x="50.00" y="675.70" fill="#a4b4b4" xml:space="preserve">▀▀</text>
+<text x="68.00" y="675.70" fill="#838b94" xml:space="preserve">▀</text>
+<text x="77.00" y="675.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="86.00" y="675.70" fill="#cdc562" xml:space="preserve">▀▀</text>
+<text x="104.00" y="675.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="113.00" y="675.70" fill="#4a4a62" xml:space="preserve">▀▀</text>
+<text x="131.00" y="675.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="140.00" y="675.70" fill="#838b94" xml:space="preserve">▀▀▀</text>
+<text x="257.00" y="675.70" fill="#9473b4" xml:space="preserve">▀▀</text>
+<text x="275.00" y="675.70" fill="#fff6ff" xml:space="preserve">▀▀▀▀▀▀</text>
+<text x="329.00" y="675.70" fill="#9473b4" xml:space="preserve">▀▀</text>
+<text x="347.00" y="675.70" fill="#5a4a9c" xml:space="preserve">▀▀▀▀</text>
+<text x="383.00" y="675.70" fill="#4a294a" xml:space="preserve">▀</text>
+<text x="464.00" y="675.70" fill="#c59c4a" xml:space="preserve">▀</text>
+<text x="473.00" y="675.70" fill="#946a5a" xml:space="preserve">▀</text>
+<text x="482.00" y="675.70" fill="#523910" xml:space="preserve">▀</text>
+<text x="491.00" y="675.70" fill="#946a5a" xml:space="preserve">▀▀▀▀▀▀</text>
+<text x="545.00" y="675.70" fill="#f6d5b4" xml:space="preserve">▀▀▀▀</text>
+<text x="581.00" y="675.70" fill="#523910" xml:space="preserve">▀</text>
+<text x="590.00" y="675.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="599.00" y="675.70" fill="#c59c4a" xml:space="preserve">▀▀</text>
+<text x="644.00" y="675.70" fill="#313973" xml:space="preserve">▄</text>
+<text x="653.00" y="675.70" fill="#8b73bd" xml:space="preserve">▀▀</text>
+<text x="671.00" y="675.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="680.00" y="675.70" fill="#5a4131" xml:space="preserve">▀</text>
+<text x="689.00" y="675.70" fill="#eec54a" xml:space="preserve">▀</text>
+<text x="698.00" y="675.70" fill="#8b1052" xml:space="preserve">▀</text>
+<text x="707.00" y="675.70" fill="#cd205a" xml:space="preserve">▀▀</text>
+<text x="725.00" y="675.70" fill="#8b1052" xml:space="preserve">▀▀</text>
+<text x="743.00" y="675.70" fill="#947341" xml:space="preserve">▀▀</text>
+<text x="761.00" y="675.70" fill="#000000" xml:space="preserve">▀▀</text>
+<text x="779.00" y="675.70" fill="#5a529c" xml:space="preserve">▀▀</text>
+<text x="797.00" y="675.70" fill="#313973" xml:space="preserve">▀</text>
+<text x="50.00" y="693.70" fill="#838b94" xml:space="preserve">▄</text>
+<text x="59.00" y="693.70" fill="#a4b4b4" xml:space="preserve">▀▀▀</text>
+<text x="86.00" y="693.70" fill="#415262" xml:space="preserve">▀</text>
+<text x="95.00" y="693.70" fill="#000000" xml:space="preserve">▀▀</text>
+<text x="113.00" y="693.70" fill="#838b94" xml:space="preserve">▀▀</text>
+<text x="131.00" y="693.70" fill="#a4b4b4" xml:space="preserve">▀</text>
+<text x="140.00" y="693.70" fill="#838b94" xml:space="preserve">▀</text>
+<text x="149.00" y="693.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="266.00" y="693.70" fill="#9473b4" xml:space="preserve">▀▀▀▀▀▀▀▀</text>
+<text x="338.00" y="693.70" fill="#5a4a9c" xml:space="preserve">▀▀▀▀▀▀▀</text>
+<text x="491.00" y="693.70" fill="#101010" xml:space="preserve">▄▄</text>
+<text x="509.00" y="693.70" fill="#523910" xml:space="preserve">▀</text>
+<text x="518.00" y="693.70" fill="#c59c4a" xml:space="preserve">▀▀</text>
+<text x="536.00" y="693.70" fill="#523910" xml:space="preserve">▀</text>
+<text x="545.00" y="693.70" fill="#f6d5b4" xml:space="preserve">▀▀▀▀▀</text>
+<text x="590.00" y="693.70" fill="#523910" xml:space="preserve">▀▄</text>
+<text x="635.00" y="693.70" fill="#000000" xml:space="preserve">▄</text>
+<text x="644.00" y="693.70" fill="#b48bd5" xml:space="preserve">▀▀</text>
+<text x="662.00" y="693.70" fill="#5a529c" xml:space="preserve">▀</text>
+<text x="671.00" y="693.70" fill="#313973" xml:space="preserve">▀</text>
+<text x="680.00" y="693.70" fill="#5a4131" xml:space="preserve">▀</text>
+<text x="689.00" y="693.70" fill="#eec54a" xml:space="preserve">▀</text>
+<text x="698.00" y="693.70" fill="#947341" xml:space="preserve">▀</text>
+<text x="707.00" y="693.70" fill="#c59420" xml:space="preserve">▀▀</text>
+<text x="725.00" y="693.70" fill="#947341" xml:space="preserve">▀▀</text>
+<text x="743.00" y="693.70" fill="#c59420" xml:space="preserve">▀▀</text>
+<text x="761.00" y="693.70" fill="#5a529c" xml:space="preserve">▀▀▀▀</text>
+<text x="797.00" y="693.70" fill="#8b73bd" xml:space="preserve">▀</text>
+<text x="806.00" y="693.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="815.00" y="693.70" fill="#313973" xml:space="preserve">▄</text>
+<text x="50.00" y="711.70" fill="#a4b4b4" xml:space="preserve">▀</text>
+<text x="59.00" y="711.70" fill="#838b94" xml:space="preserve">▀▀▀</text>
+<text x="113.00" y="711.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="122.00" y="711.70" fill="#838b94" xml:space="preserve">▀</text>
+<text x="131.00" y="711.70" fill="#a4b4b4" xml:space="preserve">▀▀▀</text>
+<text x="158.00" y="711.70" fill="#415262" xml:space="preserve">▀</text>
+<text x="257.00" y="711.70" fill="#4a294a" xml:space="preserve">▀</text>
+<text x="266.00" y="711.70" fill="#5a4a9c" xml:space="preserve">▀▀▀▀▀▀▀▀▀</text>
+<text x="347.00" y="711.70" fill="#9473b4" xml:space="preserve">▀▀▀</text>
+<text x="374.00" y="711.70" fill="#5a4a9c" xml:space="preserve">▀</text>
+<text x="383.00" y="711.70" fill="#101010" xml:space="preserve">▀          ▀</text>
+<text x="491.00" y="711.70" fill="#946a5a" xml:space="preserve">▀</text>
+<text x="500.00" y="711.70" fill="#523910" xml:space="preserve">▀</text>
+<text x="509.00" y="711.70" fill="#c59c4a" xml:space="preserve">▀▀▀▀</text>
+<text x="545.00" y="711.70" fill="#523910" xml:space="preserve">▀</text>
+<text x="554.00" y="711.70" fill="#cdac8b" xml:space="preserve">▀▀▀</text>
+<text x="581.00" y="711.70" fill="#946a5a" xml:space="preserve">▀▀▀</text>
+<text x="644.00" y="711.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="662.00" y="711.70" fill="#313973" xml:space="preserve">▄</text>
+<text x="671.00" y="711.70" fill="#b48bd5" xml:space="preserve">▀</text>
+<text x="680.00" y="711.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="689.00" y="711.70" fill="#5a529c" xml:space="preserve">▀▀▀</text>
+<text x="716.00" y="711.70" fill="#eec54a" xml:space="preserve">▀</text>
+<text x="725.00" y="711.70" fill="#947341" xml:space="preserve">▀</text>
+<text x="734.00" y="711.70" fill="#5a529c" xml:space="preserve">▀▀</text>
+<text x="752.00" y="711.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="761.00" y="711.70" fill="#8b73bd" xml:space="preserve">▀</text>
+<text x="770.00" y="711.70" fill="#5a529c" xml:space="preserve">▀</text>
+<text x="779.00" y="711.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="788.00" y="711.70" fill="#5a529c" xml:space="preserve">▀▀▀</text>
+<text x="815.00" y="711.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="50.00" y="729.70" fill="#415262" xml:space="preserve">▄▀▀▀      ▀▀▀</text>
+<text x="266.00" y="729.70" fill="#4a294a" xml:space="preserve">▀</text>
+<text x="275.00" y="729.70" fill="#9473b4" xml:space="preserve">▀▀</text>
+<text x="293.00" y="729.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="338.00" y="729.70" fill="#4a294a" xml:space="preserve">▀</text>
+<text x="347.00" y="729.70" fill="#9473b4" xml:space="preserve">▀▀▀</text>
+<text x="374.00" y="729.70" fill="#101010" xml:space="preserve">▀             ▀</text>
+<text x="509.00" y="729.70" fill="#946a5a" xml:space="preserve">▀▀▀</text>
+<text x="536.00" y="729.70" fill="#101010" xml:space="preserve">▀▀▀</text>
+<text x="563.00" y="729.70" fill="#523910" xml:space="preserve">▀</text>
+<text x="572.00" y="729.70" fill="#946a5a" xml:space="preserve">▀▀</text>
+<text x="590.00" y="729.70" fill="#101010" xml:space="preserve">▀</text>
+<text x="599.00" y="729.70" fill="#523910" xml:space="preserve">▀</text>
+<text x="653.00" y="729.70" fill="#313973" xml:space="preserve">▄</text>
+<text x="662.00" y="729.70" fill="#b48bd5" xml:space="preserve">▀▀</text>
+<text x="680.00" y="729.70" fill="#5a529c" xml:space="preserve">▀▀</text>
+<text x="698.00" y="729.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="707.00" y="729.70" fill="#8b73bd" xml:space="preserve">▀▀</text>
+<text x="725.00" y="729.70" fill="#5a529c" xml:space="preserve">▀</text>
+<text x="734.00" y="729.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="743.00" y="729.70" fill="#5a529c" xml:space="preserve">▀▀▀</text>
+<text x="770.00" y="729.70" fill="#8b73bd" xml:space="preserve">▀</text>
+<text x="779.00" y="729.70" fill="#5a529c" xml:space="preserve">▀</text>
+<text x="788.00" y="729.70" fill="#000000" xml:space="preserve">▄</text>
+<text x="50.00" y="747.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="59.00" y="747.70" fill="#a4b4b4" xml:space="preserve">▀</text>
+<text x="68.00" y="747.70" fill="#000000" xml:space="preserve">▀▀      ▀</text>
+<text x="149.00" y="747.70" fill="#838b94" xml:space="preserve">▀</text>
+<text x="158.00" y="747.70" fill="#415262" xml:space="preserve">▀</text>
+<text x="167.00" y="747.70" fill="#a4b4b4" xml:space="preserve">▀</text>
+<text x="356.00" y="747.70" fill="#101010" xml:space="preserve">▀▀                ▀</text>
+<text x="662.00" y="747.70" fill="#000000" xml:space="preserve">▀▀    ▀▀    ▀</text>
+<text x="779.00" y="747.70" fill="#5a529c" xml:space="preserve">▀</text>
+<text x="788.00" y="747.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="14.00" y="765.70" fill="#f6c83c" xml:space="preserve">#068</text>
+<text x="59.00" y="765.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">machamp</text>
+<text x="221.00" y="765.70" fill="#f6c83c" xml:space="preserve">#094</text>
+<text x="266.00" y="765.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">gengar</text>
+<text x="428.00" y="765.70" fill="#f6c83c" xml:space="preserve">#104</text>
+<text x="473.00" y="765.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">cubone</text>
+<text x="635.00" y="765.70" fill="#f6c83c" xml:space="preserve">#121</text>
+<text x="680.00" y="765.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">starmie</text>
+<text x="32.00" y="801.70" fill="#797b7d" xml:space="preserve">page 1/8   ·  --page 2 for more</text>
+</svg>

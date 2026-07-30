@@ -1,0 +1,230 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="568" height="352" viewBox="0 0 568.0 352.0" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="15">
+<rect width="100%" height="100%" fill="#0d1117" rx="6"/>
+<rect x="50" y="50" width="9" height="18" fill="#000000"/>
+<rect x="59" y="50" width="9" height="18" fill="#292929"/>
+<rect x="50" y="68" width="18" height="18" fill="#292929"/>
+<rect x="68" y="68" width="9" height="18" fill="#000000"/>
+<rect x="41" y="86" width="9" height="18" fill="#000000"/>
+<rect x="50" y="86" width="27" height="18" fill="#f6bd20"/>
+<rect x="176" y="86" width="27" height="18" fill="#41414a"/>
+<rect x="50" y="104" width="9" height="18" fill="#623108"/>
+<rect x="59" y="104" width="9" height="18" fill="#f6bd20"/>
+<rect x="68" y="104" width="9" height="18" fill="#de9400"/>
+<rect x="77" y="104" width="9" height="18" fill="#9c5200"/>
+<rect x="95" y="104" width="18" height="18" fill="#fff6a4"/>
+<rect x="113" y="104" width="9" height="18" fill="#f6e652"/>
+<rect x="140" y="104" width="36" height="18" fill="#f6e652"/>
+<rect x="176" y="104" width="18" height="18" fill="#41414a"/>
+<rect x="194" y="104" width="9" height="18" fill="#000000"/>
+<rect x="50" y="122" width="18" height="18" fill="#9c5200"/>
+<rect x="68" y="122" width="45" height="18" fill="#f6e652"/>
+<rect x="113" y="122" width="9" height="18" fill="#f6bd20"/>
+<rect x="122" y="122" width="9" height="18" fill="#000000"/>
+<rect x="131" y="122" width="18" height="18" fill="#f6e652"/>
+<rect x="149" y="122" width="9" height="18" fill="#de9400"/>
+<rect x="158" y="122" width="9" height="18" fill="#000000"/>
+<rect x="239" y="122" width="18" height="18" fill="#f6e652"/>
+<rect x="50" y="140" width="9" height="18" fill="#623108"/>
+<rect x="59" y="140" width="9" height="18" fill="#41414a"/>
+<rect x="68" y="140" width="18" height="18" fill="#f6e652"/>
+<rect x="86" y="140" width="9" height="18" fill="#de9400"/>
+<rect x="95" y="140" width="18" height="18" fill="#f6e652"/>
+<rect x="113" y="140" width="9" height="18" fill="#f6bd20"/>
+<rect x="122" y="140" width="9" height="18" fill="#000000"/>
+<rect x="131" y="140" width="9" height="18" fill="#f6bd20"/>
+<rect x="140" y="140" width="18" height="18" fill="#f6e652"/>
+<rect x="158" y="140" width="9" height="18" fill="#9c5200"/>
+<rect x="221" y="140" width="45" height="18" fill="#f6e652"/>
+<rect x="266" y="140" width="9" height="18" fill="#9c5200"/>
+<rect x="41" y="158" width="9" height="18" fill="#623108"/>
+<rect x="50" y="158" width="9" height="18" fill="#e65a41"/>
+<rect x="59" y="158" width="9" height="18" fill="#f6bd20"/>
+<rect x="68" y="158" width="9" height="18" fill="#de9400"/>
+<rect x="77" y="158" width="9" height="18" fill="#623108"/>
+<rect x="86" y="158" width="18" height="18" fill="#f6bd20"/>
+<rect x="104" y="158" width="9" height="18" fill="#9c5200"/>
+<rect x="113" y="158" width="9" height="18" fill="#de9400"/>
+<rect x="122" y="158" width="9" height="18" fill="#f6bd20"/>
+<rect x="131" y="158" width="27" height="18" fill="#c52018"/>
+<rect x="158" y="158" width="9" height="18" fill="#f6bd20"/>
+<rect x="194" y="158" width="81" height="18" fill="#f6e652"/>
+<rect x="41" y="176" width="9" height="18" fill="#623108"/>
+<rect x="50" y="176" width="90" height="18" fill="#f6bd20"/>
+<rect x="140" y="176" width="9" height="18" fill="#c52018"/>
+<rect x="149" y="176" width="18" height="18" fill="#f6bd20"/>
+<rect x="185" y="176" width="27" height="18" fill="#f6bd20"/>
+<rect x="212" y="176" width="54" height="18" fill="#f6e652"/>
+<rect x="266" y="176" width="9" height="18" fill="#000000"/>
+<rect x="50" y="194" width="18" height="18" fill="#000000"/>
+<rect x="68" y="194" width="90" height="18" fill="#f6bd20"/>
+<rect x="158" y="194" width="9" height="18" fill="#f6e652"/>
+<rect x="167" y="194" width="9" height="18" fill="#000000"/>
+<rect x="185" y="194" width="45" height="18" fill="#f6bd20"/>
+<rect x="230" y="194" width="9" height="18" fill="#000000"/>
+<rect x="50" y="212" width="9" height="18" fill="#000000"/>
+<rect x="59" y="212" width="36" height="18" fill="#f6e652"/>
+<rect x="95" y="212" width="27" height="18" fill="#f6bd20"/>
+<rect x="122" y="212" width="9" height="18" fill="#de9400"/>
+<rect x="131" y="212" width="36" height="18" fill="#f6e652"/>
+<rect x="167" y="212" width="9" height="18" fill="#000000"/>
+<rect x="194" y="212" width="9" height="18" fill="#623108"/>
+<rect x="203" y="212" width="18" height="18" fill="#f6bd20"/>
+<rect x="50" y="230" width="9" height="18" fill="#000000"/>
+<rect x="59" y="230" width="54" height="18" fill="#f6e652"/>
+<rect x="113" y="230" width="9" height="18" fill="#9c5200"/>
+<rect x="122" y="230" width="45" height="18" fill="#f6e652"/>
+<rect x="167" y="230" width="18" height="18" fill="#000000"/>
+<rect x="185" y="230" width="18" height="18" fill="#de9400"/>
+<rect x="203" y="230" width="9" height="18" fill="#f6bd20"/>
+<rect x="212" y="230" width="18" height="18" fill="#623108"/>
+<rect x="50" y="248" width="9" height="18" fill="#f6e652"/>
+<rect x="59" y="248" width="9" height="18" fill="#9c5200"/>
+<rect x="68" y="248" width="36" height="18" fill="#f6e652"/>
+<rect x="104" y="248" width="9" height="18" fill="#000000"/>
+<rect x="113" y="248" width="54" height="18" fill="#f6e652"/>
+<rect x="167" y="248" width="18" height="18" fill="#f6bd20"/>
+<rect x="185" y="248" width="9" height="18" fill="#000000"/>
+<rect x="194" y="248" width="9" height="18" fill="#9c5200"/>
+<rect x="203" y="248" width="9" height="18" fill="#000000"/>
+<rect x="41" y="266" width="9" height="18" fill="#f6bd20"/>
+<rect x="50" y="266" width="108" height="18" fill="#f6e652"/>
+<rect x="158" y="266" width="27" height="18" fill="#f6bd20"/>
+<rect x="185" y="266" width="9" height="18" fill="#623108"/>
+<rect x="194" y="266" width="18" height="18" fill="#000000"/>
+<rect x="41" y="284" width="9" height="18" fill="#9c5200"/>
+<rect x="50" y="284" width="135" height="18" fill="#f6bd20"/>
+<rect x="41" y="302" width="18" height="18" fill="#623108"/>
+<rect x="59" y="302" width="9" height="18" fill="#de9400"/>
+<rect x="68" y="302" width="18" height="18" fill="#9c5200"/>
+<rect x="86" y="302" width="9" height="18" fill="#000000"/>
+<rect x="122" y="302" width="9" height="18" fill="#000000"/>
+<rect x="131" y="302" width="9" height="18" fill="#623108"/>
+<rect x="140" y="302" width="9" height="18" fill="#9c5200"/>
+<rect x="149" y="302" width="18" height="18" fill="#de9400"/>
+<rect x="167" y="302" width="9" height="18" fill="#000000"/>
+<rect x="41" y="320" width="27" height="18" fill="#000000"/>
+<rect x="149" y="320" width="27" height="18" fill="#000000"/>
+<text x="32.00" y="27.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">POKEDEX</text>
+<text x="113.00" y="27.70" fill="#797b7d" xml:space="preserve">·  entry #025</text>
+<text x="50.00" y="63.70" fill="#000000" xml:space="preserve">▀▀</text>
+<text x="41.00" y="81.70" fill="#000000" xml:space="preserve">▄▀</text>
+<text x="59.00" y="81.70" fill="#292929" xml:space="preserve">▀</text>
+<text x="68.00" y="81.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="41.00" y="99.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="50.00" y="99.70" fill="#292929" xml:space="preserve">▀</text>
+<text x="59.00" y="99.70" fill="#41414a" xml:space="preserve">▀</text>
+<text x="68.00" y="99.70" fill="#623108" xml:space="preserve">▀▄</text>
+<text x="149.00" y="99.70" fill="#9c5200" xml:space="preserve">▄</text>
+<text x="158.00" y="99.70" fill="#292929" xml:space="preserve">▄▄▀▀▀▄</text>
+<text x="212.00" y="99.70" fill="#000000" xml:space="preserve">▄</text>
+<text x="41.00" y="117.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="50.00" y="117.70" fill="#f6bd20" xml:space="preserve">▀▀▀</text>
+<text x="77.00" y="117.70" fill="#623108" xml:space="preserve">▀</text>
+<text x="86.00" y="117.70" fill="#fff6a4" xml:space="preserve">▄</text>
+<text x="95.00" y="117.70" fill="#9c5200" xml:space="preserve">▀▀▀</text>
+<text x="122.00" y="117.70" fill="#de9400" xml:space="preserve">▄</text>
+<text x="131.00" y="117.70" fill="#f6e652" xml:space="preserve">▄</text>
+<text x="140.00" y="117.70" fill="#9c5200" xml:space="preserve">▀▀</text>
+<text x="158.00" y="117.70" fill="#f6e652" xml:space="preserve">▀▀▀</text>
+<text x="185.00" y="117.70" fill="#41414a" xml:space="preserve">▀▀▀</text>
+<text x="50.00" y="135.70" fill="#623108" xml:space="preserve">▀</text>
+<text x="59.00" y="135.70" fill="#f6bd20" xml:space="preserve">▀</text>
+<text x="68.00" y="135.70" fill="#de9400" xml:space="preserve">▀</text>
+<text x="77.00" y="135.70" fill="#fff6a4" xml:space="preserve">▀▀▀▀</text>
+<text x="113.00" y="135.70" fill="#f6e652" xml:space="preserve">▀▀▀▀▀▀</text>
+<text x="167.00" y="135.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="176.00" y="135.70" fill="#41414a" xml:space="preserve">▀</text>
+<text x="185.00" y="135.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="230.00" y="135.70" fill="#f6e652" xml:space="preserve">▄</text>
+<text x="239.00" y="135.70" fill="#9c5200" xml:space="preserve">▀▀</text>
+<text x="257.00" y="135.70" fill="#f6e652" xml:space="preserve">▄</text>
+<text x="311.00" y="135.70" fill="#f6c83c" font-weight="bold" xml:space="preserve">#025 PIKACHU</text>
+<text x="50.00" y="153.70" fill="#623108" xml:space="preserve">▀</text>
+<text x="59.00" y="153.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="68.00" y="153.70" fill="#f6bd20" xml:space="preserve">▀</text>
+<text x="77.00" y="153.70" fill="#f6e652" xml:space="preserve">▀▀▀▀</text>
+<text x="113.00" y="153.70" fill="#000000" xml:space="preserve">▀▀</text>
+<text x="131.00" y="153.70" fill="#292929" xml:space="preserve">▀</text>
+<text x="140.00" y="153.70" fill="#f6e652" xml:space="preserve">▀▀</text>
+<text x="158.00" y="153.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="203.00" y="153.70" fill="#de9400" xml:space="preserve">▄▄▀</text>
+<text x="230.00" y="153.70" fill="#f6e652" xml:space="preserve">▀▀▀▀</text>
+<text x="266.00" y="153.70" fill="#9c5200" xml:space="preserve">▀</text>
+<text x="311.00" y="153.70" fill="#797b7d" xml:space="preserve">ELECTRIC</text>
+<text x="41.00" y="171.70" fill="#623108" xml:space="preserve">▀</text>
+<text x="50.00" y="171.70" fill="#f6e652" xml:space="preserve">▀▀▀▀▀▀▀▀▀</text>
+<text x="131.00" y="171.70" fill="#e65a41" xml:space="preserve">▀▀</text>
+<text x="149.00" y="171.70" fill="#f6e652" xml:space="preserve">▀</text>
+<text x="158.00" y="171.70" fill="#de9400" xml:space="preserve">▀</text>
+<text x="185.00" y="171.70" fill="#9c5200" xml:space="preserve">▄▀</text>
+<text x="203.00" y="171.70" fill="#f6e652" xml:space="preserve">▀▀▀▀▀▀▀</text>
+<text x="266.00" y="171.70" fill="#9c5200" xml:space="preserve">▀▄</text>
+<text x="41.00" y="189.70" fill="#623108" xml:space="preserve">▀</text>
+<text x="50.00" y="189.70" fill="#c52018" xml:space="preserve">▀</text>
+<text x="59.00" y="189.70" fill="#f6bd20" xml:space="preserve">▀▀▀▀▀▀▀▀</text>
+<text x="131.00" y="189.70" fill="#c52018" xml:space="preserve">▀▀</text>
+<text x="149.00" y="189.70" fill="#f6bd20" xml:space="preserve">▀▀</text>
+<text x="176.00" y="189.70" fill="#9c5200" xml:space="preserve">▄▀</text>
+<text x="194.00" y="189.70" fill="#f6bd20" xml:space="preserve">▀</text>
+<text x="203.00" y="189.70" fill="#f6e652" xml:space="preserve">▀▀▀▀▀▀▀▀</text>
+<text x="311.00" y="189.70" fill="#797b7d" xml:space="preserve">0.11% of encounters</text>
+<text x="500.00" y="189.70" fill="#6e6e6e" xml:space="preserve">COMMON</text>
+<text x="50.00" y="207.70" fill="#000000" xml:space="preserve">▀▀</text>
+<text x="68.00" y="207.70" fill="#f6bd20" xml:space="preserve">▀▀▀▀▀▀▀▀▀▀▀</text>
+<text x="167.00" y="207.70" fill="#9c5200" xml:space="preserve">▀▀</text>
+<text x="185.00" y="207.70" fill="#f6bd20" xml:space="preserve">▀▀▀▀▀</text>
+<text x="230.00" y="207.70" fill="#000000" xml:space="preserve">▀▀</text>
+<text x="50.00" y="225.70" fill="#000000" xml:space="preserve">▀▀</text>
+<text x="68.00" y="225.70" fill="#f6e652" xml:space="preserve">▀▀</text>
+<text x="86.00" y="225.70" fill="#f6bd20" xml:space="preserve">▀▀▀▀▀▀▀</text>
+<text x="149.00" y="225.70" fill="#f6e652" xml:space="preserve">▀▀</text>
+<text x="167.00" y="225.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="194.00" y="225.70" fill="#623108" xml:space="preserve">▀</text>
+<text x="203.00" y="225.70" fill="#f6bd20" xml:space="preserve">▀</text>
+<text x="212.00" y="225.70" fill="#9c5200" xml:space="preserve">▀</text>
+<text x="221.00" y="225.70" fill="#623108" xml:space="preserve">▄</text>
+<text x="311.00" y="225.70" fill="#f6c83c" xml:space="preserve">CAUGHT  ×4</text>
+<text x="50.00" y="243.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="59.00" y="243.70" fill="#f6e652" xml:space="preserve">▀▀</text>
+<text x="77.00" y="243.70" fill="#de9400" xml:space="preserve">▀</text>
+<text x="86.00" y="243.70" fill="#f6e652" xml:space="preserve">▀▀▀▀▀▀▀▀▀▀</text>
+<text x="176.00" y="243.70" fill="#000000" xml:space="preserve">▀▀</text>
+<text x="194.00" y="243.70" fill="#de9400" xml:space="preserve">▀</text>
+<text x="203.00" y="243.70" fill="#f6bd20" xml:space="preserve">▀▀▀</text>
+<text x="311.00" y="243.70" fill="#797b7d" xml:space="preserve">first: 2026-07-30</text>
+<text x="41.00" y="261.70" fill="#000000" xml:space="preserve">▄▀</text>
+<text x="59.00" y="261.70" fill="#f6e652" xml:space="preserve">▀▀▀▀▀▀▀▀▀▀▀▀</text>
+<text x="167.00" y="261.70" fill="#f6bd20" xml:space="preserve">▀</text>
+<text x="176.00" y="261.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="185.00" y="261.70" fill="#de9400" xml:space="preserve">▀▀</text>
+<text x="203.00" y="261.70" fill="#623108" xml:space="preserve">▀</text>
+<text x="311.00" y="261.70" fill="#797b7d" xml:space="preserve">most recent: 2026-07-30</text>
+<text x="32.00" y="279.70" fill="#000000" xml:space="preserve">▄▀</text>
+<text x="50.00" y="279.70" fill="#f6e652" xml:space="preserve">▀▀</text>
+<text x="68.00" y="279.70" fill="#9c5200" xml:space="preserve">▀▀</text>
+<text x="86.00" y="279.70" fill="#f6e652" xml:space="preserve">▀▀▀▀</text>
+<text x="122.00" y="279.70" fill="#de9400" xml:space="preserve">▀</text>
+<text x="131.00" y="279.70" fill="#f6e652" xml:space="preserve">▀▀▀</text>
+<text x="158.00" y="279.70" fill="#f6bd20" xml:space="preserve">▀▀▀</text>
+<text x="185.00" y="279.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="194.00" y="279.70" fill="#9c5200" xml:space="preserve">▀▀</text>
+<text x="212.00" y="279.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="311.00" y="279.70" fill="#797b7d" xml:space="preserve">times caught: 4</text>
+<text x="32.00" y="297.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="41.00" y="297.70" fill="#f6bd20" xml:space="preserve">▀▀</text>
+<text x="59.00" y="297.70" fill="#f6e652" xml:space="preserve">▀▀▀▀▀▀▀▀▀</text>
+<text x="140.00" y="297.70" fill="#f6bd20" xml:space="preserve">▀▀▀▀▀</text>
+<text x="185.00" y="297.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="41.00" y="315.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="50.00" y="315.70" fill="#f6bd20" xml:space="preserve">▀▀▀▀▀▀▀▀▀▀▀▀▀</text>
+<text x="167.00" y="315.70" fill="#de9400" xml:space="preserve">▀</text>
+<text x="176.00" y="315.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="41.00" y="333.70" fill="#f6e652" xml:space="preserve">▀</text>
+<text x="50.00" y="333.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="59.00" y="333.70" fill="#f6e652" xml:space="preserve">▀</text>
+<text x="68.00" y="333.70" fill="#623108" xml:space="preserve">▀</text>
+<text x="77.00" y="333.70" fill="#000000" xml:space="preserve">▀</text>
+<text x="140.00" y="333.70" fill="#623108" xml:space="preserve">▀</text>
+<text x="149.00" y="333.70" fill="#f6bd20" xml:space="preserve">▀▀</text>
+<text x="167.00" y="333.70" fill="#000000" xml:space="preserve">▀▀</text>
+</svg>
