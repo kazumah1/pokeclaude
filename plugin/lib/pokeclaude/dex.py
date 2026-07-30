@@ -195,10 +195,20 @@ def render_detail(pid, blob, info, caught, roster_ids=None):
     """
     if blob is not None and not caught:
         blob = spritelib.grayscale(blob)
-    lines = [""]
     art = spritelib.render(blob, indent=2) if blob else []
     name = (info.get("name") or "?").upper()
     types = ", ".join(t.upper() for t in (info.get("types") or []))
+
+    # A text header, not a bare blank line. When this view is re-emitted as a
+    # hook systemMessage, Claude Code prepends "PostToolUse:Bash says:" and eats
+    # the leading newline -- so whatever is on the first line ends up beside that
+    # label. In the grid view that is a harmless text title; here the first line
+    # is sprite art, and the top row of the Pokemon gets shunted sideways. A
+    # header line takes the hit instead, and names the view while doing it.
+    lines = [
+        "  " + _c(GOLD, "POKEDEX", bold=True) + DIM + "  ·  entry #%03d" % pid + RESET,
+        "",
+    ]
 
     meta_lines = [
         "",
