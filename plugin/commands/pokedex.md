@@ -27,9 +27,10 @@ Useful arguments to pass through when the user asks:
 - `--stats` — progress summary only, no art
 - `--dupes` — full duplicate list, most-caught first
 - `--project` — only Pokemon caught while working in this project
-- `--scale 1` — full 64px sprites. Note: at 64px the output exceeds the size Claude
-  Code renders inline, so it gets persisted to a file and only previewed — the user
-  would have to press ctrl+o to see it. Only pass this if they ask for maximum detail.
+- `--scale 1` — full 64px sprites. Renders 12-26KB depending on the species, which
+  straddles the size at which Claude Code persists output to a file and shows only a
+  preview; whether it appears inline is therefore not predictable. Pass it when the user
+  explicitly asks for maximum detail, and expect they may need ctrl+o.
 
 `--project` scopes to the current repo (git toplevel, else the working directory), so it
 answers "how has my luck been on *this* project". It combines with the other flags, e.g.

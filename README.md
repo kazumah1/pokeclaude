@@ -100,7 +100,7 @@ Plugin commands are namespaced, so tab-complete `/pokeclaude:` to see both.
 | `…:pokedex --stats` | Progress summary, no art |
 | `…:pokedex --dupes` | Full duplicate list, most-caught first |
 | `…:pokedex --project` | Only Pokemon caught while working in this project |
-| `…:pokedex --scale 1` | Full-size 64px sprites (grid default is 3 = 21px) |
+| `…:pokedex --scale 1` | Full 64px sprites (may be persisted, not inline) |
 | `/pokeclaude:pokeclaude-release <name>` | Release one Pokemon (dry-run first) |
 | `…:pokeclaude-release all` | Wipe the Pokedex and start over |
 
@@ -143,6 +143,13 @@ silhouette and a smear.
 
 Escape codes are emitted only when a colour changes rather than per cell, which cuts the
 byte overhead 3-5x — that matters because all art travels through a hook field.
+
+**Output size matters.** ~88% of a rendered sprite is colour escapes, so a 64px sprite is
+12-26KB depending on species — which straddles the threshold where Claude Code persists tool
+output to a file and shows a 2KB preview instead, truncating the art mid-render. The detail
+view therefore defaults to 32px (3.7-6.0KB, always inline) with `--scale 1` available for
+full resolution. A simultaneous foreground+background change is also folded into a single
+SGR sequence, which removes roughly 560 escapes per sprite.
 
 **Why a hook renders the Pokedex.** Truecolour only survives on channels Claude Code paints
 itself: a hook's `systemMessage` is one, but text the assistant writes into its reply is
