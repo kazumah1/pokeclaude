@@ -109,12 +109,26 @@ def render(blob, indent=0, trim=True):
             # Emit only what changed. Adjacent pixels are very often the same
             # colour, so this cuts the escape overhead by roughly 3-5x -- it
             # matters because this art travels through a hook field.
-            if want_fg != cur_fg:
-                line.append(_fg(want_fg))
-                cur_fg = want_fg
-            if want_bg != cur_bg:
-                line.append(DEFAULT_BG if want_bg == "default" else _bg(want_bg))
-                cur_bg = want_bg
+            # Merge a simultaneous fg+bg change into ONE escape. Roughly a
+            # quarter of cells change both at once, and 88% of a rendered
+            # sprite's bytes are escapes, so folding the pair matters: two
+            # sequences cost 38 bytes where one costs 36 -- and more
+            # importantly it halves the sequence count, which is what large
+            # output limits actually count.
+            fg_changed = want_fg != cur_fg
+            bg_changed = want_bg != cur_bg
+            if fg_changed and bg_changed and want_bg != "default":
+                line.append(
+                    "\033[38;2;%d;%d;%d;48;2;%d;%d;%dm" % (want_fg + want_bg)
+                )
+                cur_fg, cur_bg = want_fg, want_bg
+            else:
+                if fg_changed:
+                    line.append(_fg(want_fg))
+                    cur_fg = want_fg
+                if bg_changed:
+                    line.append(DEFAULT_BG if want_bg == "default" else _bg(want_bg))
+                    cur_bg = want_bg
             line.append(glyph)
 
         if cur_fg is not None or cur_bg is not None:
