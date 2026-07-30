@@ -41,6 +41,11 @@ roll is kept at DUPLICATE_WEIGHT of a new one, so the dex keeps filling in while
 still handing out the occasional repeat. As the dex nears completion the
 remaining-new pool shrinks, so duplicates naturally dominate the tail instead of
 catches drying up entirely.
+
+Roster size does not affect the catch RATE -- only what a catch turns out to be.
+Extending from 386 to 1025 species therefore left every constant here alone; it
+divides each species' encounter share by ~2.6 and makes a complete dex a much
+longer project, which is the intent.
 """
 import hashlib
 import os
@@ -86,12 +91,64 @@ DUPLICATE_WEIGHT = 0.25
 MAX_TURN_PROBABILITY = 0.25
 
 # Legendaries/mythicals are rarer. Everything unlisted has weight 1.0.
-RARITY = {
-    144: 0.12, 145: 0.12, 146: 0.12, 150: 0.06, 151: 0.04,  # gen 1
-    243: 0.12, 244: 0.12, 245: 0.12, 249: 0.06, 250: 0.06, 251: 0.04,  # gen 2
-    377: 0.12, 378: 0.12, 379: 0.12, 380: 0.10, 381: 0.10,  # gen 3
-    382: 0.06, 383: 0.06, 384: 0.05, 385: 0.04, 386: 0.04,
-}
+#
+# Membership comes from PokeAPI's own `is_legendary` / `is_mythical` species
+# flags rather than from judgement calls. Those flags reproduce the original
+# hand-written Gen 1-3 table exactly -- all 21 entries, with mythicals landing on
+# 0.04 and legendaries between 0.05 and 0.12 -- which is what makes them
+# trustworthy enough to extend the roster to 1025 with.
+#
+# Weights are expressed as sets rather than 94 literal dict entries so the
+# *reason* for each weight survives. A flat table would leave the next person
+# adding Gen 10 with no way to tell why Zacian sits at 0.06 and Regieleki at
+# 0.12.
+MYTHICAL_IDS = frozenset({
+    151, 251, 385, 386,                          # gen 1-3
+    489, 490, 491, 492, 493, 494,                # gen 4
+    647, 648, 649,                               # gen 5
+    719, 720, 721,                               # gen 6
+    801, 802, 807, 808, 809,                     # gen 7
+    893,                                         # gen 8
+    1025,                                        # gen 9
+})
+
+# Cover/apex legendaries -- the one or two on each game's box, plus expansion
+# headliners. Rarer than the trios but not as rare as a mythical.
+APEX_IDS = frozenset({
+    150, 249, 250, 382, 383,                     # gen 1-3
+    483, 484, 487,                               # Dialga, Palkia, Giratina
+    643, 644, 646,                               # Reshiram, Zekrom, Kyurem
+    716, 717, 718,                               # Xerneas, Yveltal, Zygarde
+    791, 792, 800,                               # Solgaleo, Lunala, Necrozma
+    888, 889, 890, 898,                          # Zacian, Zamazenta, Eternatus, Calyrex
+    1007, 1008, 1017, 1024,                      # Koraidon, Miraidon, Ogerpon, Terapagos
+})
+
+# Everything else PokeAPI flags legendary: trios, quartets and one-offs.
+LEGENDARY_IDS = frozenset({
+    144, 145, 146,                               # gen 1
+    243, 244, 245,                               # gen 2
+    377, 378, 379, 380, 381, 384,                # gen 3
+    480, 481, 482, 485, 486, 488,                # gen 4
+    638, 639, 640, 641, 642, 645,                # gen 5
+    772, 773, 785, 786, 787, 788, 789, 790,      # gen 7
+    891, 892, 894, 895, 896, 897, 905,           # gen 8
+    1001, 1002, 1003, 1004, 1014, 1015, 1016,    # gen 9
+})
+
+# Two Gen 3 weights predate the banding above and are pinned so existing
+# Pokedexes keep the odds they were filled at.
+_LEGACY_WEIGHTS = {380: 0.10, 381: 0.10, 384: 0.05}
+
+RARITY = {}
+for _pid in MYTHICAL_IDS:
+    RARITY[_pid] = 0.04
+for _pid in APEX_IDS:
+    RARITY[_pid] = 0.06
+for _pid in LEGENDARY_IDS:
+    RARITY[_pid] = 0.12
+RARITY.update(_LEGACY_WEIGHTS)
+del _pid
 
 
 def resolve_preset(name):
@@ -188,8 +245,13 @@ def stable_seed(*parts):
 # would be fiction. These four describe what actually exists, and MYTHICAL
 # separates the true one-offs (Mew, Celebi, Jirachi, Deoxys at <=0.05) from the
 # merely legendary birds and beasts.
+# The MYTHICAL cut is 0.045 rather than 0.05 so it lands strictly between the
+# mythical weight (0.04) and the lowest legendary one (Rayquaza, pinned at 0.05).
+# At an inclusive 0.05 boundary Rayquaza was labelled MYTHICAL, which contradicts
+# its species flag; moving the threshold fixes the label without altering anyone's
+# odds.
 TIERS = (
-    (0.05, "MYTHICAL"),
+    (0.045, "MYTHICAL"),
     (0.15, "LEGENDARY"),
     (0.99, "RARE"),
     (1e9, "COMMON"),

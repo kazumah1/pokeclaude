@@ -9,7 +9,7 @@ a wild encounter, rendered as truecolor pixel art directly in your terminal.
   ▀▀▀▀▀▀▀▀       #143  NORMAL
    ▀▀▀▀▀▀        NEW — added to your Pokedex
 
-                 Pokedex 1/386 (0%)
+                 Pokedex 1/1025 (0%)
                  /pokeclaude:pokedex to browse
 ```
 
@@ -220,10 +220,10 @@ forking and `/compact` all just start the next turn cleanly.
 ## Assets
 
 Sprites are baked from [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (official
-96x96 art) into a compact palette+index format — ~4KB each, 1.5MB for all 386.
+96x96 art) into a compact palette+index format — ~4KB each, 4.0MB for all 1025.
 
 ```bash
-python3 tools/bake_sprites.py --max-dex 386 --size 64
+python3 tools/bake_sprites.py --max-dex 1025 --size 64
 python3 tools/bake_sprites.py --ids 25 --preview   # see one in your terminal
 ```
 
@@ -232,7 +232,14 @@ budget encodes empty margin), thresholds alpha *before* resizing to keep silhoue
 crisp, quantizes to <=63 colours (one symbol per pixel from a 64-character alphabet), and
 trims blank rows so a wide sprite does not store half a file of padding.
 
-To extend past Gen 3, re-run with `--max-dex 1025`.
+Every generation's art turned out to be the same 96x96, 10–15 colour format, so gens 4–9
+needed no pipeline changes — only a longer id range.
+
+Species names come from PokeAPI too, with default-form suffixes stripped: it labels the
+only form we bake as `deoxys-normal` and `squawkabilly-green-plumage`, the latter being 26
+characters and wider than a grid cell. The strip is a denylist of known suffixes rather
+than "cut at the first hyphen", because 39 species have a load-bearing hyphen — that naive
+rule would leave `iron-treads` as "iron" and `ho-oh` as "ho".
 
 Pokemon is a trademark of Nintendo / Creatures Inc. / GAME FREAK Inc. This is an
 unofficial fan project.
