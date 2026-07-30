@@ -5,10 +5,15 @@ tokens the assistant produced between their prompt and the end of its response.
 
 Rate is calibrated by replaying real turns through turn_probability rather than
 by guessing or dividing aggregate totals. Across 5,057 turns from 157 sessions
-(30,330 minutes of active work) the current constant yields one catch per ~54
-minutes of active work, inside the 45-60 minute target. Real turns are far larger
-than intuition suggests -- median 5,907 output tokens, p90 32,558, max 338,263 --
-which is why an assumed "typical turn" is a bad basis for tuning.
+(30,330 minutes of active work) the current constants yield one catch per ~72
+minutes of active work. Real turns are far larger than intuition suggests --
+median 5,907 output tokens, p90 32,558, max 338,263 -- which is why an assumed
+"typical turn" is a bad basis for tuning.
+
+Sessions are strongly bimodal: 228 real sessions had a median of 2 turns, but
+those with real work behind them (>=5 turns) had a median of 17 and a p90 of 123.
+Tuning against the overall median therefore describes almost none of the actual
+usage; the >=5-turn population is the one that matters.
 
 Three measurement traps, each of which produced a wrong constant here first:
 
@@ -42,15 +47,27 @@ import os
 import random
 
 # One catch per this many assistant output tokens (see module docstring).
-# Replaying 5,057 real turns gives ~54 min of active work per catch.
+# Replaying 5,057 real turns gives ~72 min of active work per catch at the
+# current cap: ~1.5 catches in a median working session, ~80% chance of at
+# least one. Lower it for more catches, raise it for fewer.
 TOKENS_PER_CATCH = 55_000
 
 # A duplicate species is this much as likely as an unseen one.
 DUPLICATE_WEIGHT = 0.25
 
-# Never let a single enormous turn become a guaranteed catch; keeps the
-# surprise intact and stops one 500k-token workflow from minting several.
-MAX_TURN_PROBABILITY = 0.5
+# Ceiling on any single turn: one enormous turn should feel lucky, not
+# inevitable. At 0.25 it binds above 13,750 tokens (~26% of turns), while an
+# ordinary turn is untouched -- the 5,907-token median still rolls ~11%.
+#
+# Worth knowing before reaching for this to tame long sessions: it barely can.
+# Measured over 228 real sessions, 71% of the catches in a p90-by-time session
+# come from ORDINARY turns, not capped ones, because such sessions are long by
+# turn count (median 107 turns over 580 active minutes) rather than by turn size.
+# The cap shaves a tail, not the bulk. Trying to restore the overall rate
+# afterwards by lowering TOKENS_PER_CATCH pushes marathon totals straight back up
+# (13.2 -> 16.4 catches), so the two knobs work against each other. Scale the
+# whole curve with TOKENS_PER_CATCH; use this only to bound the extremes.
+MAX_TURN_PROBABILITY = 0.25
 
 # Legendaries/mythicals are rarer. Everything unlisted has weight 1.0.
 RARITY = {

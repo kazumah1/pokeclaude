@@ -8,7 +8,7 @@
       "name": "pokeclaude",
       "source": "./plugin",
       "description": "Catch Pokemon as you work. Every turn you spend tokens is a chance at a wild encounter, rendered as truecolor pixel art in your terminal.",
-      "version": "0.4.0"
+      "version": "0.4.1"
     }
   ]
 }
