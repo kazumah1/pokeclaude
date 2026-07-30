@@ -466,6 +466,169 @@ def test_pokedex_cli():
     check(p.returncode == 0, "--all on a complete pokedex renders")
 
 
+def test_project_scoping():
+    print("\n[project] per-project tracking")
+    home, store = fresh_home()
+
+    for pid in (25, 25, 25, 1, 133):
+        store.record_catch(pid, session_id="a", project="/proj/alpha")
+    for pid in (7, 7, 196, 25):
+        store.record_catch(pid, session_id="b", project="/proj/beta")
+
+    d = store.load()
+    check(len(d["caught"]) == 5, "global collection unions both projects")
+    check(d["totals"]["catches"] == 9, "global total counts every catch")
+
+    a, a_catches = store.project_view(d, "/proj/alpha")
+    b, b_catches = store.project_view(d, "/proj/beta")
+    check(len(a) == 3 and a_catches == 5, "alpha sees only its own 3 species / 5 catches")
+    check(len(b) == 3 and b_catches == 4, "beta sees only its own 3 species / 4 catches")
+    check(
+        a["25"]["count"] == 3 and b["25"]["count"] == 1,
+        "per-project counts are independent (pikachu 3 in alpha, 1 in beta)",
+    )
+    check(d["caught"]["25"]["count"] == 4, "global pikachu count is the sum (4)")
+
+    unknown, n = store.project_view(d, "/proj/never-seen")
+    check(unknown == {} and n == 0, "unknown project yields an empty view, no crash")
+
+    # project_key should resolve a git repo root, so subdirs share one Pokedex.
+    root = os.path.join(home, "repo")
+    os.makedirs(os.path.join(root, ".git"))
+    deep = os.path.join(root, "a", "b")
+    os.makedirs(deep)
+    check(store.project_key(deep) == root, "project_key resolves to the git toplevel")
+    plain = os.path.join(home, "plain")
+    os.makedirs(plain)
+    check(store.project_key(plain) == plain, "non-repo dir is its own project")
+
+
+def test_release():
+    print("\n[release] removing pokemon")
+    home, store = fresh_home()
+
+    def seed():
+        for pid in (25, 25, 25, 1, 4, 133):
+            store.record_catch(pid, session_id="a", project="/proj/alpha")
+        for pid in (7, 7, 196):
+            store.record_catch(pid, session_id="b", project="/proj/beta")
+
+    seed()
+    r = store.release(species_id=25)
+    check(r["species"] == 1 and r["catches"] == 3, "releasing one species reports 1 species / 3 catches")
+    d = store.load()
+    check("25" not in d["caught"], "species is gone from the collection")
+    check(d["totals"]["catches"] == 6, "totals decremented by the released count")
+    a, _ = store.project_view(d, "/proj/alpha")
+    check("25" not in a, "released species also cleared from project records")
+
+    r = store.release(species_id=999)
+    check(r["species"] == 0, "releasing something not caught is a no-op")
+
+    # Project-scoped release must not touch the global collection.
+    home, store = fresh_home()
+    seed()
+    before = len(store.load()["caught"])
+    r = store.release(species_id=None, project="/proj/beta")
+    d = store.load()
+    check(r["scope"] == "project" and r["species"] == 2, "project reset clears that project")
+    check(len(d["caught"]) == before, "global collection SURVIVES a project reset")
+    check("7" in d["caught"] and "196" in d["caught"], "globally caught species remain")
+    check("/proj/beta" not in (d.get("projects") or {}), "project record removed")
+    a, _ = store.project_view(d, "/proj/alpha")
+    check(len(a) == 4, "other projects unaffected")
+
+    # Full global reset.
+    home, store = fresh_home()
+    seed()
+    r = store.release(species_id=None)
+    d = store.load()
+    check(r["scope"] == "global", "global reset reports global scope")
+    check(d["caught"] == {} and d["totals"]["catches"] == 0, "everything cleared")
+    check(not (d.get("projects") or {}), "project records cleared too")
+    check(store.record_catch(25, session_id="x")["is_new"], "catching works after a full reset")
+
+
+def test_release_cli():
+    print("\n[release] CLI safety gate")
+    home, store = fresh_home()
+    for pid in (25, 25, 1, 4):
+        store.record_catch(pid, session_id="a", project="/proj/alpha")
+
+    script = os.path.join(REPO, "plugin", "scripts", "release.py")
+
+    def run(args):
+        e = dict(os.environ)
+        e["POKECLAUDE_HOME"] = home
+        p = subprocess.run([sys.executable, script] + args, capture_output=True, env=e)
+        return p.returncode, visible(p.stdout.decode()), p.stderr.decode()
+
+    rc, out, err = run(["pikachu"])
+    check(rc == 2, "dry run exits 2 (nothing changed)")
+    check("Would release" in out and "--confirm" in out, "dry run explains what would happen")
+    check("25" in store.load()["caught"], "dry run did NOT delete anything")
+
+    rc, out, _ = run(["notapokemon"])
+    check(rc == 1 and "Unknown" in out, "unknown name exits 1 with a hint")
+
+    rc, out, _ = run(["mewtwo"])
+    check(rc == 0 and "not in" in out, "uncaught species reports nothing to release")
+
+    rc, out, _ = run(["25"])
+    check(rc == 2 and "Pikachu" in out, "dex number resolves to the right species")
+
+    rc, out, _ = run(["pikachu", "--confirm"])
+    check(rc == 0 and "released" in out.lower(), "--confirm performs the release")
+    check("25" not in store.load()["caught"], "species actually removed")
+
+    rc, out, _ = run(["all", "--confirm"])
+    check(rc == 0, "release all succeeds")
+    check(store.load()["caught"] == {}, "pokedex is empty after release all")
+
+    rc, out, _ = run(["all", "--confirm"])
+    check(rc == 0 and "already empty" in out, "releasing an empty pokedex is graceful")
+
+
+def test_dupes_and_project_cli():
+    print("\n[pokedex] duplicates and --project views")
+    home, store = fresh_home()
+    for pid in (25, 25, 25, 25, 1, 133, 133):
+        store.record_catch(pid, session_id="a", project="/proj/alpha")
+    for pid in (7, 7, 196):
+        store.record_catch(pid, session_id="b", project="/proj/beta")
+
+    def run(args, width="80"):
+        e = dict(os.environ)
+        e["POKECLAUDE_HOME"] = home
+        e["POKECLAUDE_WIDTH"] = width
+        p = subprocess.run([sys.executable, POKEDEX] + args, capture_output=True, env=e)
+        return p.returncode, visible(p.stdout.decode()), p.stderr.decode()
+
+    rc, out, err = run(["--stats"])
+    check(rc == 0 and not err.strip(), "--stats runs clean")
+    check("duplicates" in out and "4" in out, "duplicate section lists counts")
+    check("pikachu" in out, "most-duplicated species is named")
+
+    rc, out, _ = run(["--dupes"])
+    check(rc == 0 and "pikachu" in out and "eevee" in out, "--dupes lists all duplicates")
+
+    rc, out, _ = run(["--project", "--cwd", "/proj/alpha", "--stats"])
+    check(rc == 0 and "alpha" in out, "project view is labelled with the project")
+    check("3/386" in out, "alpha reports its own 3 species")
+
+    rc, out, _ = run(["--project", "--cwd", "/proj/beta", "--stats"])
+    check("2/386" in out, "beta reports its own 2 species")
+
+    rc, out, _ = run(["--project", "--cwd", "/proj/nothing-here", "--stats"])
+    check(rc == 0 and "0/386" in out, "empty project view renders without crashing")
+
+    for args in (["--project", "--cwd", "/proj/alpha"], ["--project", "--all", "--cwd", "/proj/alpha"]):
+        rc, out, err = run(args)
+        check(rc == 0 and not err.strip(), "pokedex %s renders" % " ".join(args))
+        w = max(len(l) for l in out.split("\n")) if out else 0
+        check(w <= 80, "project grid fits 80 cols (%d)" % w)
+
+
 def main():
     print("PokeClaude test suite (python %s)" % sys.version.split()[0])
     real = os.path.join(os.path.expanduser("~"), ".claude", "pokeclaude")
@@ -483,6 +646,10 @@ def main():
         test_hook_no_double_spend,
         test_hook_end_to_end,
         test_pokedex_cli,
+        test_project_scoping,
+        test_release,
+        test_release_cli,
+        test_dupes_and_project_cli,
     ):
         try:
             fn()

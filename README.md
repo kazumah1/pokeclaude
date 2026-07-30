@@ -64,7 +64,34 @@ new; duplicates only dominate once the Pokedex is nearly full, so catches never 
 | `/pokedex --all` | Include uncaught entries as dim silhouettes |
 | `/pokedex --id 25` | Large detail view for one species |
 | `/pokedex --stats` | Progress summary, no art |
+| `/pokedex --dupes` | Full duplicate list, most-caught first |
+| `/pokedex --project` | Only Pokemon caught while working in this project |
 | `/pokedex --scale 1` | Full-size 32px sprites |
+| `/pokeclaude-release <name>` | Release one Pokemon (dry-run first) |
+| `/pokeclaude-release all` | Wipe the Pokedex and start over |
+
+### Per-project Pokedex
+
+`--project` scopes to the current repo (git toplevel, else the working directory), so you
+can see how your luck has been on one project. Per-project counts are tracked
+independently, not merely filtered — Pikachu can be ×4 globally while being ×3 here and
+×1 somewhere else.
+
+The global collection is always the source of truth. `--project` is a view over it, and
+`/pokeclaude-release all --project` resets one project's records **without** touching your
+real collection.
+
+### Releasing
+
+Releasing deletes collection data, so it is deliberately two-step: the command dry-runs
+first, prints exactly what would be removed, and exits without changing anything until you
+pass `--confirm`.
+
+| Exit | Meaning |
+|---|---|
+| `0` | done, or nothing to do |
+| `1` | unknown Pokemon, or lock unavailable (nothing changed) |
+| `2` | dry run — awaiting `--confirm` |
 
 ## Rendering
 

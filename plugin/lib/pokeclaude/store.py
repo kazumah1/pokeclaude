@@ -127,9 +127,31 @@ def transaction(mutate, path=DEX_PATH):
         _release(fd)
 
 
-def record_catch(species_id, session_id=None, path=DEX_PATH):
+def project_key(cwd=None):
+    """Stable identifier for the project a catch happened in.
+
+    The hook only knows a working directory, so "project" means exactly that:
+    the git toplevel if there is one (so subdirectories of a repo share a
+    Pokedex), otherwise the directory itself.
+    """
+    d = os.path.abspath(cwd or os.getcwd())
+    probe = d
+    while True:
+        if os.path.isdir(os.path.join(probe, ".git")):
+            return probe
+        parent = os.path.dirname(probe)
+        if parent == probe:
+            return d
+        probe = parent
+
+
+def record_catch(species_id, session_id=None, path=DEX_PATH, project=None):
     """Persist a catch. Returns a dict describing what changed, or None if the
     write was skipped. `is_new` distinguishes a first capture from a duplicate.
+
+    Per-project counts are recorded alongside the global ones so a project view
+    can show what was caught while working there. The global collection stays
+    the single source of truth; project data is strictly additive bookkeeping.
     """
     key = str(int(species_id))
     now = int(time.time())
@@ -150,10 +172,22 @@ def record_catch(species_id, session_id=None, path=DEX_PATH):
             entry["last"] = now
             is_new = False
         dex["totals"]["catches"] = dex["totals"].get("catches", 0) + 1
+
+        if project:
+            projects = dex.setdefault("projects", {})
+            p = projects.setdefault(project, {"caught": {}, "catches": 0})
+            p["caught"][key] = p["caught"].get(key, 0) + 1
+            p["catches"] = p.get("catches", 0) + 1
+
         return {
             "is_new": is_new,
             "count": caught[key]["count"],
             "unique": len(caught),
+            "project_count": (
+                dex.get("projects", {}).get(project, {}).get("caught", {}).get(key)
+                if project
+                else None
+            ),
         }
 
     return transaction(_mutate, path)
@@ -161,6 +195,83 @@ def record_catch(species_id, session_id=None, path=DEX_PATH):
 
 def caught_ids(path=DEX_PATH):
     return set(int(k) for k in load(path).get("caught", {}))
+
+
+def project_view(dex, project):
+    """Reduce a full pokedex to only what was caught in `project`.
+
+    Returns entries shaped like the global ones so renderers need no special
+    casing, but with per-project counts. Global first/last timestamps are kept
+    since per-project timestamps are not tracked.
+    """
+    pdata = (dex.get("projects") or {}).get(project) or {"caught": {}, "catches": 0}
+    out = {}
+    for key, count in (pdata.get("caught") or {}).items():
+        g = (dex.get("caught") or {}).get(key) or {}
+        out[key] = {
+            "count": count,
+            "first": g.get("first", 0),
+            "last": g.get("last", 0),
+        }
+    return out, pdata.get("catches", 0)
+
+
+def release(species_id=None, path=DEX_PATH, project=None):
+    """Remove one species, or every species, from the Pokedex.
+
+    `species_id=None` clears everything. When `project` is set only that
+    project's records are cleared and the global collection is left intact --
+    resetting one project's luck should never cost someone their collection.
+
+    Returns a dict describing what was removed, or None if the lock was
+    unavailable (in which case nothing changed).
+    """
+    key = None if species_id is None else str(int(species_id))
+
+    def _mutate(dex):
+        if project:
+            projects = dex.setdefault("projects", {})
+            p = projects.get(project) or {"caught": {}, "catches": 0}
+            if key is None:
+                removed = dict(p.get("caught") or {})
+                projects.pop(project, None)
+            else:
+                removed = {}
+                if key in (p.get("caught") or {}):
+                    removed[key] = p["caught"].pop(key)
+                    p["catches"] = max(0, p.get("catches", 0) - removed[key])
+            return {
+                "scope": "project",
+                "removed": removed,
+                "species": len(removed),
+                "catches": sum(removed.values()),
+            }
+
+        caught = dex["caught"]
+        if key is None:
+            removed = {k: v.get("count", 1) for k, v in caught.items()}
+            dex["caught"] = {}
+            dex["totals"]["catches"] = 0
+            dex["projects"] = {}
+        else:
+            removed = {}
+            if key in caught:
+                removed[key] = caught[key].get("count", 1)
+                del caught[key]
+                dex["totals"]["catches"] = max(
+                    0, dex["totals"].get("catches", 0) - removed[key]
+                )
+                for p in (dex.get("projects") or {}).values():
+                    n = (p.get("caught") or {}).pop(key, 0)
+                    p["catches"] = max(0, p.get("catches", 0) - n)
+        return {
+            "scope": "global",
+            "removed": removed,
+            "species": len(removed),
+            "catches": sum(removed.values()),
+        }
+
+    return transaction(_mutate, path)
 
 
 # --- per-session roll bookkeeping -------------------------------------------
