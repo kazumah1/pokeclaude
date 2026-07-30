@@ -1,19 +1,25 @@
 """Catch-rate model and species selection.
 
-Rate is calibrated against measured throughput rather than guessed. Measured
-across 157 real sessions, deduplicating transcript records by message id (see
-the note below -- this matters a lot), the median assistant output rate is
-~1,100 tokens/min. A target of roughly one catch per 45-60 minutes of active
-work therefore means one catch per ~50k-65k output tokens. TOKENS_PER_CATCH
-encodes that directly, so the knob stays interpretable: raise it for rarer
-catches, lower it for more.
+Rate is calibrated by replaying real turns rather than by guessing or by
+dividing aggregate totals. Across 157 real sessions (30,000+ minutes of active
+work), feeding each turn's true token count through turn_probability gives one
+catch per ~53 minutes of active work, inside the 45-60 minute target.
 
-An earlier calibration used ~3,300 tok/min, which was 3x too high because the
-same message was counted once per content block. Both the measurement and the
-hook's reader had to be fixed; with per-record summing AND the inflated
-baseline, the two errors partly cancelled, which is exactly why the bug survived
-a first round of testing. If this constant is ever retuned, measure with
-deduplication.
+Two measurement traps, both of which produced wrong constants before this:
+
+  1. Claude Code writes one transcript record per content block and repeats the
+     message's FINAL output_tokens on every one, so summing per record
+     over-counts by 2-3x. Always deduplicate by message id. An earlier
+     calibration used ~3,300 tok/min from naive summing; the reader had the same
+     bug, and the two errors partly cancelled -- which is precisely why it
+     survived a first round of testing.
+  2. "Tokens per minute" depends entirely on the denominator. Wall-clock across a
+     session gives ~1,070 tok/min; excluding idle gaps of over five minutes gives
+     ~2,090. Active time is the right basis, since a session left open overnight
+     should not count as time spent working.
+
+Because of trap 2, prefer replaying turns through turn_probability over any
+tokens-per-minute shortcut when retuning this constant.
 
 Odds are derived per-turn from real `output_tokens` in the transcript, so a long
 grinding turn genuinely improves your chances and an idle one does not.
@@ -29,8 +35,8 @@ import os
 import random
 
 # One catch per this many assistant output tokens (see module docstring).
-# 58k / ~1,100 tok/min ~= 53 min per catch, inside the 45-60 min target.
-TOKENS_PER_CATCH = 58_000
+# Validated by replaying real turns: 53 min of active work per catch.
+TOKENS_PER_CATCH = 90_000
 
 # A duplicate species is this much as likely as an unseen one.
 DUPLICATE_WEIGHT = 0.25
