@@ -1287,6 +1287,80 @@ def test_shiny():
         "a shiny duplicate reports both facts",
     )
 
+    # --- CLI semantics -----------------------------------------------------
+    # Shiny colours are EARNED. --shiny filters the collection; it must never
+    # preview colours for a species you have not caught shiny, or the reward is
+    # spent before it is won. --normal is the way back for a species you own both
+    # of.
+    cli, cstore = fresh_home()
+    for p in (1, 4, 7, 25):
+        cstore.record_catch(p, session_id="s")
+    cstore.record_catch(25, session_id="s", shiny=True)   # owns normal AND shiny
+    cstore.record_catch(133, session_id="s", shiny=True)  # shiny-only species
+
+    def run_dex(args):
+        e = dict(os.environ)
+        e["POKECLAUDE_HOME"] = cli
+        e["POKECLAUDE_WIDTH"] = "90"
+        p = subprocess.run(
+            [sys.executable, POKEDEX] + args, capture_output=True, env=e
+        )
+        return p.returncode, p.stdout.decode("utf-8", "replace")
+
+    rc, out = run_dex(["--shiny"])
+    vis = visible(out)
+    check(rc == 0, "--shiny exits cleanly")
+    check("shinies only" in vis, "--shiny labels the view as a shiny showcase")
+    check("pikachu" in vis and "eevee" in vis, "--shiny lists the shiny species")
+    check(
+        "bulbasaur" not in vis and "squirtle" not in vis,
+        "--shiny excludes species with no shiny",
+    )
+
+    # The art must actually change with the toggle, and must NOT change for a
+    # species whose shiny is not owned.
+    _, shiny_view = run_dex(["--id", "25", "--scale", "3"])
+    _, normal_view = run_dex(["--id", "25", "--normal", "--scale", "3"])
+    check(
+        shiny_view != normal_view,
+        "--normal renders different art than the shiny default",
+    )
+    check(
+        "showing" in visible(shiny_view) and "--normal" in visible(shiny_view),
+        "the detail view says which variant is shown and how to switch",
+    )
+
+    _, plain_a = run_dex(["--id", "7", "--scale", "3"])
+    _, plain_b = run_dex(["--id", "7", "--shiny", "--scale", "3"])
+    check(
+        plain_a == plain_b,
+        "--shiny does not reveal unearned shiny colours for --id",
+    )
+
+    # An empty shiny collection has to say so rather than render an empty grid.
+    empty, estore = fresh_home()
+    estore.record_catch(1, session_id="s")
+    e2 = dict(os.environ)
+    e2["POKECLAUDE_HOME"] = empty
+    e2["POKECLAUDE_WIDTH"] = "90"
+    p = subprocess.run(
+        [sys.executable, POKEDEX, "--shiny"], capture_output=True, env=e2
+    )
+    check(
+        p.returncode == 0 and "No shinies yet" in visible(p.stdout.decode()),
+        "--shiny with no shinies explains rather than showing an empty grid",
+    )
+
+    # Shiny facts must survive the per-project reduction, or --project --shiny
+    # would silently return nothing.
+    proj, pstore = fresh_home()
+    pstore.record_catch(25, session_id="s", project="/proj/x", shiny=True)
+    view, _n = pstore.project_view(pstore.load(), "/proj/x")
+    check(
+        view.get("25", {}).get("shiny") == 1,
+        "project_view keeps shiny counts",
+    )
+
 
 def test_readme_svgs():
     """The generated README images must be valid, self-contained and not clip.

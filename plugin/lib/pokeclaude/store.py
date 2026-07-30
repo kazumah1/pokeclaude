@@ -233,11 +233,20 @@ def project_view(dex, project):
     out = {}
     for key, count in (pdata.get("caught") or {}).items():
         g = (dex.get("caught") or {}).get(key) or {}
-        out[key] = {
+        entry = {
             "count": count,
             "first": g.get("first", 0),
             "last": g.get("last", 0),
         }
+        # Carry the shiny facts through. Per-project shiny counts are not tracked,
+        # so this is the global count -- but dropping the key entirely would make
+        # `--project --shiny` return nothing and hide shiny colours in the project
+        # grid, which is worse than a count that is not project-scoped.
+        if g.get("shiny"):
+            entry["shiny"] = g["shiny"]
+            if g.get("shiny_first"):
+                entry["shiny_first"] = g["shiny_first"]
+        out[key] = entry
     return out, pdata.get("catches", 0)
 
 

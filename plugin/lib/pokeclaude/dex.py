@@ -191,7 +191,7 @@ def render_grid(
     return lines
 
 
-def render_detail(pid, blob, info, caught, roster_ids=None):
+def render_detail(pid, blob, info, caught, roster_ids=None, showing_shiny=False):
     """Large single-entry view.
 
     An uncaught species renders in greyscale rather than colour, so browsing the
@@ -262,6 +262,24 @@ def render_detail(pid, blob, info, caught, roster_ids=None):
                     "%Y-%m-%d", _t.localtime(caught.get("shiny_first", 0))
                 )
                 meta_lines.append(DIM + "first shiny: %s" % sf + RESET)
+
+            # Name the variant on screen and how to switch. Owning both means the
+            # art alone is ambiguous -- some shinies differ only subtly from the
+            # normal colours -- and an unlabelled toggle nobody can find is not a
+            # toggle.
+            owns_normal = caught.get("count", 0) > shinies
+            if owns_normal:
+                meta_lines.append("")
+                if showing_shiny:
+                    meta_lines.append(
+                        DIM + "showing " + RESET + _c(SHINY, "shiny") + DIM
+                        + "  ·  --normal for the ordinary colours" + RESET
+                    )
+                else:
+                    meta_lines.append(
+                        DIM + "showing ordinary colours  ·  drop --normal for "
+                        + RESET + _c(SHINY, "shiny") + RESET
+                    )
     else:
         meta_lines.append(DIM + "not yet caught" + RESET)
 
