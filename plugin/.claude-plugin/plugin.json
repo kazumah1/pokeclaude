@@ -2,5 +2,7 @@
   "name": "pokeclaude",
   "version": "0.1.0",
   "description": "Catch Pokemon as you work. Every turn you spend tokens is a chance at a wild encounter, rendered as truecolor pixel art in your terminal.",
-  "author": "kazumah1"
+  "author": {
+    "name": "kazumah1"
+  }
 }
