@@ -23,11 +23,13 @@ Useful arguments to pass through when the user asks:
 - (none) — first page of caught Pokemon
 - `--page N` — a specific page
 - `--all` — include uncaught entries as dim silhouettes
-- `--id N` — large detail view for one species, at full 64px
+- `--id N` — large detail view for one species (32px)
 - `--stats` — progress summary only, no art
 - `--dupes` — full duplicate list, most-caught first
 - `--project` — only Pokemon caught while working in this project
-- `--scale 1` — full 64px sprites, 2 = 32px, 3 = 21px (grid default)
+- `--scale 1` — full 64px sprites. Note: at 64px the output exceeds the size Claude
+  Code renders inline, so it gets persisted to a file and only previewed — the user
+  would have to press ctrl+o to see it. Only pass this if they ask for maximum detail.
 
 `--project` scopes to the current repo (git toplevel, else the working directory), so it
 answers "how has my luck been on *this* project". It combines with the other flags, e.g.

@@ -54,6 +54,12 @@ def main():
         return 0
     if len(out) > MAX_CHARS:
         return 0
+    # When output is large, Claude Code replaces it with a persisted-file wrapper
+    # containing only a short preview. Re-emitting that would print a sprite
+    # truncated mid-render, which looks worse than not rendering at all. The
+    # scripts are sized to stay under the threshold, so this is a backstop.
+    if "<persisted-output>" in out or "Output too large" in out:
+        return 0
 
     print(json.dumps({"systemMessage": out, "suppressOutput": True}))
     return 0

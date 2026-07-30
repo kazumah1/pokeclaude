@@ -9,7 +9,7 @@ characters stripped, so the art must not be relayed there.
     pokedex.py                 first page of caught species
     pokedex.py --page 3        a specific page
     pokedex.py --all           include uncaught entries as dim silhouettes
-    pokedex.py --id 25         detail view for one species, full 64px
+    pokedex.py --id 25         detail view for one species (32px; --scale 1 for 64)
     pokedex.py --stats         summary only, no art
     pokedex.py --dupes         duplicate counts, most caught first
     pokedex.py --project       only what was caught in this project
@@ -79,7 +79,8 @@ def main():
     ap.add_argument("--width", type=int, default=None, help="override terminal width")
     ap.add_argument(
         "--scale", type=int, default=3,
-        help="sprite divisor: 1 = full 64px, 2 = 32px, 3 = 21px (grid default)"
+        help="sprite divisor: 1 = full 64px, 2 = 32px (detail default), "
+             "3 = 21px (grid default)"
     )
     ap.add_argument(
         "--project",
@@ -91,6 +92,11 @@ def main():
         "--dupes", action="store_true", help="list duplicate counts, most caught first"
     )
     args = ap.parse_args()
+    # Distinguish "user chose a scale" from "default applied", because the grid
+    # and the detail view want different defaults.
+    args.scale_given = any(
+        x == "--scale" or x.startswith("--scale=") for x in sys.argv[1:]
+    )
 
     # Wrapping shreds pixel art, so the column count is derived from the real
     # terminal width rather than assumed. Hooks and pipes have no tty, hence the
@@ -127,6 +133,18 @@ def main():
         if blob is None:
             print("No sprite for #%d" % pid)
             return 1
+
+        # A 64px sprite renders to 10-19KB because ~88% of the bytes are colour
+        # escapes. That exceeds the size at which Claude Code persists tool
+        # output to a file and shows only a 2KB preview -- which truncated the
+        # art mid-sprite. 32px lands at 3.5-6KB and always survives intact.
+        # --scale 1 still gives the full-resolution view for ctrl+o.
+        detail_scale = args.scale if args.scale_given else 2
+        if detail_scale > 1:
+            from pokeclaude import sprite as spritelib
+
+            blob = spritelib.downscale(blob, detail_scale)
+
         out += dex.render_detail(pid, blob, meta.get(str(pid)) or {}, caught.get(str(pid)))
         print("\n".join(out))
         return 0
