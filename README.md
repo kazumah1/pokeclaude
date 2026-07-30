@@ -3,18 +3,26 @@
 Catch Pokemon while you work. Every turn you spend tokens in Claude Code is a chance at
 a wild encounter, rendered as truecolor pixel art directly in your terminal.
 
-```
-   ▄▀▀▀▀▄        ✦ A wild SNORLAX appeared!
-  ▀▀▀▀▀▀▀▀
-  ▀▀▀▀▀▀▀▀       #143  NORMAL
-   ▀▀▀▀▀▀        NEW — added to your Pokedex
-
-                 Pokedex 1/1025 (0%)
-                 /pokeclaude:pokedex to browse
-```
+<img src="docs/catch-snorlax.svg" alt="A wild SNORLAX appeared — pixel art catch banner" width="620">
 
 Your Pokedex is shared across **every** Claude Code instance — parallel sessions, every
 project, one collection.
+
+## Your Pokedex
+
+`/pokeclaude:pokedex` pages through everything you have caught, in colour, with duplicate
+counts:
+
+<img src="docs/pokedex-page.svg" alt="Pokedex grid showing caught Pokemon as colour pixel art" width="840">
+
+`--id N` opens a single entry, with its encounter rarity and catch history. Species you have
+not caught yet render in greyscale, so it is obvious at a glance what you actually own:
+
+<img src="docs/detail-pikachu.svg" alt="Pikachu detail view, caught four times" width="620">
+
+<img src="docs/detail-koraidon.svg" alt="Koraidon detail view, a caught legendary" width="620">
+
+<img src="docs/detail-arceus-uncaught.svg" alt="Arceus detail view, uncaught and rendered in greyscale" width="620">
 
 ## Install
 
@@ -240,6 +248,22 @@ only form we bake as `deoxys-normal` and `squawkabilly-green-plumage`, the latte
 characters and wider than a grid cell. The strip is a denylist of known suffixes rather
 than "cut at the first hyphen", because 39 species have a load-bearing hyphen — that naive
 rule would leave `iron-treads` as "iron" and `ho-oh` as "ho".
+
+### README images
+
+GitHub strips ANSI escapes from fenced code blocks, so a code block can only ever show a
+monochrome approximation of the art. The images above are SVGs generated from the scripts'
+**real stdout**, so they cannot drift from what the plugin actually prints:
+
+```bash
+python3 tools/ansi_to_svg.py --demo catch --id 143 --out docs/catch-snorlax.svg
+python3 tools/ansi_to_svg.py --cmd "scripts/pokedex.py" --home /tmp/demodex \
+    --width 100 --out docs/pokedex-page.svg
+```
+
+`--home` points at a throwaway `POKECLAUDE_HOME`, so regenerating the screenshots never
+reads or writes your real collection. SVG rather than PNG because it is text — it diffs in
+git, needs no image library, and stays crisp at any zoom.
 
 Pokemon is a trademark of Nintendo / Creatures Inc. / GAME FREAK Inc. This is an
 unofficial fan project.
