@@ -25,34 +25,35 @@ sys.path.insert(0, os.path.join(REPO, "plugin", "lib"))
 
 SGR = re.compile(r"\x1b\[([0-9;]*)m")
 
-# Cell metrics, deliberately terminal-faithful rather than idealised.
+# Cell metrics. A character cell is CW wide and holds two square pixels (PH each)
+# stacked, mirroring half-block art: the glyph paints the upper pixel, the cell
+# background the lower one.
 #
-# A character cell is CW wide and holds two square pixels (PH each) stacked, plus
-# a LINE_GAP strip below that shows the canvas through. That gap is the real thing
-# a terminal produces: half-block art draws two pixels per character row (top via
-# the glyph, bottom via the cell background), and the terminal's line-height
-# leaves a hairline of its own background between character rows -- the faint
-# horizontal seams you see every second pixel row. An earlier version overlapped
-# the rects to erase those seams, which made the README look cleaner than any real
-# terminal ever does. This reproduces them instead.
+# Every value here is chosen so the pixel grid survives being scaled. Both are
+# integers and every pixel is exactly PH tall -- an earlier version stretched the
+# lower pixel of each cell to 9.86 against the upper's 9.0, and that 9.5%
+# alternation read as rows overlapping on every second line. It was obvious at
+# 32px and invisible at 16px, which is why the grid image looked correct while the
+# detail views did not.
 CW = 9.0
 PH = 9.0  # pixel height; square against CW
-# A character cell is exactly two pixels tall. Both numbers are integers so every
-# row lands on the same sub-pixel offset -- a fractional cell height makes the
-# rasteriser round rows differently and the art bands unevenly.
-#
-# Every pixel is PH tall, with NO band extended to swallow a layout gap. An
-# earlier version stretched the lower band to absorb the gap, which left the
-# lower pixel of each cell 9.86 units against the upper's 9.0. That 9.5%
-# alternation read as rows overlapping every second line -- obvious at 32px,
-# invisible at 16px, which is why the grid looked fine while the detail view did
-# not.
-CH = PH * 2  # 18
+CH = PH * 2  # 18, an integer on purpose
 
-# The seam is drawn as a separate hairline straddling each character-row
-# boundary, so it trims the row above and below by SEAM/2 each and all pixels
-# stay equal. Only drawn where pixels actually meet, never across empty canvas.
-SEAM = 0.5
+# Pixel rects are grown by BLEED on every side so neighbours OVERLAP rather than
+# merely abut.
+#
+# Required for correctness, not polish. The README displays a 568-unit SVG at
+# 620px, so each 9-unit pixel becomes 9.824 device pixels and every row boundary
+# lands mid-device-pixel, where an exactly-tiled edge gets blended with whatever
+# is beneath it -- a faint line along every row. Overlapping removes the shared
+# edge entirely, so there is nothing left to blend at any zoom.
+#
+# Worth recording because this was rediscovered the hard way: these lines were
+# briefly misread as a faithful reproduction of a terminal's line-height seam and
+# deliberately drawn in. They are not. A terminal's seam depends on the font; this
+# artifact is purely the rasteriser, appears at non-integer scales only, and the
+# correct response is to remove it.
+BLEED = 0.5
 FONT_SIZE = 15
 BASELINE = 13.7  # glyph baseline within the 2*PH text area
 
@@ -198,40 +199,16 @@ def to_svg(rows, pad=14):
                     col = get(_pixel_colours(cells[x])) if x < len(cells) else None
                     if col != run_col:
                         if run_col is not None:
+                            # Bleed outwards so neighbours overlap; see BLEED.
                             parts.append(
                                 '<rect x="%g" y="%g" width="%g" height="%g" '
                                 'fill="%s"/>'
-                                % (pad + run_start * CW, by,
-                                   (x - run_start) * CW, PH, _hex(run_col))
+                                % (pad + run_start * CW - BLEED, by - BLEED,
+                                   (x - run_start) * CW + BLEED * 2,
+                                   PH + BLEED * 2, _hex(run_col))
                             )
                         run_col, run_start = col, x
 
-            # Seam along this row's lower edge, drawn only where the pixel above
-            # and the pixel below are both opaque -- that is where a terminal's
-            # line-height actually shows. Skipping transparent spans keeps it out
-            # of the empty canvas, where it would look like a ruled line.
-            nxt = rows[y + 1] if y + 1 < len(rows) else []
-            if nxt and is_pixel_row(nxt):
-                sy = y0 + CH - SEAM / 2.0
-                run_start = None
-                for x in range(len(cells) + 1):
-                    above = (
-                        _pixel_colours(cells[x])[1] if x < len(cells) else None
-                    )
-                    below = (
-                        _pixel_colours(nxt[x])[0] if x < len(nxt) else None
-                    )
-                    joined = above is not None and below is not None
-                    if joined and run_start is None:
-                        run_start = x
-                    elif not joined and run_start is not None:
-                        parts.append(
-                            '<rect x="%g" y="%g" width="%g" height="%g" '
-                            'fill="%s"/>'
-                            % (pad + run_start * CW, sy,
-                               (x - run_start) * CW, SEAM, _hex(DEFAULT_BG))
-                        )
-                        run_start = None
             continue
 
         # Text row: backgrounds first (rare here), then glyph runs.
