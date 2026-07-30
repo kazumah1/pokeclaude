@@ -49,18 +49,53 @@ def _silhouette(blob, rgb=(58, 58, 64)):
 
 
 def _cell(blob, caption_lines, width, sprite_h):
-    art = spritelib.render(blob) if blob else _blank(width, sprite_h)
-    art = [a for a in art]
-    while len(art) < sprite_h:
-        art.append("")
-    # Pad art rows to a fixed visible width. Escape sequences make len()
-    # unreliable, so pad by the sprite's known pixel width instead.
-    vis = spritelib.visible_width(blob) if blob else width
+    """Build one grid cell: art padded to an exact width x sprite_h block.
+
+    Every row must occupy exactly `width` visible columns, including the blank
+    ones. Sprites have different heights (blank rows are trimmed at bake time),
+    so a short sprite that emitted empty padding rows would let the NEXT cell on
+    those lines slide left into the gap -- which shows up as a taller neighbour
+    appearing cut in half, its lower rows offset under the shorter one.
+
+    Art is bottom-aligned so Pokemon stand on a common floor rather than hanging
+    from the top of their cell.
+    """
+    art = spritelib.render(blob) if blob else []
+    vis = spritelib.visible_width(blob) if blob else 0
+
+    # Trim rather than overflow: a cell wider than its slot pushes the whole row
+    # past the terminal edge and wraps, which destroys the art.
+    if vis > width:
+        art = [_truncate(a, width) for a in art]
+        vis = width
+
+    blank = " " * width
     pad = " " * max(0, width - vis)
     rows = [a + pad for a in art[:sprite_h]]
+    while len(rows) < sprite_h:
+        rows.insert(0, blank)  # bottom-align: pad at the top
+
     for cap in caption_lines:
         rows.append(cap)
     return rows
+
+
+def _truncate(line, width):
+    """Cut a rendered line to `width` visible columns, keeping escapes intact."""
+    out, seen, i = [], 0, 0
+    while i < len(line) and seen < width:
+        if line[i] == "\033":
+            j = line.find("m", i)
+            if j == -1:
+                break
+            out.append(line[i : j + 1])
+            i = j + 1
+            continue
+        out.append(line[i])
+        seen += 1
+        i += 1
+    out.append(RESET)
+    return "".join(out)
 
 
 def fit_columns(term_width, cell_w):
@@ -81,15 +116,25 @@ def render_grid(
     """
     lines = []
     cell_w = cell_w // scale
-    sprite_h = (cell_w + 1) // 2  # half-blocks: two pixel rows per text row
 
     for start in range(0, len(entries), cols):
         row = entries[start : start + cols]
-        cells = []
+
+        # Load the row's sprites first: heights vary (blank rows are trimmed at
+        # bake time), so the cell height has to come from the tallest one in this
+        # row rather than being assumed square.
+        loaded = []
         for pid, caught in row:
             blob = _load_sprite(sprites_dir, pid)
             if blob is not None and scale > 1:
                 blob = spritelib.downscale(blob, scale)
+            loaded.append((pid, caught, blob))
+        sprite_h = max(
+            [(b["h"] + 1) // 2 for _, _, b in loaded if b] or [(cell_w + 1) // 2]
+        )
+
+        cells = []
+        for pid, caught, blob in loaded:
             info = meta.get(str(pid)) or {}
             name = info.get("name", "?")
 
@@ -117,7 +162,12 @@ def render_grid(
                 c.append("")
         gap = " " * CELL_GAP
         for i in range(height):
-            lines.append(gap.join(c[i] for c in cells).rstrip())
+            # No rstrip: the trailing pad on each cell is load-bearing. Stripping
+            # it lets a short sprite's blank rows collapse, so the cells to its
+            # right shift left on those lines and a taller neighbour looks cut in
+            # half. Only the final cell's padding is truly redundant.
+            joined = gap.join(c[i] for c in cells)
+            lines.append(joined if joined.strip() else "")
         lines.append("")
     return lines
 

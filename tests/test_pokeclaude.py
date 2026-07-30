@@ -527,8 +527,16 @@ def test_hook_end_to_end():
         [prompt("p1")] + [assistant("u%d" % i, 200000) for i in range(3)],
     )
 
+    # Tries are sized against the CURRENT cap, not a hardcoded guess: at
+    # MAX_TURN_PROBABILITY=0.25 twelve tries flake 3.2% of the time, which made
+    # this test intermittently red. Solve for a <1-in-100k dry run instead.
+    from pokeclaude import encounter as _E
+    import math as _math
+    _p = _E.turn_probability(200000)
+    tries = int(_math.ceil(_math.log(1e-5) / _math.log(1 - _p)))
+
     caught, banners = 0, []
-    for i in range(12):  # p=0.5 per fresh session; 12 tries makes a dry run ~0.02%
+    for i in range(tries):
         h = tempfile.mkdtemp(prefix="pokeclaude-e2e-")
         rc, out, err = run_hook({"session_id": "e%d" % i, "transcript_path": t}, h)
         if rc != 0 or err:
@@ -543,7 +551,7 @@ def test_hook_end_to_end():
             caught += 1
             banners.append(msg)
 
-    check(caught > 0, "catches fire (%d/12 at p=0.5)" % caught)
+    check(caught > 0, "catches fire (%d/%d at p=%.2f)" % (caught, tries, _p))
     if banners:
         b = banners[0]
         w = max(len(visible(l)) for l in b.split("\n"))
