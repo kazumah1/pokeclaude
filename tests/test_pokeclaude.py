@@ -776,6 +776,41 @@ def test_grayscale():
     check(g_caught < n_caught - 3, "caught detail view stays in colour (%d/%d grey)" % (g_caught, n_caught))
 
 
+def test_first_line_is_not_art():
+    """Both views must open with a TEXT line, never sprite art.
+
+    The hook re-emits output as a systemMessage, and Claude Code prepends
+    "PostToolUse:Bash says:" while eating the leading newline -- so whatever sits
+    on line 1 ends up beside that label. If that is a row of half-blocks, the top
+    of the sprite is visibly shunted sideways.
+    """
+    print("\n[render] first line is text, not sprite art")
+    home, store = fresh_home()
+    store.record_catch(1, session_id="h")
+
+    def first_line(args):
+        e = dict(os.environ)
+        e["POKECLAUDE_HOME"] = home
+        e["POKECLAUDE_WIDTH"] = "80"
+        p = subprocess.run(
+            [sys.executable, POKEDEX] + args, capture_output=True, env=e
+        )
+        lines = [l for l in visible(p.stdout.decode()).split("\n")]
+        # Mimic the harness: drop the leading blank, take what lands beside the label.
+        while lines and not lines[0].strip():
+            lines.pop(0)
+        return lines[0] if lines else ""
+
+    for args in ([], ["--id", "1"], ["--id", "150"], ["--stats"], ["--all"]):
+        line = first_line(args)
+        blocks = sum(line.count(ch) for ch in "▀▄")
+        check(
+            blocks == 0,
+            "pokedex %s opens with text, not art (%r)"
+            % (" ".join(args) or "(none)", line[:40]),
+        )
+
+
 def test_rarity_display():
     print("\n[rarity] percentage and tier")
     from pokeclaude import encounter as E
@@ -996,6 +1031,7 @@ def main():
         test_presets_and_config,
         test_config_cli,
         test_grayscale,
+        test_first_line_is_not_art,
         test_rarity_display,
         test_project_scoping,
         test_release,
