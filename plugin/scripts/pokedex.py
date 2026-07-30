@@ -31,6 +31,7 @@ RESET = "\033[0m"
 DIM = "\033[2m"
 BOLD = "\033[1m"
 GOLD = (246, 200, 60)
+SHINY = (255, 236, 140)  # brighter than GOLD so the shiny tally stands apart
 
 
 def _c(rgb, text, bold=False):
@@ -91,6 +92,11 @@ def main():
     ap.add_argument(
         "--dupes", action="store_true", help="list duplicate counts, most caught first"
     )
+    ap.add_argument(
+        "--shiny",
+        action="store_true",
+        help="with --id, show the shiny colours even if you have not caught one",
+    )
     args = ap.parse_args()
     # Distinguish "user chose a scale" from "default applied", because the grid
     # and the detail view want different defaults.
@@ -124,12 +130,13 @@ def main():
 
     if args.id is not None:
         pid = args.id
-        blob = None
-        try:
-            with open(os.path.join(SPRITES, "%d.json" % pid)) as f:
-                blob = json.load(f)
-        except (IOError, OSError, ValueError):
-            pass
+        from pokeclaude import sprite as spritelib
+
+        # Show the shiny art if you own a shiny of this species, or if --shiny was
+        # passed explicitly to preview one you have not caught.
+        entry = caught.get(str(pid))
+        want_shiny = args.shiny or bool(entry and entry.get("shiny"))
+        blob = spritelib.load(SPRITES, pid, shiny=want_shiny)
         if blob is None:
             print("No sprite for #%d" % pid)
             return 1
@@ -169,6 +176,20 @@ def main():
     out.append(
         "  " + _c(GOLD, counts, bold=True) + DIM + tail + RESET + DIM + catch_txt + RESET
     )
+
+    # Shiny tally, only once there is one to report -- an unconditional "0 shinies"
+    # would advertise an absence on every single run.
+    n_shiny = sum(e.get("shiny", 0) for e in caught.values())
+    if n_shiny:
+        species = sum(1 for e in caught.values() if e.get("shiny"))
+        out.append(
+            "  "
+            + _c(SHINY, "✧", bold=True)
+            + DIM
+            + " %d shiny catch%s across %d species"
+            % (n_shiny, "" if n_shiny == 1 else "es", species)
+            + RESET
+        )
 
     # Duplicates are worth surfacing: they are the visible sign of a long grind.
     dupes = sorted(

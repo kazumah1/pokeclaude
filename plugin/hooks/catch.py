@@ -174,11 +174,23 @@ def main():
     if pid is None:
         return 0
 
-    try:
-        with open(os.path.join(SPRITES, "%d.json" % pid)) as f:
-            blob = json.load(f)
-    except (IOError, OSError, ValueError):
+    # Rolled independently of the species, so shininess does not compound with
+    # rarity -- a shiny legendary stays a genuine one-off rather than the product
+    # of two long odds nobody reaches.
+    is_shiny = encounter.roll_shiny()
+
+    from pokeclaude import sprite as spritelib
+
+    blob = spritelib.load(SPRITES, pid, shiny=is_shiny)
+    if blob is None:
         return 0
+    # If the shiny art is missing the loader falls back to the normal sprite; do
+    # not then claim the catch was shiny, or the banner would announce colours it
+    # is not showing.
+    if is_shiny and not os.path.exists(
+        os.path.join(SPRITES, "shiny", "%d.json" % pid)
+    ):
+        is_shiny = False
 
     # Attribute the catch to the project being worked in, so /pokedex --project
     # can report per-project luck. Falls back to the hook's own cwd.
@@ -187,7 +199,9 @@ def main():
     except Exception:
         project = None
 
-    result = store.record_catch(pid, session_id=session_id, project=project)
+    result = store.record_catch(
+        pid, session_id=session_id, project=project, shiny=is_shiny
+    )
     if result is None:  # lock unavailable -- stay silent rather than lie
         return 0
 
@@ -202,6 +216,7 @@ def main():
         unique=result["unique"],
         roster_size=len(roster),
         roster_ids=roster,
+        shiny=is_shiny,
     )
     print(json.dumps({"systemMessage": msg}))
     return 0

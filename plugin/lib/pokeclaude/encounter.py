@@ -76,6 +76,19 @@ TOKENS_PER_CATCH = PRESETS[DEFAULT_PRESET]
 # A duplicate species is this much as likely as an unseen one.
 DUPLICATE_WEIGHT = 0.25
 
+# Chance that a catch is SHINY -- an alternate-coloured variant of the same
+# species. Rolled independently of which species appears, so shininess is
+# orthogonal to rarity: a shiny Rattata is exactly as likely as a shiny Mewtwo,
+# which is what makes a shiny legendary a genuine once-ever event rather than two
+# multiplied rarities nobody ever hits.
+#
+# 1/64 is deliberately far more generous than the games' 1/8192 (or 1/4096).
+# Catches here are themselves rare -- roughly one per session on `normal` -- so
+# the games' odds would put a shiny somewhere past a human lifetime of use. At
+# 1/64 a regular user realistically sees a few, which is the point: the shiny is
+# the memorable part, not an unreachable asymptote.
+SHINY_CHANCE = 1.0 / 64
+
 # Ceiling on any single turn: one enormous turn should feel lucky, not
 # inevitable. At 0.25 it binds above 13,750 tokens (~26% of turns), while an
 # ordinary turn is untouched -- the 5,907-token median still rolls ~11%.
@@ -227,6 +240,11 @@ def pick_species(roster_ids, caught, seed=None):
         if upto >= target:
             return pid
     return ids[-1]
+
+
+def roll_shiny(seed=None):
+    """Is this catch shiny? Independent of species, so rarity does not compound."""
+    return _rng(seed).random() < SHINY_CHANCE
 
 
 def stable_seed(*parts):

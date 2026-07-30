@@ -1172,6 +1172,122 @@ def test_banner_fits():
     check("LEGENDARY" in visible(txt), "banner shows the rarity tier")
 
 
+def test_shiny():
+    """Shiny variants: rate, additive bookkeeping, art, and display."""
+    print("\n[shiny] alternate-coloured variants")
+    from pokeclaude import encounter as E, sprite as S, banner
+
+    check(
+        abs(E.SHINY_CHANCE - 1.0 / 64) < 1e-9,
+        "shiny chance is 1 in 64 (got 1 in %.1f)" % (1 / E.SHINY_CHANCE),
+    )
+
+    # Rate, measured rather than assumed. 60k rolls keeps the band tight enough
+    # to catch an order-of-magnitude error without being flaky.
+    hits = sum(E.roll_shiny(seed=E.stable_seed("shiny", i)) for i in range(60000))
+    observed = 60000.0 / hits if hits else 0
+    check(
+        55 < observed < 75,
+        "observed shiny rate is near 1 in 64 (got 1 in %.1f)" % observed,
+    )
+
+    # Shininess must be independent of species, or rarity would compound and a
+    # shiny legendary would be unreachable.
+    src = open(os.path.join(REPO, "plugin", "lib", "pokeclaude", "encounter.py")).read()
+    sig = src.split("def roll_shiny", 1)[1].split(")", 1)[0]
+    check("species" not in sig, "roll_shiny does not depend on species")
+
+    # Every shiny sprite exists, decodes, renders and is actually recoloured.
+    shiny_dir = os.path.join(SPRITES, "shiny")
+    check(os.path.isdir(shiny_dir), "shiny sprite directory exists")
+    shiny_ids = sorted(
+        int(f[:-5]) for f in os.listdir(shiny_dir) if f.endswith(".json")
+    )
+    check(shiny_ids == ROSTER, "a shiny sprite exists for every species")
+
+    bad, identical = [], []
+    for pid in shiny_ids:
+        try:
+            s = S.load(SPRITES, pid, shiny=True)
+            n = S.load(SPRITES, pid, shiny=False)
+            if not S.render(s):
+                bad.append((pid, "renders empty"))
+            if not S.render(S.downscale(s, 2)):
+                bad.append((pid, "downscale empty"))
+            if s["pal"] == n["pal"]:
+                identical.append(pid)
+        except Exception as e:
+            bad.append((pid, repr(e)[:40]))
+    check(not bad, "every shiny sprite renders (%s)" % (bad[:3] or "all fine"))
+    # Minior (#774) genuinely shares its palette upstream; anything more than a
+    # handful would mean the shiny tree was not actually fetched.
+    check(
+        len(identical) <= 2,
+        "shiny art is recoloured, not a copy (%d identical: %s)"
+        % (len(identical), identical[:5]),
+    )
+
+    # The loader prefers shiny but degrades to normal rather than failing, since a
+    # missing variant should cost colours, not the catch.
+    check(
+        S.load(SPRITES, 25, shiny=True)["pal"] != S.load(SPRITES, 25)["pal"],
+        "loader returns shiny art when asked",
+    )
+    check(S.load(SPRITES, 10 ** 9, shiny=True) is None, "loader returns None if absent")
+
+    # Bookkeeping is additive: a normal and a shiny of one species are both true.
+    home, store = fresh_home()
+    store.record_catch(25, session_id="a")
+    r2 = store.record_catch(25, session_id="b", shiny=True)
+    r3 = store.record_catch(25, session_id="c", shiny=True)
+    check(r2["is_new_shiny"] and not r3["is_new_shiny"], "first shiny is flagged once")
+    entry = store.load()["caught"]["25"]
+    check(entry["count"] == 3, "shiny catches still count toward the species total")
+    check(entry.get("shiny") == 2, "shiny catches are counted separately")
+    check(entry.get("shiny_first"), "first-shiny timestamp is recorded")
+    check(store.load()["totals"].get("shinies") == 2, "global shiny total tracked")
+
+    # A pre-shiny Pokedex must keep working untouched -- absent keys mean zero.
+    legacy, lstore = fresh_home()
+    lstore.record_catch(7, session_id="old")
+    old = lstore.load()["caught"]["7"]
+    check("shiny" not in old, "a normal catch adds no shiny key")
+
+    # Banner: headline names it, and SHINY appears alongside NEW rather than
+    # replacing it, because the two facts are independent.
+    with open(META) as f:
+        meta = json.load(f)
+    blob = S.load(SPRITES, 25, shiny=True)
+    text = visible(
+        banner.compose(
+            blob, "pikachu", 25, ["electric"], True, 1, 1, len(ROSTER),
+            width=80, roster_ids=ROSTER, shiny=True,
+        )
+    )
+    check("SHINY PIKACHU" in text, "shiny banner names it in the headline")
+    check("1 in 64" in text, "shiny banner states the odds")
+    check("NEW" in text, "shiny banner still reports NEW independently")
+    plain = visible(
+        banner.compose(
+            S.load(SPRITES, 25), "pikachu", 25, ["electric"], True, 1, 1,
+            len(ROSTER), width=80, roster_ids=ROSTER, shiny=False,
+        )
+    )
+    check("SHINY" not in plain, "a normal catch says nothing about shiny")
+
+    # A shiny duplicate keeps the gold treatment: still a 1-in-64 event.
+    dup = visible(
+        banner.compose(
+            blob, "pikachu", 25, ["electric"], False, 4, 1, len(ROSTER),
+            width=80, roster_ids=ROSTER, shiny=True,
+        )
+    )
+    check(
+        "SHINY" in dup and "duplicate" in dup,
+        "a shiny duplicate reports both facts",
+    )
+
+
 def test_readme_svgs():
     """The generated README images must be valid, self-contained and not clip.
 
@@ -1280,6 +1396,7 @@ def main():
         test_release_cli,
         test_dupes_and_project_cli,
         test_banner_fits,
+        test_shiny,
         test_readme_svgs,
     ):
         try:

@@ -31,6 +31,9 @@ TYPE_RGB = {
 }
 GOLD = (246, 200, 60)
 SILVER = (170, 175, 185)
+# A brighter, cooler gold for the shiny marker, so it reads as distinct from the
+# ordinary GOLD accent rather than blending into it.
+SHINY = (255, 236, 140)
 
 
 def _c(rgb, text, bold=False):
@@ -46,7 +49,7 @@ def _types(type_names):
 
 
 def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_size,
-            width=80, roster_ids=None):
+            width=80, roster_ids=None, shiny=False):
     """Build the banner string for a catch.
 
     Sprites are stored at 64px, which is wider than the info column can sit
@@ -56,13 +59,28 @@ def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_si
     The fit test measures the info column rather than assuming its width, so
     adding a longer line here can never silently reintroduce wrapping.
     """
-    accent = GOLD if is_new else SILVER
+    # A shiny always gets the gold accent, even as a duplicate. A duplicate shiny
+    # is still a 1-in-64 event and should not be dressed as the silver
+    # "you already have this" case.
+    accent = GOLD if (is_new or shiny) else SILVER
 
-    title = "A wild %s appeared!" % name.upper()
+    title = "A wild %s%s appeared!" % ("SHINY " if shiny else "", name.upper())
     if is_new:
         status = _c(GOLD, "NEW", bold=True) + " " + _c(GOLD, "— added to your Pokedex")
     else:
         status = _c(SILVER, "duplicate ×%d" % dup_count)
+    # Shininess gets its OWN line, not a suffix on the status. The two are
+    # independent facts -- a shiny duplicate has to show both -- and `info` is a
+    # list of rows laid out beside the sprite, so a "\n" inside one entry would
+    # desync every row below it from the art.
+    shiny_line = ""
+    if shiny:
+        from . import encounter
+
+        odds = int(round(1.0 / encounter.SHINY_CHANCE))
+        shiny_line = (
+            _c(SHINY, "✧ SHINY", bold=True) + DIM + "  1 in %d" % odds + RESET
+        )
 
     pct = (100.0 * unique / roster_size) if roster_size else 0.0
     rarity = ""
@@ -90,6 +108,10 @@ def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_si
     info = [
         "%s  %s" % (_c(accent, "#%03d" % dex_id), _types(type_names)),
         status,
+    ]
+    if shiny_line:
+        info.append(shiny_line)
+    info += [
         rarity,
         "",
         DIM + "Pokedex %d/%d (%.0f%%)" % (unique, roster_size, pct) + RESET,

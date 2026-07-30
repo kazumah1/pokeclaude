@@ -1,6 +1,6 @@
 ---
 description: Browse your PokeClaude Pokedex — every Pokemon caught across all your Claude sessions
-argument-hint: "[--id <name|number> · --all · --stats|--dupes · --project · --page N · --scale 1|2|3]"
+argument-hint: "[--id <name|number> · --all · --stats|--dupes · --shiny · --project · --page N · --scale 1|2|3]"
 ---
 
 Run exactly one command and then STOP. Emit no text at all — before or after.
@@ -36,6 +36,8 @@ Useful arguments to pass through when the user asks:
 - `--id N` — large detail view for one species (32px)
 - `--stats` — progress summary only, no art
 - `--dupes` — full duplicate list, most-caught first
+- `--shiny` — with `--id`, show a species' shiny colours even if you have not caught one.
+  Shinies you own already render in their shiny colours automatically, marked `✧`.
 - `--project` — only Pokemon caught while working in this project
 - `--scale 1` — full 64px sprites. Renders 12-26KB depending on the species, which
   straddles the size at which Claude Code persists output to a file and shows only a
