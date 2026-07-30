@@ -818,12 +818,48 @@ def test_first_line_is_not_art():
 
     for args in ([], ["--id", "1"], ["--id", "150"], ["--stats"], ["--all"]):
         line = first_line(args)
-        blocks = sum(line.count(ch) for ch in "▀▄")
+        blocks = sum(line.count(ch) for ch in "▀▄█")
         check(
             blocks == 0,
             "pokedex %s opens with text, not art (%r)"
             % (" ".join(args) or "(none)", line[:40]),
         )
+
+    # The catch banner is the other hook surface with the same hazard: the Stop
+    # hook prepends "Stop says:" to line 1. It opens with the encounter headline,
+    # not the sprite's top row, across every species/width/state.
+    from pokeclaude import banner
+
+    with open(META) as f:
+        meta = json.load(f)
+    roster = sorted(int(k) for k in meta)
+    banner_bad = []
+    for pid in (1, 143, 150, 896, 1025):        # common, wide, legendary, edge, last
+        blob = json.load(open(os.path.join(SPRITES, "%d.json" % pid)))
+        for width in (60, 80, 120):
+            for is_new, dup in ((True, 1), (False, 4)):
+                text = banner.compose(
+                    blob, meta[str(pid)]["name"], pid, meta[str(pid)]["types"],
+                    is_new, dup, 100, len(roster), width=width, roster_ids=roster,
+                )
+                lines = [l for l in visible(text).split("\n")]
+                while lines and not lines[0].strip():
+                    lines.pop(0)
+                first = lines[0] if lines else ""
+                if any(ch in first for ch in "▀▄█"):
+                    banner_bad.append((pid, width, is_new, first[:30]))
+    check(
+        not banner_bad,
+        "catch banner opens with text, not art (%s)" % (banner_bad[:3] or "all clean"),
+    )
+    # And the headline must appear exactly once -- it moved out of the info column
+    # into a header, and a botched move would either drop it or duplicate it.
+    text = banner.compose(
+        json.load(open(os.path.join(SPRITES, "143.json"))), "snorlax", 143,
+        ["normal"], True, 1, 1, len(roster), width=80, roster_ids=roster,
+    )
+    n_title = visible(text).count("appeared!")
+    check(n_title == 1, "banner headline appears exactly once (found %d)" % n_title)
 
 
 def test_rarity_display():

@@ -77,10 +77,17 @@ def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_si
         tint = GOLD if tier in ("MYTHICAL", "LEGENDARY") else SILVER
         rarity = DIM + "%s%% of encounters" % share_txt + RESET + "  " + _c(tint, tier, bold=tier in ("MYTHICAL", "LEGENDARY"))
 
+    # The title leads the whole banner as its own text line, not as the first
+    # line of the info column. This banner is emitted by the Stop hook, and
+    # Claude Code prepends "Stop says:" while eating the leading newline -- so
+    # whatever is on line 0 lands beside that label. Line 0 used to be the
+    # sprite's top row, which got shunted sideways (same failure the detail view
+    # hit with "PostToolUse:Bash says:"). A text header takes the hit instead,
+    # and reads as a headline while doing it. It is removed from `info` so the
+    # title is not shown twice.
+    header = _c(accent, "✦ ") + _c(accent, title, bold=True)
+
     info = [
-        "",
-        _c(accent, "✦ ") + _c(accent, title, bold=True),
-        "",
         "%s  %s" % (_c(accent, "#%03d" % dex_id), _types(type_names)),
         status,
         rarity,
@@ -107,7 +114,7 @@ def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_si
     # width, so even halved art has nowhere to sit beside it. Stack instead of
     # letting the two columns collide: taller, but nothing wraps.
     if art_w + gap + info_w > width:
-        out = art + [""] + info
+        out = [header, ""] + art + [""] + info
         return "\n".join(l for l in out if l.strip()) or " "
 
     # Interleave: sprite on the left, info column on the right, vertically
@@ -116,10 +123,15 @@ def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_si
     rows = max(len(art), len(info))
     off = max(0, (len(art) - len(info)) // 2)
 
-    out = []
+    body = []
     for i in range(rows):
         left = art[i] if i < len(art) else " " * art_w
         j = i - off
         right = info[j] if 0 <= j < len(info) else ""
-        out.append((left + " " * gap + right).rstrip() if right else left.rstrip())
-    return "\n".join(l for l in out if l.strip()) or pad
+        line = (left + " " * gap + right).rstrip() if right else left.rstrip()
+        if line.strip():  # drop fully-blank rows, as before, so art stays tight
+            body.append(line)
+
+    # Header on its own line, then a blank, then the sprite+info block. The blank
+    # keeps the label clear of the art even after the harness eats one newline.
+    return "\n".join([header, ""] + body) if body else pad
