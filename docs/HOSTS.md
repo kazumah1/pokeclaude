@@ -3,16 +3,21 @@
 PokeClaude's core is host-agnostic. Each adapter here is the small amount of
 configuration one agent CLI needs to call the same two hooks.
 
-| Host | Config file | Event | Banner shown via |
+| Host | Install route | Event | Banner shown via |
 |---|---|---|---|
-| Claude Code | `~/.claude/settings.json` (or plugin) | `Stop` | `systemMessage` |
-| Codex CLI | `~/.codex/hooks.json` | `stop` | `systemMessage` |
-| Cursor | `~/.cursor/hooks.json` | `stop` | stderr |
-| Kiro | `.kiro/hooks/pokeclaude.json` | `Stop` | stderr |
-| Copilot CLI | `~/.copilot/hooks.json` | `stop` | stderr |
+| Claude Code | `claude plugin marketplace add` | `Stop` | `systemMessage` |
+| Codex CLI | `codex plugin marketplace add` | `Stop` | `systemMessage` |
+| Cursor | `install.py --host cursor` | `stop` | stderr |
+| Kiro | `install.py --host kiro` | `Stop` | stderr |
+| Copilot CLI | `install.py --host copilot` | `stop` | stderr |
 
-Run `python3 install.py` from the repo root to detect installed hosts and wire
-them up. `python3 install.py --host kiro` targets one explicitly, and
+Claude Code and Codex both read `.claude-plugin/marketplace.json` and treat
+`plugin/` as the plugin root, so one manifest serves both. The hook command uses
+`${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT}}` because they set different variables for
+the same thing.
+
+For hosts without a marketplace, `python3 install.py --host <name>` writes the
+hook config. `python3 install.py` alone detects every installed host, and
 `--dry-run` prints what would change without writing.
 
 ## Where the banner appears
