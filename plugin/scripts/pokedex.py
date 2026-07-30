@@ -107,21 +107,22 @@ def main():
         print("\n".join(out))
         return 0
 
-    # Header
+    # Header. Everything here is width-aware: the progress bar shrinks and the
+    # catch total is dropped on narrow terminals, because a wrapped header looks
+    # just as broken as wrapped pixel art.
+    pct = 100.0 * unique / total if total else 0
+    bar_w = max(8, min(32, width - 4))
+    counts = "%d" % unique
+    tail = "/%d caught  (%.0f%%)" % (total, pct)
+    catches = "   ·  %d total catches" % dexdata.get("totals", {}).get("catches", 0)
+    if 2 + len(counts) + len(tail) + len(catches) > width:
+        catches = ""
+
     out.append("")
+    out.append("  " + _c(GOLD, "POKEDEX", bold=True) + DIM + "  ·  pokeclaude" + RESET)
+    out.append("  " + progress_bar(unique, total, width=bar_w))
     out.append(
-        "  " + _c(GOLD, "POKEDEX", bold=True) + DIM + "  ·  pokeclaude" + RESET
-    )
-    out.append("  " + progress_bar(unique, total))
-    out.append(
-        "  "
-        + _c(GOLD, "%d" % unique, bold=True)
-        + DIM
-        + "/%d caught  (%.0f%%)" % (total, 100.0 * unique / total if total else 0)
-        + RESET
-        + DIM
-        + "   ·  %d total catches" % dexdata.get("totals", {}).get("catches", 0)
-        + RESET
+        "  " + _c(GOLD, counts, bold=True) + DIM + tail + RESET + DIM + catches + RESET
     )
     out.append("")
 
