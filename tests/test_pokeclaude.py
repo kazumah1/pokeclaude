@@ -721,6 +721,61 @@ def test_config_cli():
     check(rc == 1, "absurdly small rate is rejected")
 
 
+def test_grayscale():
+    print("\n[sprite] uncaught entries render greyscale")
+    from pokeclaude import sprite as S
+    import json as _json
+
+    blob = _json.load(open(os.path.join(SPRITES, "1.json")))
+    gray = S.grayscale(blob)
+
+    check(gray["w"] == blob["w"] and gray["h"] == blob["h"], "dimensions unchanged")
+    check(gray["px"] == blob["px"], "pixel indices untouched -- only the palette changes")
+    check(len(gray["pal"]) == len(blob["pal"]), "palette length preserved")
+    check(
+        all(c[0:2] == c[2:4] == c[4:6] for c in gray["pal"]),
+        "every palette entry is a true grey (r==g==b)",
+    )
+    check(
+        len({c for c in gray["pal"]}) > 1,
+        "shading survives -- not collapsed to one flat tone",
+    )
+    check(S.render(gray), "greyscale sprite still renders")
+
+    # A flat silhouette would lose the internal structure; luma must not.
+    src = {"w": 2, "h": 2, "pal": ["ff0000", "0000ff"], "px": "1212"}
+    g = S.grayscale(src, dim=1.0)
+    check(g["pal"][0] != g["pal"][1], "red and blue map to different greys, not the same")
+
+    # dim darkens without changing hue-neutrality
+    dark = S.grayscale(blob, dim=0.5)
+    bright = S.grayscale(blob, dim=1.0)
+    check(
+        int(dark["pal"][0][0:2], 16) < int(bright["pal"][0][0:2], 16),
+        "dim factor darkens the result",
+    )
+
+    # The detail view must use it for uncaught species and not for caught ones.
+    home, store = fresh_home()
+    store.record_catch(1, session_id="g")
+    from pokeclaude import dex as D
+
+    meta = _json.load(open(os.path.join(REPO, "plugin", "assets", "pokemon.json")))
+    roster = sorted(int(k) for k in meta)
+
+    def greyness(pid, caught):
+        b = _json.load(open(os.path.join(SPRITES, "%d.json" % pid)))
+        out = "\n".join(D.render_detail(pid, b, meta.get(str(pid)) or {}, caught, roster))
+        cols = set(re.findall(r"38;2;(\d+);(\d+);(\d+)", out))
+        greys = sum(1 for r, g_, b_ in cols if r == g_ == b_)
+        return greys, len(cols)
+
+    g_caught, n_caught = greyness(1, store.load()["caught"].get("1"))
+    g_unc, n_unc = greyness(4, None)
+    check(g_unc >= n_unc - 3, "uncaught detail view is greyscale (%d/%d grey)" % (g_unc, n_unc))
+    check(g_caught < n_caught - 3, "caught detail view stays in colour (%d/%d grey)" % (g_caught, n_caught))
+
+
 def test_rarity_display():
     print("\n[rarity] percentage and tier")
     from pokeclaude import encounter as E
@@ -940,6 +995,7 @@ def main():
         test_pokedex_cli,
         test_presets_and_config,
         test_config_cli,
+        test_grayscale,
         test_rarity_display,
         test_project_scoping,
         test_release,

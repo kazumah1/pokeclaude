@@ -19,7 +19,9 @@ on your own initiative. Only add it after the user has seen the dry run and expl
 agreed, or if their original request already said something unambiguous like "yes, delete
 everything" / "release all my pokemon, I'm sure".
 
-Relay the script's output verbatim in a fenced code block — it contains ANSI colour.
+Do not relay the output — a `PostToolUse` hook already re-emits it in colour. After a dry
+run, the only thing worth adding is the question itself: whether to proceed. After a
+`--confirm` run, say nothing; the panel reports what was removed.
 
 ## Arguments
 

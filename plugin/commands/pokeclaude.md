@@ -9,10 +9,10 @@ Show or change the catch rate:
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" $ARGUMENTS
 ```
 
-**Say nothing after running it.** A `PostToolUse` hook re-emits the output as a
-`systemMessage`, which is the only channel that keeps the truecolour escapes — anything you
-write would be a second, monochrome copy. With no arguments the script prints the current
-setting and all three presets, which answers the question on its own.
+Run it and then STOP. Emit no text at all. A `PostToolUse` hook re-emits the output as a
+`systemMessage` — the only channel that keeps the truecolour escapes — and the panel already
+shows the active setting and all three presets. Treat this as a bare shell command; zero
+words is the correct response.
 
 ## Presets
 

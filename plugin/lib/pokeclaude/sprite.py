@@ -148,6 +148,30 @@ def visible_width(blob, trim=True):
     return (max(cols) - min(cols) + 1) if cols else 0
 
 
+def grayscale(blob, dim=0.8):
+    """Desaturate a sprite to luminance: the "not in your collection" look.
+
+    Only the palette changes, so every pixel keeps its shading and the sprite
+    stays fully readable -- unlike a flat silhouette, which collapses it to an
+    outline. Rec. 709 luma weights, because a naive channel average turns reds
+    and blues into the same mid-grey and loses the internal detail.
+
+    `dim` darkens the result slightly so an uncaught entry reads as unavailable
+    rather than as a black-and-white photograph sitting next to colour ones.
+    """
+    out = dict(blob)
+    pal = []
+    for hexcol in blob["pal"]:
+        r = int(hexcol[0:2], 16)
+        g = int(hexcol[2:4], 16)
+        b = int(hexcol[4:6], 16)
+        y = int(round((0.2126 * r + 0.7152 * g + 0.0722 * b) * dim))
+        y = max(0, min(255, y))
+        pal.append("%02x%02x%02x" % (y, y, y))
+    out["pal"] = pal
+    return out
+
+
 def downscale(blob, factor=2):
     """Halve a sprite's resolution for grid views.
 
