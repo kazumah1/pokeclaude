@@ -46,6 +46,32 @@ CACHE = os.path.join(REPO, ".cache", "png")
 MAX_PALETTE = 63  # index 0 reserved for transparent; base64-ish digit per pixel
 ALPHA_CUTOFF = 128
 
+# PokeAPI names the DEFAULT form with a disambiguating suffix -- "deoxys-normal",
+# "darmanitan-standard", "squawkabilly-green-plumage". We only ever bake the
+# default form's art, so the suffix labels nothing and reads as noise in a
+# Pokedex; "squawkabilly-green-plumage" is also 26 characters, which overflows a
+# grid cell and gets truncated mid-word.
+#
+# This is a denylist of known form suffixes rather than "cut at the first hyphen"
+# on purpose: 39 species have a hyphen as a genuine part of the name, and the
+# naive rule would turn iron-treads into "iron", tapu-koko into "tapu" and ho-oh
+# into "ho".
+FORM_SUFFIXES = (
+    "normal", "plant", "altered", "land", "red-striped", "standard", "male",
+    "incarnate", "ordinary", "aria", "shield", "average", "50", "baile",
+    "midday", "solo", "red-meteor", "disguised", "amped", "ice", "full-belly",
+    "single-strike", "green-plumage", "zero", "curly", "two-segment",
+    "family-of-four",
+)
+
+
+def display_name(name):
+    """Strip a default-form suffix, leaving the name people actually recognise."""
+    for suffix in sorted(FORM_SUFFIXES, key=len, reverse=True):
+        if name.endswith("-" + suffix):
+            return name[: -(len(suffix) + 1)]
+    return name
+
 
 # Pixel indices are one character each. With a palette above 16 entries a single
 # hex digit is not enough, so use a 64-symbol alphabet: same one-char-per-pixel
@@ -194,7 +220,7 @@ def main():
                     ).read()
                 )
                 meta[str(pid)] = {
-                    "name": info["name"],
+                    "name": display_name(info["name"]),
                     "types": [t["type"]["name"] for t in info["types"]],
                 }
 

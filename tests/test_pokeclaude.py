@@ -22,6 +22,14 @@ sys.path.insert(0, os.path.join(REPO, "plugin", "lib"))
 HOOK = os.path.join(REPO, "plugin", "hooks", "catch.py")
 POKEDEX = os.path.join(REPO, "plugin", "scripts", "pokedex.py")
 SPRITES = os.path.join(REPO, "plugin", "assets", "sprites")
+META = os.path.join(REPO, "plugin", "assets", "pokemon.json")
+
+# Derived from the shipped assets, not hardcoded. The roster grew from 386 to
+# 1025 once and will grow again; a literal here turns every roster change into a
+# batch of unrelated test failures that say nothing about what actually broke.
+with open(META) as _f:
+    ROSTER = sorted(int(k) for k in json.load(_f))
+ROSTER_SIZE = len(ROSTER)
 
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
 FAILURES = []
@@ -189,10 +197,10 @@ def test_store_concurrency():
             "from pokeclaude import store\n"
             "ok=skip=0\n"
             "for i in range(6):\n"
-            "    r=store.record_catch((int(sys.argv[1])*7+i)%%386+1, session_id='w'+sys.argv[1])\n"
+            "    r=store.record_catch((int(sys.argv[1])*7+i)%%%d+1, session_id='w'+sys.argv[1])\n"
             "    ok,skip=(ok+1,skip) if r is not None else (ok,skip+1)\n"
             "print(ok,skip)\n"
-            % (os.path.join(REPO, "plugin", "lib"), home)
+            % (os.path.join(REPO, "plugin", "lib"), home, ROSTER_SIZE)
         )
 
     n = 14
@@ -349,7 +357,11 @@ def test_sprite():
                 vanished.append(pid)
         except Exception:
             bad.append(pid)
-    check(len(ids) == 386, "all 386 sprites present")
+    check(
+        len(ids) == ROSTER_SIZE,
+        "all %d sprites present (found %d)" % (ROSTER_SIZE, len(ids)),
+    )
+    check(ids == ROSTER, "sprite ids match the metadata roster exactly")
     check(all(json.load(open(os.path.join(SPRITES, "%d.json" % p)))["w"] == 64
               for p in ids[:20]), "sprites are baked at 64px")
     check(not bad, "every sprite renders correctly (%d bad)" % len(bad))
@@ -617,15 +629,18 @@ def test_pokedex_cli():
     check(p.returncode == 0 and b"No Pokemon caught yet" in p.stdout, "empty pokedex renders a hint")
 
     full, fstore = fresh_home()
-    for pid in range(1, 387):
+    for pid in ROSTER:
         fstore.record_catch(pid, session_id="full")
     e["POKECLAUDE_HOME"] = full
     e["POKECLAUDE_WIDTH"] = "80"
     p = subprocess.run([sys.executable, POKEDEX, "--stats"], capture_output=True, env=e)
-    # Strip escapes before matching: colour codes sit between "386" and "/386",
-    # so a raw byte search would miss text that renders correctly.
+    # Strip escapes before matching: colour codes sit between the two counts, so a
+    # raw byte search would miss text that renders correctly.
     stats = visible(p.stdout.decode("utf-8", "replace"))
-    check("386/386" in stats and "100%" in stats, "complete pokedex reports 100%")
+    check(
+        "%d/%d" % (ROSTER_SIZE, ROSTER_SIZE) in stats and "100%" in stats,
+        "complete pokedex reports 100%",
+    )
     p = subprocess.run([sys.executable, POKEDEX, "--all"], capture_output=True, env=e)
     check(p.returncode == 0, "--all on a complete pokedex renders")
 
@@ -845,6 +860,54 @@ def test_rarity_display():
     tiers = set(E.rarity_tier(p) for p in roster)
     check(tiers <= {"MYTHICAL", "LEGENDARY", "RARE", "COMMON"}, "no unexpected tiers")
 
+    # Gen 4-9 additions. Spot-check one headliner per generation so a bad merge of
+    # the rarity bands shows up as a named failure rather than a share drift.
+    check(E.rarity_tier(493) == "MYTHICAL", "Arceus is MYTHICAL")
+    check(E.rarity_tier(1025) == "MYTHICAL", "Pecharunt (last entry) is MYTHICAL")
+    check(E.rarity_tier(483) == "LEGENDARY", "Dialga is LEGENDARY")
+    check(E.rarity_tier(1007) == "LEGENDARY", "Koraidon is LEGENDARY")
+    check(E.rarity_tier(658) == "COMMON", "Greninja is COMMON")
+
+    # Rayquaza sits on the MYTHICAL/LEGENDARY boundary at weight 0.05; it is
+    # flagged legendary, and an inclusive threshold used to mislabel it.
+    check(E.rarity_tier(384) == "LEGENDARY", "Rayquaza is LEGENDARY, not MYTHICAL")
+
+    # The bands must partition, not overlap -- an id in two sets would take
+    # whichever weight was assigned last, silently.
+    overlap = (
+        (E.MYTHICAL_IDS & E.APEX_IDS)
+        | (E.MYTHICAL_IDS & E.LEGENDARY_IDS)
+        | (E.APEX_IDS & E.LEGENDARY_IDS)
+    )
+    check(not overlap, "rarity bands do not overlap (%s)" % (sorted(overlap) or "none"))
+    check(
+        set(E.RARITY) == E.MYTHICAL_IDS | E.APEX_IDS | E.LEGENDARY_IDS,
+        "RARITY covers exactly the three bands",
+    )
+    check(
+        all(p in roster for p in E.RARITY),
+        "every rarity entry is a real roster id",
+    )
+    check(
+        all(0 < w < 1.0 for w in E.RARITY.values()),
+        "rare weights are all below the common weight of 1.0",
+    )
+
+    # Gen 1-3 odds must not have moved when the roster was extended, or existing
+    # collections would silently change difficulty.
+    legacy = {
+        144: 0.12, 145: 0.12, 146: 0.12, 150: 0.06, 151: 0.04,
+        243: 0.12, 244: 0.12, 245: 0.12, 249: 0.06, 250: 0.06, 251: 0.04,
+        377: 0.12, 378: 0.12, 379: 0.12, 380: 0.10, 381: 0.10,
+        382: 0.06, 383: 0.06, 384: 0.05, 385: 0.04, 386: 0.04,
+    }
+    drift = {p: (w, E.RARITY.get(p)) for p, w in legacy.items() if E.RARITY.get(p) != w}
+    check(not drift, "gen 1-3 rarity weights unchanged (%s)" % (drift or "no drift"))
+    check(
+        not [p for p in E.RARITY if p <= 386 and p not in legacy],
+        "no new gen 1-3 species became rare",
+    )
+
 
 def test_project_scoping():
     print("\n[project] per-project tracking")
@@ -994,19 +1057,83 @@ def test_dupes_and_project_cli():
 
     rc, out, _ = run(["--project", "--cwd", "/proj/alpha", "--stats"])
     check(rc == 0 and "alpha" in out, "project view is labelled with the project")
-    check("3/386" in out, "alpha reports its own 3 species")
+    check("3/%d" % ROSTER_SIZE in out, "alpha reports its own 3 species")
 
     rc, out, _ = run(["--project", "--cwd", "/proj/beta", "--stats"])
-    check("2/386" in out, "beta reports its own 2 species")
+    check("2/%d" % ROSTER_SIZE in out, "beta reports its own 2 species")
 
     rc, out, _ = run(["--project", "--cwd", "/proj/nothing-here", "--stats"])
-    check(rc == 0 and "0/386" in out, "empty project view renders without crashing")
+    check(
+        rc == 0 and "0/%d" % ROSTER_SIZE in out,
+        "empty project view renders without crashing",
+    )
 
     for args in (["--project", "--cwd", "/proj/alpha"], ["--project", "--all", "--cwd", "/proj/alpha"]):
         rc, out, err = run(args)
         check(rc == 0 and not err.strip(), "pokedex %s renders" % " ".join(args))
         w = max(len(l) for l in out.split("\n")) if out else 0
         check(w <= 80, "project grid fits 80 cols (%d)" % w)
+
+
+def test_banner_fits():
+    """The catch banner must never wrap, for any species at any terminal width.
+
+    Wrapping is not cosmetic here: a wrapped line splits a row of half-block
+    glyphs and the sprite becomes unreadable. The guard that prevents it used a
+    hardcoded info-column width of 34, which predated the rarity line -- so a
+    wide sprite plus a long rarity string ("0.013% of encounters  LEGENDARY")
+    overflowed 80 columns. Sweeping the whole roster is what caught it; a
+    handful of sample species did not.
+    """
+    print("\n[banner] catch banner fits every terminal width")
+    from pokeclaude import banner
+
+    with open(META) as f:
+        meta = json.load(f)
+
+    widths = (40, 60, 80, 100, 120)
+    over, errors = [], []
+    for pid in ROSTER:
+        with open(os.path.join(SPRITES, "%d.json" % pid)) as f:
+            blob = json.load(f)
+        info = meta[str(pid)]
+        for width in widths:
+            # Both states matter: the duplicate line and the NEW line differ in
+            # length, so one can fit where the other does not.
+            for is_new, dup in ((True, 1), (False, 12)):
+                try:
+                    txt = banner.compose(
+                        blob, info["name"], pid, info["types"], is_new, dup,
+                        400, len(ROSTER), width=width, roster_ids=ROSTER,
+                    )
+                except Exception as e:
+                    errors.append((pid, width, repr(e)))
+                    continue
+                widest = max(len(visible(l)) for l in txt.split("\n"))
+                if widest > width:
+                    over.append((pid, width, widest))
+
+    check(not errors, "every banner composes (%d errors)" % len(errors))
+    for e in errors[:3]:
+        print("     ", e)
+    check(
+        not over,
+        "no banner exceeds its terminal width (%d overflows, e.g. %s)"
+        % (len(over), over[:3] or "none"),
+    )
+
+    # The sprite must actually survive: a banner that fits by dropping the art
+    # entirely would pass the width check above.
+    blob = json.load(open(os.path.join(SPRITES, "896.json")))
+    txt = banner.compose(
+        blob, "glastrier", 896, ["ice"], True, 1, 400, len(ROSTER),
+        width=80, roster_ids=ROSTER,
+    )
+    check(
+        any("▀" in l or "▄" in l for l in txt.split("\n")),
+        "banner still contains sprite art at 80 cols",
+    )
+    check("LEGENDARY" in visible(txt), "banner shows the rarity tier")
 
 
 def main():
@@ -1037,6 +1164,7 @@ def main():
         test_release,
         test_release_cli,
         test_dupes_and_project_cli,
+        test_banner_fits,
     ):
         try:
             fn()

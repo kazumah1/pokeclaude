@@ -9,7 +9,12 @@ Sprite lines are placed beside a text column so the banner stays visually
 compact -- roughly 16 rows for a 32x32 sprite instead of sprite-then-caption
 stacked vertically.
 """
+import re
+
 from . import sprite as spritelib
+
+# Visible width has to be measured with escapes stripped; len() counts them.
+_ANSI = re.compile(r"\x1b\[[0-9;]*m")
 
 RESET = "\033[0m"
 DIM = "\033[2m"
@@ -47,11 +52,10 @@ def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_si
     Sprites are stored at 64px, which is wider than the info column can sit
     beside on an 80-column terminal, so the art is halved unless there is room
     for it at full size. Wrapping would shred the pixel art entirely.
+
+    The fit test measures the info column rather than assuming its width, so
+    adding a longer line here can never silently reintroduce wrapping.
     """
-    info_w = 34  # widest info line plus the gap
-    if spritelib.visible_width(blob) + info_w > width:
-        blob = spritelib.downscale(blob, 2)
-    art = spritelib.render(blob, indent=1)
     accent = GOLD if is_new else SILVER
 
     title = "A wild %s appeared!" % name.upper()
@@ -85,10 +89,29 @@ def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_si
         DIM + "/pokeclaude:pokedex to browse" + RESET,
     ]
 
+    # Halve the art only if it genuinely does not fit beside the info column.
+    #
+    # The info width is MEASURED, not assumed. It used to be a hardcoded 34,
+    # which was the widest line back when the longest was "/pokeclaude:pokedex
+    # to browse". The rarity line ("0.013% of encounters  LEGENDARY") is longer
+    # than that, so a wide sprite plus a rare species overflowed 80 columns and
+    # wrapped -- shredding exactly the art the guard exists to protect.
+    gap = 3
+    info_w = max(len(_ANSI.sub("", line)) for line in info)
+    if spritelib.visible_width(blob) + 1 + gap + info_w > width:
+        blob = spritelib.downscale(blob, 2)
+    art = spritelib.render(blob, indent=1)
+    art_w = spritelib.visible_width(blob) + 1
+
+    # On a genuinely narrow terminal the info column alone can be most of the
+    # width, so even halved art has nowhere to sit beside it. Stack instead of
+    # letting the two columns collide: taller, but nothing wraps.
+    if art_w + gap + info_w > width:
+        out = art + [""] + info
+        return "\n".join(l for l in out if l.strip()) or " "
+
     # Interleave: sprite on the left, info column on the right, vertically
     # centred against the sprite so short info blocks do not sit at the top.
-    art_w = spritelib.visible_width(blob) + 1
-    gap = 3
     pad = " " * (art_w + gap)
     rows = max(len(art), len(info))
     off = max(0, (len(art) - len(info)) // 2)

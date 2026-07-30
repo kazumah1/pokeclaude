@@ -6,8 +6,8 @@ vertically adjacent pixel rows into a single terminal row using the upper-half
 block U+2580: the glyph's foreground paints the top pixel, its background the
 bottom one. That yields square-ish pixels at 2x vertical density.
 
-Storage is ~550 bytes per sprite, so the whole Gen 1-3 roster fits in ~210KB
-and a catch only ever reads the one file it needs.
+Storage is ~4KB per sprite, so the whole Gen 1-9 roster (1025 species) fits in
+~4MB and a catch only ever reads the one file it needs.
 """
 
 TRANSPARENT = 0
