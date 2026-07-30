@@ -37,19 +37,22 @@ SGR = re.compile(r"\x1b\[([0-9;]*)m")
 # terminal ever does. This reproduces them instead.
 CW = 9.0
 PH = 9.0  # pixel height; square against CW
-# Layout gap between character rows. Kept at 1 so CH stays a whole number: with a
-# fractional cell height every row lands at a different sub-pixel offset and the
-# rasteriser renders the seam thicker on some rows than others, which reads as
-# uneven banding rather than a uniform terminal artifact.
-LINE_GAP = 1.0
-CH = PH * 2 + LINE_GAP  # 19, an integer on purpose
+# A character cell is exactly two pixels tall. Both numbers are integers so every
+# row lands on the same sub-pixel offset -- a fractional cell height makes the
+# rasteriser round rows differently and the art bands unevenly.
+#
+# Every pixel is PH tall, with NO band extended to swallow a layout gap. An
+# earlier version stretched the lower band to absorb the gap, which left the
+# lower pixel of each cell 9.86 units against the upper's 9.0. That 9.5%
+# alternation read as rows overlapping every second line -- obvious at 32px,
+# invisible at 16px, which is why the grid looked fine while the detail view did
+# not.
+CH = PH * 2  # 18
 
-# Visible seam width, which is deliberately much thinner than the layout gap. A
-# terminal's line-height seam is a hairline; drawing the full LINE_GAP made it a
-# bar. The lower pixel band is extended down to cover the difference, so the grid
-# stays integer while only SEAM shows through.
-SEAM = 0.14
-LOWER_BAND_H = PH + (LINE_GAP - SEAM)
+# The seam is drawn as a separate hairline straddling each character-row
+# boundary, so it trims the row above and below by SEAM/2 each and all pixels
+# stay equal. Only drawn where pixels actually meet, never across empty canvas.
+SEAM = 0.5
 FONT_SIZE = 15
 BASELINE = 13.7  # glyph baseline within the 2*PH text area
 
@@ -187,13 +190,8 @@ def to_svg(rows, pad=14):
     for y, cells in enumerate(rows):
         y0 = pad + y * CH
         if is_pixel_row(cells):
-            # Two pixel bands per character row. The lower band is extended so
-            # only SEAM of canvas shows between character rows -- a hairline, not
-            # the whole layout gap.
-            for band, get, bh in (
-                (0, lambda p: p[0], PH),
-                (1, lambda p: p[1], LOWER_BAND_H),
-            ):
+            # Two equal pixel bands per character row.
+            for band, get in ((0, lambda p: p[0]), (1, lambda p: p[1])):
                 by = y0 + band * PH
                 run_col, run_start = None, 0
                 for x in range(len(cells) + 1):
@@ -204,9 +202,36 @@ def to_svg(rows, pad=14):
                                 '<rect x="%g" y="%g" width="%g" height="%g" '
                                 'fill="%s"/>'
                                 % (pad + run_start * CW, by,
-                                   (x - run_start) * CW, bh, _hex(run_col))
+                                   (x - run_start) * CW, PH, _hex(run_col))
                             )
                         run_col, run_start = col, x
+
+            # Seam along this row's lower edge, drawn only where the pixel above
+            # and the pixel below are both opaque -- that is where a terminal's
+            # line-height actually shows. Skipping transparent spans keeps it out
+            # of the empty canvas, where it would look like a ruled line.
+            nxt = rows[y + 1] if y + 1 < len(rows) else []
+            if nxt and is_pixel_row(nxt):
+                sy = y0 + CH - SEAM / 2.0
+                run_start = None
+                for x in range(len(cells) + 1):
+                    above = (
+                        _pixel_colours(cells[x])[1] if x < len(cells) else None
+                    )
+                    below = (
+                        _pixel_colours(nxt[x])[0] if x < len(nxt) else None
+                    )
+                    joined = above is not None and below is not None
+                    if joined and run_start is None:
+                        run_start = x
+                    elif not joined and run_start is not None:
+                        parts.append(
+                            '<rect x="%g" y="%g" width="%g" height="%g" '
+                            'fill="%s"/>'
+                            % (pad + run_start * CW, sy,
+                               (x - run_start) * CW, SEAM, _hex(DEFAULT_BG))
+                        )
+                        run_start = None
             continue
 
         # Text row: backgrounds first (rare here), then glyph runs.
