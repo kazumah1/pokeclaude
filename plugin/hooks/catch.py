@@ -135,7 +135,14 @@ def main():
     except (IOError, OSError, ValueError):
         return 0
 
-    result = store.record_catch(pid, session_id=session_id)
+    # Attribute the catch to the project being worked in, so /pokedex --project
+    # can report per-project luck. Falls back to the hook's own cwd.
+    try:
+        project = store.project_key(payload.get("cwd"))
+    except Exception:
+        project = None
+
+    result = store.record_catch(pid, session_id=session_id, project=project)
     if result is None:  # lock unavailable -- stay silent rather than lie
         return 0
 

@@ -138,12 +138,14 @@ def render_detail(pid, blob, info, caught):
     if caught:
         import time as _t
 
+        n = caught.get("count", 1)
         first = _t.strftime("%Y-%m-%d", _t.localtime(caught.get("first", 0)))
-        meta_lines += [
-            _c(GOLD, "CAUGHT"),
-            DIM + "first: %s" % first + RESET,
-            DIM + "times caught: %d" % caught.get("count", 1) + RESET,
-        ]
+        meta_lines.append(_c(GOLD, "CAUGHT") + (_c(GOLD, "  ×%d" % n) if n > 1 else ""))
+        meta_lines.append(DIM + "first: %s" % first + RESET)
+        if n > 1:
+            last = _t.strftime("%Y-%m-%d", _t.localtime(caught.get("last", 0)))
+            meta_lines.append(DIM + "most recent: %s" % last + RESET)
+        meta_lines.append(DIM + "times caught: %d" % n + RESET)
     else:
         meta_lines.append(DIM + "not yet caught" + RESET)
 

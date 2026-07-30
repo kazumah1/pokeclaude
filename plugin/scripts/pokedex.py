@@ -76,6 +76,15 @@ def main():
     ap.add_argument(
         "--scale", type=int, default=2, help="1 = full 32px sprites, 2 = 16px grid"
     )
+    ap.add_argument(
+        "--project",
+        action="store_true",
+        help="only Pokemon caught while working in this project",
+    )
+    ap.add_argument("--cwd", default=None, help="project directory (defaults to cwd)")
+    ap.add_argument(
+        "--dupes", action="store_true", help="list duplicate counts, most caught first"
+    )
     args = ap.parse_args()
 
     # Wrapping shreds pixel art, so the column count is derived from the real
@@ -86,7 +95,17 @@ def main():
     meta = load_meta()
     roster = sorted(int(k) for k in meta)
     dexdata = store.load()
-    caught = dexdata.get("caught", {})
+
+    if args.project:
+        proj = store.project_key(args.cwd)
+        caught, catches = store.project_view(dexdata, proj)
+        scope = os.path.basename(proj) or proj
+    else:
+        proj = None
+        caught = dexdata.get("caught", {})
+        catches = dexdata.get("totals", {}).get("catches", 0)
+        scope = None
+
     unique = len(caught)
     total = len(roster)
 
@@ -114,19 +133,43 @@ def main():
     bar_w = max(8, min(32, width - 4))
     counts = "%d" % unique
     tail = "/%d caught  (%.0f%%)" % (total, pct)
-    catches = "   ·  %d total catches" % dexdata.get("totals", {}).get("catches", 0)
-    if 2 + len(counts) + len(tail) + len(catches) > width:
-        catches = ""
+    catch_txt = "   ·  %d total catches" % catches
+    if 2 + len(counts) + len(tail) + len(catch_txt) > width:
+        catch_txt = ""
 
+    subtitle = "  ·  %s" % scope if scope else "  ·  pokeclaude"
     out.append("")
-    out.append("  " + _c(GOLD, "POKEDEX", bold=True) + DIM + "  ·  pokeclaude" + RESET)
+    out.append("  " + _c(GOLD, "POKEDEX", bold=True) + DIM + subtitle + RESET)
     out.append("  " + progress_bar(unique, total, width=bar_w))
     out.append(
-        "  " + _c(GOLD, counts, bold=True) + DIM + tail + RESET + DIM + catches + RESET
+        "  " + _c(GOLD, counts, bold=True) + DIM + tail + RESET + DIM + catch_txt + RESET
     )
+
+    # Duplicates are worth surfacing: they are the visible sign of a long grind.
+    dupes = sorted(
+        ((int(k), v.get("count", 1)) for k, v in caught.items() if v.get("count", 1) > 1),
+        key=lambda kv: (-kv[1], kv[0]),
+    )
+    if dupes and (args.stats or args.dupes):
+        out.append("")
+        out.append(DIM + "  duplicates" + RESET)
+        for pid, n in dupes[: (None if args.dupes else 5)]:
+            name = (meta.get(str(pid)) or {}).get("name", "?")
+            out.append(
+                "  "
+                + _c(GOLD, "×%-3d" % n)
+                + DIM
+                + " #%03d %s" % (pid, name)
+                + RESET
+            )
+        if not args.dupes and len(dupes) > 5:
+            out.append(DIM + "  … and %d more (--dupes)" % (len(dupes) - 5) + RESET)
+    elif args.dupes:
+        out.append("")
+        out.append(DIM + "  No duplicates yet." + RESET)
     out.append("")
 
-    if args.stats:
+    if args.stats or args.dupes:
         print("\n".join(out))
         return 0
 
