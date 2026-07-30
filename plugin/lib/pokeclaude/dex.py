@@ -41,6 +41,18 @@ def _load_sprite(sprites_dir, pid, shiny=False):
     return spritelib.load(sprites_dir, pid, shiny=shiny)
 
 
+def _stamp(epoch):
+    """'2026-07-30 14:32' -- date and local time of a catch.
+
+    Timestamps have always been stored to the second; only the date was shown.
+    """
+    import time as _t
+
+    if not epoch:
+        return "unknown"
+    return _t.strftime("%Y-%m-%d %H:%M", _t.localtime(epoch))
+
+
 def _silhouette(blob):
     """The 'not caught' look for grid entries.
 
@@ -233,15 +245,13 @@ def render_detail(pid, blob, info, caught, roster_ids=None, showing_shiny=False)
         )
         meta_lines.append("")
     if caught:
-        import time as _t
-
         n = caught.get("count", 1)
-        first = _t.strftime("%Y-%m-%d", _t.localtime(caught.get("first", 0)))
         meta_lines.append(_c(GOLD, "CAUGHT") + (_c(GOLD, "  ×%d" % n) if n > 1 else ""))
-        meta_lines.append(DIM + "first: %s" % first + RESET)
+        meta_lines.append(DIM + "first: %s" % _stamp(caught.get("first", 0)) + RESET)
         if n > 1:
-            last = _t.strftime("%Y-%m-%d", _t.localtime(caught.get("last", 0)))
-            meta_lines.append(DIM + "most recent: %s" % last + RESET)
+            meta_lines.append(
+                DIM + "most recent: %s" % _stamp(caught.get("last", 0)) + RESET
+            )
         meta_lines.append(DIM + "times caught: %d" % n + RESET)
 
         # Shiny is reported separately from the catch count, because the two are
@@ -258,10 +268,9 @@ def render_detail(pid, blob, info, caught, roster_ids=None, showing_shiny=False)
             )
             meta_lines.append(DIM + "1 in %d per catch" % odds + RESET)
             if caught.get("shiny_first"):
-                sf = _t.strftime(
-                    "%Y-%m-%d", _t.localtime(caught.get("shiny_first", 0))
+                meta_lines.append(
+                    DIM + "first shiny: %s" % _stamp(caught["shiny_first"]) + RESET
                 )
-                meta_lines.append(DIM + "first shiny: %s" % sf + RESET)
 
             # Name the variant on screen and how to switch. Owning both means the
             # art alone is ambiguous -- some shinies differ only subtly from the

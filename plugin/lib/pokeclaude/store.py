@@ -222,6 +222,35 @@ def caught_ids(path=DEX_PATH):
     return set(int(k) for k in load(path).get("caught", {}))
 
 
+def mark_unseen(species_id, path=DEX_PATH):
+    """Record that a catch happened without the user being shown it.
+
+    Some hosts discard hook output, so the banner never reaches the screen there.
+    The catch is still real; it just has to be announced the next time the Pokedex
+    is opened, which is what this list drives.
+    """
+    key = str(int(species_id))
+
+    def _mutate(dex):
+        pending = dex.setdefault("unseen", [])
+        if key not in pending:
+            pending.append(key)
+        return len(pending)
+
+    return transaction(_mutate, path)
+
+
+def take_unseen(path=DEX_PATH):
+    """Return the unseen catches and clear them, so they are announced once."""
+
+    def _mutate(dex):
+        pending = list(dex.get("unseen") or [])
+        dex["unseen"] = []
+        return pending
+
+    return transaction(_mutate, path) or []
+
+
 def project_view(dex, project):
     """Reduce a full pokedex to only what was caught in `project`.
 

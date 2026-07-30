@@ -403,7 +403,10 @@ def test_hook_turn_scoping():
     """
     print("\n[hook] roll is scoped to the last turn only")
     home, _ = fresh_home()
-    m = load_hook()
+    # The reader moved out of the hook into pokeclaude.transcript when multi-host
+    # support landed: Claude Code and Codex share the same JSONL format, so one
+    # reader serves both rather than each host's hook carrying a copy.
+    from pokeclaude import transcript as m
 
     # Three turns; only the last one may be counted.
     recs = []
@@ -1362,6 +1365,93 @@ def test_shiny():
     )
 
 
+def test_hosts():
+    """Host adapters: detection, display channel, and token sources."""
+    print("\n[hosts] multi-host adapters")
+    import io
+
+    from pokeclaude import hosts
+
+    for env, want in (
+        ({"POKECLAUDE_HOST": "kiro"}, "kiro"),
+        ({"POKECLAUDE_HOST": "KIRO"}, "kiro"),
+        ({"CODEX_HOME": "/x"}, "codex"),
+        ({"KIRO_IDE": "1"}, "kiro"),
+        ({"CURSOR_TRACE_ID": "abc"}, "cursor"),
+        ({"COPILOT_HOME": "/x"}, "copilot"),
+        ({"CLAUDECODE": "1"}, "claude"),
+        ({}, "claude"),
+        ({"POKECLAUDE_HOST": "nonsense"}, "claude"),
+    ):
+        got = hosts.detect(env)
+        check(got == want, "detect(%s) -> %s" % (json.dumps(env)[:34], got))
+
+    # An explicit setting must beat env sniffing, or a user cannot correct a
+    # wrong guess.
+    check(
+        hosts.detect({"POKECLAUDE_HOST": "codex", "KIRO_IDE": "1"}) == "codex",
+        "explicit POKECLAUDE_HOST overrides detection",
+    )
+
+    # Display channel: stdout JSON for hosts that render it, stderr otherwise.
+    # The two must never both fire, or a catch would print twice.
+    for host in sorted(hosts.HOSTS):
+        out, err = io.StringIO(), io.StringIO()
+        channel = hosts.emit("BANNER", host, out=out, err=err)
+        so, se = out.getvalue(), err.getvalue()
+        if channel == "systemMessage":
+            payload = json.loads(so)
+            ok = payload.get("systemMessage") == "BANNER" and not se
+        else:
+            ok = channel == "stderr" and "BANNER" in se and not so
+        check(ok, "%s emits via %s only" % (host, channel))
+
+    check(
+        all(hosts.can_display(h) for h in hosts.HOSTS),
+        "every host has some display channel",
+    )
+
+    # Token sources.
+    cases = [
+        ({"usage": {"output_tokens": 5000}, "turn_id": "t1"}, (5000, "t1")),
+        ({"usage": {"outputTokens": 700}, "session_id": "s"}, (700, "s")),
+        ({"tokens": {"output": 1234}, "message_id": "m"}, (1234, "m")),
+        ({"output_tokens": 99, "session_id": "s"}, (99, "s")),
+    ]
+    for payload, want in cases:
+        got = hosts.read_turn_tokens(payload, "cursor")
+        check(got == want, "inline usage %s -> %s" % (json.dumps(payload)[:34], got))
+
+    # No usage at all: a flat assumed turn, so the host is playable but never
+    # luckier than an instrumented one.
+    tokens, marker = hosts.read_turn_tokens({"session_id": "s"}, "copilot")
+    check(
+        tokens == hosts.BLIND_TURN_TOKENS and marker == "s",
+        "a host with no token data falls back to a flat turn",
+    )
+    check(
+        hosts.BLIND_TURN_TOKENS < 5907,
+        "the blind fallback is below the measured median turn",
+    )
+    # Nothing to key on at all means no roll -- otherwise a hook firing twice for
+    # one turn would roll twice.
+    check(
+        hosts.read_turn_tokens({}, "copilot") == (0, None),
+        "no identifiable turn means no roll",
+    )
+
+    # A transcript is used whenever offered, even by a host whose entry says
+    # otherwise: real counts always beat the fallback.
+    home, _ = fresh_home()
+    recs = [prompt("p1")] + blocks("m1", 4321, 3)
+    path = write_transcript(os.path.join(home, "t.jsonl"), recs)
+    tokens, marker = hosts.read_turn_tokens({"transcript_path": path}, "kiro")
+    check(
+        tokens == 4321 and marker == "p1",
+        "a transcript is read even for a payload-declared host (got %s)" % tokens,
+    )
+
+
 def test_pokeball_geometry():
     """The generated Pokeball must survive half-block rendering.
 
@@ -1555,6 +1645,7 @@ def main():
         test_dupes_and_project_cli,
         test_banner_fits,
         test_shiny,
+        test_hosts,
         test_pokeball_geometry,
         test_readme_svgs,
     ):
