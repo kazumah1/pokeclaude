@@ -1362,6 +1362,90 @@ def test_shiny():
     )
 
 
+def test_pokeball_geometry():
+    """The generated Pokeball must survive half-block rendering.
+
+    Not cosmetic. The renderer pairs pixel rows into one terminal row each, so a
+    1px seam is only ever half a cell and renders as a dashed band, and a 2px seam
+    that starts on an odd row straddles two cells and shows as two half-tones.
+    Both were shipped and both looked wrong -- the button also sat inside the white
+    half instead of on the equator. These assert the geometry that fixes it.
+    """
+    print("\n[ball] Pokeball geometry survives half-block rendering")
+    sys.path.insert(0, os.path.join(REPO, "tools"))
+    import animate_demo as ad
+    from pokeclaude import sprite as S
+
+    for diameter in (16, 20, 24, 25, 32):
+        grid = ad._ball_grid(diameter)
+        h, w = len(grid), len(grid[0])
+        seam_top = int(diameter / 2.0) + int(diameter / 2.0) % 2
+
+        check(
+            seam_top % 2 == 0,
+            "d=%d: seam starts on an even row (%d)" % (diameter, seam_top),
+        )
+        # The seam must be a solid 2px band, and both its rows identical, or it
+        # cannot render as one line.
+        check(
+            grid[seam_top] == grid[seam_top + 1],
+            "d=%d: both seam rows are identical" % diameter,
+        )
+        # Nothing but outline/seam and the button may appear on the seam row.
+        body = [ch for ch in grid[seam_top] if ch in "1246"]
+        check(not body, "d=%d: seam row carries no body colour" % diameter)
+
+        # The button must straddle the seam symmetrically. Probe a row inside the
+        # button rather than a fixed offset: the button scales with the diameter,
+        # so a fixed distance falls outside it on small balls.
+        def button_span(row_ix):
+            if not 0 <= row_ix < h:
+                return None
+            cols = [i for i, ch in enumerate(grid[row_ix]) if ch == "3"]
+            if not cols:
+                return None
+            # central run only -- the lower hemisphere is white too
+            mid = w // 2
+            run = [c for c in cols if abs(c - mid) < w // 4]
+            return (min(run), max(run)) if run else None
+
+        probe = max(2, int(diameter / 5.6) - 1)
+        above = button_span(seam_top - probe)
+        below = button_span(seam_top + 1 + probe)
+        check(
+            above is not None and below is not None and above == below,
+            "d=%d: button is symmetric about the seam (%s vs %s, probe=%d)"
+            % (diameter, above, below, probe),
+        )
+
+        blob = {
+            "id": "ball", "w": w, "h": h,
+            "pal": list(ad._BALL_PAL),
+            "px": "".join(grid),
+        }
+        check(
+            len(blob["px"]) == w * h and S.render(blob),
+            "d=%d: renders as a valid sprite" % diameter,
+        )
+
+    # Splitting must divide the ball into two equal halves whatever the size.
+    for amount in (1, 2, 3):
+        opened = ad.ball_blob(open_amount=amount)
+        check(
+            len(opened["px"]) == opened["w"] * opened["h"],
+            "open_amount=%d keeps the grid consistent" % amount,
+        )
+    closed = ad.ball_blob()
+    check(
+        ad.ball_blob(open_amount=2)["px"] != closed["px"],
+        "opening actually changes the art",
+    )
+    check(
+        ad.ball_blob(shake=1)["px"] != closed["px"],
+        "shaking actually changes the art",
+    )
+
+
 def test_readme_svgs():
     """The generated README images must be valid, self-contained and not clip.
 
@@ -1471,6 +1555,7 @@ def main():
         test_dupes_and_project_cli,
         test_banner_fits,
         test_shiny,
+        test_pokeball_geometry,
         test_readme_svgs,
     ):
         try:
