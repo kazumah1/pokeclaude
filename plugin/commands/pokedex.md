@@ -15,9 +15,12 @@ escapes — text you write is treated as content and has its VT control characte
 so relaying it would print a second, monochrome copy of art the user can already see in
 colour.
 
-After running it, say nothing about the sprites themselves. At most add one short line of
-genuinely new information: a milestone worth noting, an answer to what the user actually
-asked, or a suggested next flag. Silence is a fine response.
+**Say nothing after running it.** The hook output IS the response. Do not describe the
+sprites, restate the counts, note that nothing changed, or suggest another flag — the user
+can read the panel and knows the flags.
+
+The only exception is a direct question the output does not already answer (e.g. "which of
+these is rarest?"). Otherwise reply with nothing at all.
 
 Useful arguments to pass through when the user asks:
 
