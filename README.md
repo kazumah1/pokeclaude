@@ -101,8 +101,8 @@ Plugin commands are namespaced, so tab-complete `/pokeclaude:` to see both.
 | `…:pokedex --dupes` | Full duplicate list, most-caught first |
 | `…:pokedex --project` | Only Pokemon caught while working in this project |
 | `…:pokedex --scale 1` | Full 64px sprites (may be persisted, not inline) |
-| `/pokeclaude:pokeclaude-release <name>` | Release one Pokemon (dry-run first) |
-| `…:pokeclaude-release all` | Wipe the Pokedex and start over |
+| `/pokeclaude:release <name>` | Release one Pokemon (dry-run first) |
+| `…:release all` | Wipe the Pokedex and start over |
 
 ### Per-project Pokedex
 
@@ -112,7 +112,7 @@ independently, not merely filtered — Pikachu can be ×4 globally while being �
 ×1 somewhere else.
 
 The global collection is always the source of truth. `--project` is a view over it, and
-`…:pokeclaude-release all --project` resets one project's records **without** touching your
+`…:release all --project` resets one project's records **without** touching your
 real collection.
 
 ### Releasing
