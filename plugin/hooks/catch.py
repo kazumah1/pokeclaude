@@ -20,33 +20,45 @@ ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets"
 SPRITES = os.path.join(ASSETS, "sprites")
 META = os.path.join(ASSETS, "pokemon.json")
 
-# Only count tokens produced after the previous roll, so resumed or compacted
-# sessions cannot re-bank tokens that were already gambled.
-STATE_KEY = "counted_uuids"
-MAX_TRACKED_UUIDS = 400
+# Tokens are counted from a byte offset rather than by remembering message ids.
+# A bounded id cache cannot work here: any id evicted from the cache is reported
+# fresh again on the next turn, so the same tokens get gambled repeatedly and the
+# real catch rate drifts far above the calibrated one. An offset is O(1) to store
+# and guarantees each transcript line is counted exactly once.
+STATE_KEY = "offset"
 
 
-# Only the tail of a transcript can contain messages we have not already
-# counted, and transcripts grow past 10MB in long sessions. Reading just the
-# tail keeps this hook flat-cost instead of getting slower all session.
-TAIL_BYTES = 512 * 1024
+def read_turn_tokens(transcript_path, offset):
+    """Sum assistant output_tokens written since byte `offset`.
 
+    Returns (tokens, new_offset). Reading forward from a stored offset means each
+    line is counted exactly once and the cost is proportional to what the turn
+    actually appended, not to the size of the whole transcript.
 
-def read_turn_tokens(transcript_path, seen):
-    """Sum assistant output_tokens for messages not yet counted.
-
-    Returns (tokens, newly_seen_uuids). Only the last TAIL_BYTES are examined:
-    anything older has necessarily been seen by a previous turn's roll. The
-    first (possibly truncated) line of the window is discarded.
+    If the file is shorter than the offset it was replaced or rotated, so we
+    restart from the beginning rather than trusting a stale position.
     """
-    total, fresh = 0, []
     try:
         size = os.path.getsize(transcript_path)
+    except OSError:
+        return 0, offset
+
+    if size < offset:  # rotated/truncated: the old position is meaningless
+        offset = 0
+    if size == offset:  # nothing appended since the last roll
+        return 0, offset
+
+    total = 0
+    try:
         with open(transcript_path, errors="replace") as f:
-            if size > TAIL_BYTES:
-                f.seek(size - TAIL_BYTES)
-                f.readline()  # discard the partial line we landed mid-way into
+            if offset:
+                f.seek(offset)
             for line in f:
+                if not line.endswith("\n"):
+                    # A partial trailing line is still being written; leave the
+                    # offset before it so it is counted once it is complete.
+                    break
+                offset += len(line.encode("utf-8", "replace"))
                 if '"usage"' not in line:
                     continue
                 try:
@@ -55,15 +67,11 @@ def read_turn_tokens(transcript_path, seen):
                     continue
                 if d.get("type") != "assistant":
                     continue
-                uuid = d.get("uuid") or d.get("requestId")
-                if not uuid or uuid in seen:
-                    continue
                 usage = (d.get("message") or {}).get("usage") or {}
                 total += usage.get("output_tokens") or 0
-                fresh.append(uuid)
     except (IOError, OSError):
-        return 0, []
-    return total, fresh
+        return 0, offset
+    return total, offset
 
 
 def load_roster():
@@ -94,18 +102,20 @@ def main():
 
     state = store.load_state()
     sess = state.get(str(session_id)) or {}
-    seen = set(sess.get(STATE_KEY) or [])
+    offset = sess.get(STATE_KEY) or 0
 
-    tokens, fresh = read_turn_tokens(transcript, seen)
-    if not fresh:
+    tokens, new_offset = read_turn_tokens(transcript, offset)
+    if new_offset == offset:  # nothing new to gamble
         return 0
 
-    # Record the tokens as spent before deciding, so a crash mid-roll cannot let
-    # the same tokens be gambled twice.
-    merged = (sess.get(STATE_KEY) or []) + fresh
-    sess[STATE_KEY] = merged[-MAX_TRACKED_UUIDS:]
+    # Commit the offset before rolling, so a crash mid-roll cannot let the same
+    # tokens be gambled a second time.
+    sess[STATE_KEY] = new_offset
     state[str(session_id)] = sess
     store.save_state(state)
+
+    if tokens <= 0:
+        return 0
 
     hit, _p = encounter.roll(tokens)
     if not hit:
