@@ -62,6 +62,11 @@ cache_read against 309k output, a 664x ratio — counting cache would tie the ra
 size rather than work done. `input_tokens` is included for correctness but caching leaves it
 tiny (a 0.6% addition to output alone).
 
+**Uncaught species render in greyscale.** Looking up something you do not own shows the
+sprite desaturated to luminance rather than as a flat silhouette — the shading survives, so
+it stays recognisable while clearly reading as unowned. Rec. 709 luma weights, because a
+channel average maps red and blue to the same grey and loses the internal detail.
+
 **Rarity.** Every catch and detail view shows the species' share of all encounters and its
 tier — `0.011% of encounters · MYTHICAL` for Mew, `0.27% · COMMON` for Pikachu. Tiers cut on
 the intrinsic rarity multiplier rather than share, so adding a generation does not
@@ -114,7 +119,7 @@ Plugin commands are namespaced, so tab-complete `/pokeclaude:` to see both.
 |---|---|
 | `/pokeclaude:pokeclaude` | Show or set the catch rate (light/normal/strict) |
 | `/pokeclaude:pokedex` | Paginated grid of everything you've caught |
-| `…:pokedex --all` | Include uncaught entries as dim silhouettes |
+| `…:pokedex --all` | Include uncaught entries in greyscale |
 | `…:pokedex --id 25` | Large detail view for one species |
 | `…:pokedex --stats` | Progress summary, no art |
 | `…:pokedex --dupes` | Full duplicate list, most-caught first |

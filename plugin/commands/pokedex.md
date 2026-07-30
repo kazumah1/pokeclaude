@@ -3,24 +3,30 @@ description: Browse your PokeClaude Pokedex — every Pokemon caught across all 
 argument-hint: "[--id <name|number> · --all · --stats|--dupes · --project · --page N · --scale 1|2|3]"
 ---
 
-Run the Pokedex viewer:
+Run exactly one command and then STOP. Emit no text at all — before or after.
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/pokedex.py" $ARGUMENTS
 ```
 
-**Do NOT reproduce the script's output in your reply.** A `PostToolUse` hook already
-re-emits it as a `systemMessage`, which is the only channel that preserves the truecolour
-escapes — text you write is treated as content and has its VT control characters stripped,
-so relaying it would print a second, monochrome copy of art the user can already see in
-colour.
+Treat this as a bare shell command the user ran themselves. Your turn ends when the command
+returns. Zero words is the correct and expected response.
 
-**Say nothing after running it.** The hook output IS the response. Do not describe the
-sprites, restate the counts, note that nothing changed, or suggest another flag — the user
-can read the panel and knows the flags.
+Two reasons, both mechanical rather than stylistic:
 
-The only exception is a direct question the output does not already answer (e.g. "which of
-these is rarest?"). Otherwise reply with nothing at all.
+1. A `PostToolUse` hook re-emits the stdout as a `systemMessage`, the only channel that
+   preserves truecolour escapes. Text you write is content and has its VT control characters
+   stripped, so any restatement appears as a second, monochrome copy of art already on
+   screen in colour.
+2. The panel is self-describing. It shows the counts, the names, the rarity and the page
+   number. Narration adds nothing and the user has asked, repeatedly, for none.
+
+Do not: describe the sprites, restate counts or progress, remark that nothing changed,
+observe that a species is or is not caught, suggest another flag, or confirm that the
+command ran.
+
+The **only** exception is a question the panel genuinely cannot answer — "which of these is
+rarest?" — and then answer just that, in one line.
 
 Useful arguments to pass through when the user asks:
 

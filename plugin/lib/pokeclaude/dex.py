@@ -44,12 +44,15 @@ def _load_sprite(sprites_dir, pid):
         return None
 
 
-def _silhouette(blob, rgb=(58, 58, 64)):
-    """Recolour every opaque pixel to a single dim tone: the classic
-    'seen but not caught' look for uncaught entries."""
-    out = dict(blob)
-    out["pal"] = ["%02x%02x%02x" % rgb] * len(blob["pal"])
-    return out
+def _silhouette(blob):
+    """The 'not caught' look for grid entries.
+
+    Greyscale rather than a single flat tone: a flat silhouette reduces every
+    sprite to an outline, and at 21px in a grid most outlines are
+    indistinguishable. Keeping the luminance keeps the species recognisable while
+    still reading as unowned.
+    """
+    return spritelib.grayscale(blob, dim=0.7)
 
 
 def _cell(blob, caption_lines, width, sprite_h):
@@ -184,7 +187,14 @@ def render_grid(
 
 
 def render_detail(pid, blob, info, caught, roster_ids=None):
-    """Large single-entry view."""
+    """Large single-entry view.
+
+    An uncaught species renders in greyscale rather than colour, so browsing the
+    dex makes it obvious at a glance what you actually own. Greyscale rather than
+    a flat silhouette: it keeps the shading, so the Pokemon is still recognisable.
+    """
+    if blob is not None and not caught:
+        blob = spritelib.grayscale(blob)
     lines = [""]
     art = spritelib.render(blob, indent=2) if blob else []
     name = (info.get("name") or "?").upper()
