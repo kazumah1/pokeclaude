@@ -97,40 +97,104 @@ def frames_reveal(pid):
 
 
 # A Pokeball, drawn as a sprite blob so it goes through the identical renderer as
-# every Pokemon -- same half-block model, same palette encoding. Hand-authored
-# rather than fetched: PokeAPI has no ball sprite, and at this size a 16x16 grid
-# is more legible than downscaled item art.
+# every Pokemon -- same half-block model, same palette encoding. PokeAPI has no
+# ball sprite, so this is generated.
 #
-# Palette: 1 red, 2 dark red, 3 white, 4 grey, 5 black, 6 highlight.
+# GENERATED from geometry rather than hand-authored on a grid. The hand-drawn
+# version had two faults that are structural rather than cosmetic: a 16-row grid
+# has no true centre row, so the seam sat at row 7 and left the button entirely
+# inside the white half instead of straddling the equator; and the outline was
+# stepped by eye, which read as a blocky lump rather than a sphere. Deriving both
+# from a radius makes the button concentric with the ball by construction.
+#
+# Palette: 1 red, 2 red shadow, 3 white, 4 white shadow, 5 outline, 6 highlight.
 _BALL_PAL = [
     "e03a2f",  # 1 red
-    "8f1f18",  # 2 red shadow
-    "f2f2f2",  # 3 white
-    "b9bec4",  # 4 white shadow
-    "141414",  # 5 outline / seam
-    "ff8f86",  # 6 red highlight
+    "9c241c",  # 2 red shadow
+    "f4f4f4",  # 3 white
+    "b4bac1",  # 4 white shadow
+    "121212",  # 5 outline / seam / button ring
+    "ff9c93",  # 6 red highlight
 ]
-# Shaded rather than two flat bands: the sprites it sits beside all carry interior
-# shading, and a flat silhouette reads as a placeholder next to them. Light comes
-# from the upper left, matching the sprite art.
-_BALL_ART = [
-    "0000055555550000",
-    "0005566111112500",
-    "0056611111112250",
-    "0561111111111225",
-    "5611111111111225",
-    "5111111111111122",
-    "5111111111111222",
-    "5555555555555555",
-    "5333333333333444",
-    "5333355553334444",
-    "5333533335334444",
-    "0533533335344440",
-    "0053355553444400",
-    "0005333334444000",
-    "0000544444400000",
-    "0000000000000000",
-]
+
+TRANSPARENT_IX = "0"
+
+
+def _ball_grid(diameter=24):
+    """Build the ball as a grid of palette indices, `diameter` pixels across.
+
+    Everything here is dictated by the HALF-BLOCK renderer, which pairs pixel rows
+    (0,1), (2,3), ... into one terminal row each -- the upper pixel becomes the
+    glyph's foreground, the lower its background. So:
+
+      * A 1px horizontal line is only ever half a cell and renders as a broken
+        dashed band. Fine for interior shading, useless for a Pokeball's defining
+        feature, so the seam is 2px.
+      * A 2px band is one solid cell only if it STARTS ON AN EVEN ROW. Otherwise
+        it straddles two cells and shows up as two half-tones.
+      * The button ring is a curve crossing every row, so it cannot be aligned at
+        all; it is simply drawn thick enough (>=2px) to survive.
+
+    The seam row is chosen first and the circle is then centred on it, with the
+    canvas grown to fit. Choosing the circle first and snapping the seam to it
+    (the earlier approach) either moved the button off the equator or shrank the
+    ball to a blob.
+    """
+    r = diameter / 2.0
+    # First even row at or after the nominal centre: the seam's top row.
+    seam_top = int(r) + int(r) % 2
+    cy = seam_top + 0.5           # centre sits between the two seam rows
+    height = int(cy + r) + 2
+    width = int(diameter) + 2
+    cx = (width - 1) / 2.0
+
+    button_r = diameter / 5.6
+    ring_r = button_r + max(2.0, diameter / 14.0)
+
+    # A compact glint rather than a linear gradient: a broad ramp made the whole
+    # left side pale, which read as flat. Offsets are fractions of the radius so
+    # the lighting holds at any diameter.
+    gx, gy = cx - r * 0.40, cy - r * 0.44
+    sx, sy = cx + r * 0.44, cy + r * 0.40
+
+    rows = []
+    for y in range(height):
+        row = []
+        for x in range(width):
+            dx, dy = x - cx, y - cy
+            d = (dx * dx + dy * dy) ** 0.5
+            if d > r:
+                row.append(TRANSPARENT_IX)
+                continue
+            if d > r - 1.0:                       # outline shell
+                row.append("5")
+                continue
+            if d <= button_r:                     # button, concentric with the
+                row.append("3")                   # ball and so with the seam
+                continue
+            if d <= ring_r:                       # ring around the button
+                row.append("5")
+                continue
+            if y in (seam_top, seam_top + 1):     # the 2px equatorial seam
+                row.append("5")
+                continue
+
+            glint = ((x - gx) ** 2 + (y - gy) ** 2) ** 0.5
+            shadow = ((x - sx) ** 2 + (y - sy) ** 2) ** 0.5
+            if y < seam_top:                      # upper half: red
+                if glint < r * 0.30:
+                    row.append("6")
+                elif shadow < r * 0.55:
+                    row.append("2")
+                else:
+                    row.append("1")
+            else:                                 # lower half: white
+                row.append("4" if shadow < r * 0.62 else "3")
+        rows.append("".join(row))
+    return rows
+
+
+_BALL_ART = _ball_grid(25)
 
 
 def ball_blob(shake=0, open_amount=0):
@@ -144,12 +208,14 @@ def ball_blob(shake=0, open_amount=0):
     w = len(rows[0])
 
     if open_amount:
-        top = rows[:8]
-        bottom = rows[8:]
+        # Split at the ACTUAL centre row rather than a hardcoded index, so the
+        # halves stay equal whatever grid size the generator produced.
+        mid = len(rows) // 2
+        top, bottom = rows[:mid], rows[mid:]
         blank = ["0"] * w
         # Push the halves apart, keeping total height fixed so the frame does not
         # jump; the gap is where the Pokemon will emerge from.
-        top = [blank] * 0 + top[open_amount:] + [blank] * open_amount
+        top = top[open_amount:] + [blank] * open_amount
         bottom = [blank] * open_amount + bottom[: len(bottom) - open_amount]
         rows = top + bottom
 
