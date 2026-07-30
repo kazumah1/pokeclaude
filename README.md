@@ -3,7 +3,7 @@
 Catch Pokemon while you work. Every turn you spend tokens in Claude Code is a chance at
 a wild encounter, rendered as truecolor pixel art directly in your terminal.
 
-<img src="docs/catch-snorlax.svg" alt="A wild SNORLAX appeared — pixel art catch banner" width="620">
+<img src="docs/catch-snorlax.svg" alt="A wild SNORLAX appeared — pixel art catch banner">
 
 Your Pokedex is shared across **every** Claude Code instance — parallel sessions, every
 project, one collection.
@@ -18,11 +18,11 @@ counts:
 `--id N` opens a single entry, with its encounter rarity and catch history. Species you have
 not caught yet render in greyscale, so it is obvious at a glance what you actually own:
 
-<img src="docs/detail-pikachu.svg" alt="Pikachu detail view, caught four times" width="620">
+<img src="docs/detail-pikachu.svg" alt="Pikachu detail view, caught four times">
 
-<img src="docs/detail-koraidon.svg" alt="Koraidon detail view, a caught legendary" width="620">
+<img src="docs/detail-koraidon.svg" alt="Koraidon detail view, a caught legendary">
 
-<img src="docs/detail-arceus-uncaught.svg" alt="Arceus detail view, uncaught and rendered in greyscale" width="620">
+<img src="docs/detail-arceus-uncaught.svg" alt="Arceus detail view, uncaught and rendered in greyscale">
 
 ## Install
 
