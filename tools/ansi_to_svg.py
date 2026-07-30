@@ -37,13 +37,19 @@ SGR = re.compile(r"\x1b\[([0-9;]*)m")
 # terminal ever does. This reproduces them instead.
 CW = 9.0
 PH = 9.0  # pixel height; square against CW
-# The seam is the terminal's line-height gap between character rows, and it is a
-# hairline, not a bar -- roughly a tenth of a pixel row. Drawn as the canvas
-# colour, so it reads as a faint dark line across coloured sprite regions (the
-# real artifact) and is invisible against the matching dark background, exactly
-# as in a terminal.
+# Layout gap between character rows. Kept at 1 so CH stays a whole number: with a
+# fractional cell height every row lands at a different sub-pixel offset and the
+# rasteriser renders the seam thicker on some rows than others, which reads as
+# uneven banding rather than a uniform terminal artifact.
 LINE_GAP = 1.0
-CH = PH * 2 + LINE_GAP  # full character-cell height
+CH = PH * 2 + LINE_GAP  # 19, an integer on purpose
+
+# Visible seam width, which is deliberately much thinner than the layout gap. A
+# terminal's line-height seam is a hairline; drawing the full LINE_GAP made it a
+# bar. The lower pixel band is extended down to cover the difference, so the grid
+# stays integer while only SEAM shows through.
+SEAM = 0.14
+LOWER_BAND_H = PH + (LINE_GAP - SEAM)
 FONT_SIZE = 15
 BASELINE = 13.7  # glyph baseline within the 2*PH text area
 
@@ -181,9 +187,13 @@ def to_svg(rows, pad=14):
     for y, cells in enumerate(rows):
         y0 = pad + y * CH
         if is_pixel_row(cells):
-            # Two pixel bands per character row; the LINE_GAP below them stays the
-            # canvas colour, which is the seam a real terminal shows.
-            for band, get in ((0, lambda p: p[0]), (1, lambda p: p[1])):
+            # Two pixel bands per character row. The lower band is extended so
+            # only SEAM of canvas shows between character rows -- a hairline, not
+            # the whole layout gap.
+            for band, get, bh in (
+                (0, lambda p: p[0], PH),
+                (1, lambda p: p[1], LOWER_BAND_H),
+            ):
                 by = y0 + band * PH
                 run_col, run_start = None, 0
                 for x in range(len(cells) + 1):
@@ -194,7 +204,7 @@ def to_svg(rows, pad=14):
                                 '<rect x="%g" y="%g" width="%g" height="%g" '
                                 'fill="%s"/>'
                                 % (pad + run_start * CW, by,
-                                   (x - run_start) * CW, PH, _hex(run_col))
+                                   (x - run_start) * CW, bh, _hex(run_col))
                             )
                         run_col, run_start = col, x
             continue
