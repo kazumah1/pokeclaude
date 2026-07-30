@@ -10,7 +10,7 @@ a wild encounter, rendered as truecolor pixel art directly in your terminal.
    ▀▀▀▀▀▀        NEW — added to your Pokedex
 
                  Pokedex 1/386 (0%)
-                 /pokedex to browse
+                 /pokeclaude:pokedex to browse
 ```
 
 Your Pokedex is shared across **every** Claude Code instance — parallel sessions, every
@@ -100,7 +100,7 @@ Plugin commands are namespaced, so tab-complete `/pokeclaude:` to see both.
 | `…:pokedex --stats` | Progress summary, no art |
 | `…:pokedex --dupes` | Full duplicate list, most-caught first |
 | `…:pokedex --project` | Only Pokemon caught while working in this project |
-| `…:pokedex --scale 1` | Full-size 64px sprites |
+| `…:pokedex --scale 1` | Full-size 64px sprites (grid default is 3 = 21px) |
 | `/pokeclaude:pokeclaude-release <name>` | Release one Pokemon (dry-run first) |
 | `…:pokeclaude-release all` | Wipe the Pokedex and start over |
 
@@ -135,12 +135,20 @@ sprite occupies 64 columns by 32 rows.
 
 Stored at **64px with up to 63 colours**, which is as much as the source holds: the official
 art is 96x96 but only ~78x41 pixels of it are actual content, so 64px keeps essentially all
-real detail while 96px would be interpolation. Grid views downsample 4x (16px) and catch
+real detail while 96px would be interpolation. Grid views downsample 3x (21px) and catch
 banners 2x (32px) so they fit beside their text; column count comes from your real terminal
-width, because wrapping destroys pixel art.
+width, because wrapping destroys pixel art. 3x rather than 4x for the grid because it keeps
+~20 distinct colours per sprite instead of 16, which is the difference between a readable
+silhouette and a smear.
 
 Escape codes are emitted only when a colour changes rather than per cell, which cuts the
-byte overhead 3-5x — that matters for the catch banner, which travels through a hook field.
+byte overhead 3-5x — that matters because all art travels through a hook field.
+
+**Why a hook renders the Pokedex.** Truecolour only survives on channels Claude Code paints
+itself: a hook's `systemMessage` is one, but text the assistant writes into its reply is
+content and gets its VT control characters stripped. So a `PostToolUse` hook re-emits the
+script's stdout as a `systemMessage`. Without it the art arrived as monochrome blocks unless
+you pressed ctrl+o to see the raw output.
 
 ## Storage
 

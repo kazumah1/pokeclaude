@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
-"""Render the Pokedex for the /pokedex command.
+"""Render the Pokedex for the /pokeclaude:pokedex command.
 
-Unlike the catch banner, this output is printed directly rather than passed
-through a hook field, so it has no length ceiling and no schema to satisfy.
+Output reaches the screen in colour via the PostToolUse hook in
+hooks/show.py, which re-emits this stdout as a systemMessage -- the only channel
+that preserves truecolour escapes. Assistant reply text has its VT control
+characters stripped, so the art must not be relayed there.
 
     pokedex.py                 first page of caught species
     pokedex.py --page 3        a specific page
     pokedex.py --all           include uncaught entries as dim silhouettes
-    pokedex.py --id 25         detail view for one species
+    pokedex.py --id 25         detail view for one species, full 64px
     pokedex.py --stats         summary only, no art
+    pokedex.py --dupes         duplicate counts, most caught first
+    pokedex.py --project       only what was caught in this project
 """
 import argparse
 import json
@@ -74,8 +78,8 @@ def main():
     ap.add_argument("--stats", action="store_true")
     ap.add_argument("--width", type=int, default=None, help="override terminal width")
     ap.add_argument(
-        "--scale", type=int, default=4,
-        help="sprite divisor: 1 = full 64px, 2 = 32px, 4 = 16px grid"
+        "--scale", type=int, default=3,
+        help="sprite divisor: 1 = full 64px, 2 = 32px, 3 = 21px (grid default)"
     )
     ap.add_argument(
         "--project",
