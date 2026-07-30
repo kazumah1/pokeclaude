@@ -147,13 +147,21 @@ def project_key(cwd=None):
         probe = parent
 
 
-def record_catch(species_id, session_id=None, path=DEX_PATH, project=None):
+def record_catch(species_id, session_id=None, path=DEX_PATH, project=None,
+                 shiny=False):
     """Persist a catch. Returns a dict describing what changed, or None if the
     write was skipped. `is_new` distinguishes a first capture from a duplicate.
 
     Per-project counts are recorded alongside the global ones so a project view
     can show what was caught while working there. The global collection stays
     the single source of truth; project data is strictly additive bookkeeping.
+
+    Shininess is tracked per species as an additive counter, never as a flag on
+    the species itself. Someone who owns a normal Pikachu and later catches a
+    shiny one has caught both, and the entry has to be able to say so -- a boolean
+    would silently overwrite that history, and `is_new_shiny` would be
+    unanswerable. Absent keys mean zero, so pre-shiny Pokedexes stay valid without
+    a migration.
     """
     key = str(int(species_id))
     now = int(time.time())
@@ -162,7 +170,7 @@ def record_catch(species_id, session_id=None, path=DEX_PATH, project=None):
         caught = dex["caught"]
         entry = caught.get(key)
         if entry is None:
-            caught[key] = {
+            entry = caught[key] = {
                 "count": 1,
                 "first": now,
                 "last": now,
@@ -173,6 +181,16 @@ def record_catch(species_id, session_id=None, path=DEX_PATH, project=None):
             entry["count"] = entry.get("count", 0) + 1
             entry["last"] = now
             is_new = False
+
+        is_new_shiny = False
+        if shiny:
+            had = entry.get("shiny", 0)
+            entry["shiny"] = had + 1
+            is_new_shiny = had == 0
+            if not entry.get("shiny_first"):
+                entry["shiny_first"] = now
+            dex["totals"]["shinies"] = dex["totals"].get("shinies", 0) + 1
+
         dex["totals"]["catches"] = dex["totals"].get("catches", 0) + 1
 
         if project:
@@ -180,11 +198,16 @@ def record_catch(species_id, session_id=None, path=DEX_PATH, project=None):
             p = projects.setdefault(project, {"caught": {}, "catches": 0})
             p["caught"][key] = p["caught"].get(key, 0) + 1
             p["catches"] = p.get("catches", 0) + 1
+            if shiny:
+                p["shinies"] = p.get("shinies", 0) + 1
 
         return {
             "is_new": is_new,
-            "count": caught[key]["count"],
+            "count": entry["count"],
             "unique": len(caught),
+            "shiny": bool(shiny),
+            "shiny_count": entry.get("shiny", 0),
+            "is_new_shiny": is_new_shiny,
             "project_count": (
                 dex.get("projects", {}).get(project, {}).get("caught", {}).get(key)
                 if project

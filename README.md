@@ -24,6 +24,23 @@ not caught yet render in greyscale, so it is obvious at a glance what you actual
 
 <img src="docs/detail-arceus-uncaught.svg" alt="Arceus detail view, uncaught and rendered in greyscale">
 
+## Shinies
+
+Every catch has a **1 in 64** chance of being shiny — the alternate-coloured variant, with
+its own real sprite rather than a recolour filter.
+
+The roll is independent of which species appeared, so shininess never compounds with
+rarity: a shiny Rattata and a shiny Mewtwo are equally likely. That is deliberate. Were the
+two multiplied, a shiny legendary would sit past a human lifetime of use.
+
+1 in 64 is far more generous than the games' 1 in 8192, because catches here are themselves
+rare — roughly one per session on `normal`. At the games' odds nobody would ever see one.
+
+Shinies are tracked separately from ordinary catches, so owning a normal Pikachu *and* a
+shiny one records both. The grid marks them with `✧`, renders them in their shiny colours,
+and `--id N` shows the count and when you first got one. `--id N --shiny` previews any
+species' shiny colours, caught or not.
+
 ## Install
 
 ```bash
@@ -228,10 +245,12 @@ forking and `/compact` all just start the next turn cleanly.
 ## Assets
 
 Sprites are baked from [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (official
-96x96 art) into a compact palette+index format — ~4KB each, 4.0MB for all 1025.
+96x96 art) into a compact palette+index format — ~4KB each, 4.0MB for all 1025, plus the
+same again for the shiny variants.
 
 ```bash
 python3 tools/bake_sprites.py --max-dex 1025 --size 64
+python3 tools/bake_sprites.py --max-dex 1025 --size 64 --shiny   # shiny variants
 python3 tools/bake_sprites.py --ids 25 --preview   # see one in your terminal
 ```
 

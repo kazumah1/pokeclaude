@@ -36,6 +36,30 @@ _ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-"
 _DECODE = {c: i for i, c in enumerate(_ALPHABET)}
 
 
+def load(sprites_dir, species_id, shiny=False):
+    """Read a baked sprite, preferring the shiny variant when asked.
+
+    Falls back to the normal sprite if a shiny file is missing rather than
+    returning nothing: shiny art is a parallel tree that a user may not have
+    baked, and a missing file should cost the alternate colours, not the catch.
+    Returns None only when neither exists.
+    """
+    import json
+    import os
+
+    names = []
+    if shiny:
+        names.append(os.path.join(sprites_dir, "shiny", "%d.json" % int(species_id)))
+    names.append(os.path.join(sprites_dir, "%d.json" % int(species_id)))
+    for path in names:
+        try:
+            with open(path) as f:
+                return json.load(f)
+        except (IOError, OSError, ValueError):
+            continue
+    return None
+
+
 def decode(blob):
     """Expand a baked sprite into (palette, rows-of-indices).
 

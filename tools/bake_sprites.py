@@ -36,6 +36,12 @@ SPRITE_URL = (
     "https://raw.githubusercontent.com/PokeAPI/sprites/master"
     "/sprites/pokemon/{id}.png"
 )
+# Shiny art lives under the same tree with a shiny/ prefix, in the identical
+# 96x96 format, so it bakes through exactly the same pipeline.
+SHINY_URL = (
+    "https://raw.githubusercontent.com/PokeAPI/sprites/master"
+    "/sprites/pokemon/shiny/{id}.png"
+)
 SPECIES_URL = "https://pokeapi.co/api/v2/pokemon/{id}/"
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -186,6 +192,11 @@ def main():
     ap.add_argument("--ids", type=str, default=None, help="comma list, overrides range")
     ap.add_argument("--size", type=int, default=64)
     ap.add_argument("--preview", action="store_true", help="print sprites as rendered")
+    ap.add_argument(
+        "--shiny",
+        action="store_true",
+        help="bake the shiny variants into assets/sprites/shiny/ instead",
+    )
     args = ap.parse_args()
 
     if args.ids:
@@ -193,7 +204,14 @@ def main():
     else:
         ids = list(range(1, args.max_dex + 1))
 
-    os.makedirs(OUT_DIR, exist_ok=True)
+    # Shiny art is a parallel tree of the same ids, so it reuses every stage of
+    # this pipeline and only the source URL and output directory change. Metadata
+    # (name, types) is shared -- a shiny Pikachu is still Pikachu.
+    src_url = SHINY_URL if args.shiny else SPRITE_URL
+    out_dir = os.path.join(OUT_DIR, "shiny") if args.shiny else OUT_DIR
+    cache_dir = os.path.join(CACHE, "shiny") if args.shiny else CACHE
+
+    os.makedirs(out_dir, exist_ok=True)
     meta = {}
     if os.path.exists(META_PATH):
         with open(META_PATH) as f:
@@ -202,7 +220,9 @@ def main():
     failures = []
     for n, pid in enumerate(ids, 1):
         try:
-            png = fetch(SPRITE_URL.format(id=pid), os.path.join(CACHE, "%d.png" % pid))
+            png = fetch(
+                src_url.format(id=pid), os.path.join(cache_dir, "%d.png" % pid)
+            )
             blob = bake_one(png, args.size)
             if blob is None:
                 failures.append((pid, "empty sprite"))
@@ -224,7 +244,7 @@ def main():
                     "types": [t["type"]["name"] for t in info["types"]],
                 }
 
-            with open(os.path.join(OUT_DIR, "%d.json" % pid), "w") as f:
+            with open(os.path.join(out_dir, "%d.json" % pid), "w") as f:
                 json.dump(blob, f, separators=(",", ":"))
 
             if args.preview:
@@ -244,12 +264,11 @@ def main():
     with open(META_PATH, "w") as f:
         json.dump(meta, f, indent=0, sort_keys=True)
 
-    total = sum(
-        os.path.getsize(os.path.join(OUT_DIR, p)) for p in os.listdir(OUT_DIR)
-    )
+    baked = [p for p in os.listdir(out_dir) if p.endswith(".json")]
+    total = sum(os.path.getsize(os.path.join(out_dir, p)) for p in baked)
     sys.stderr.write(
-        "\ndone: %d sprites, %.1f KB total, %d failures\n"
-        % (len(os.listdir(OUT_DIR)), total / 1024.0, len(failures))
+        "\ndone: %d %ssprites, %.1f KB total, %d failures\n"
+        % (len(baked), "shiny " if args.shiny else "", total / 1024.0, len(failures))
     )
     for pid, err in failures[:10]:
         sys.stderr.write("  FAIL #%d: %s\n" % (pid, err))

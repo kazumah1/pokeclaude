@@ -19,6 +19,7 @@ DIM = "\033[2m"
 BOLD = "\033[1m"
 GOLD = (246, 200, 60)
 GREY = (110, 110, 110)
+SHINY = (255, 236, 140)  # brighter than GOLD so the shiny marker stands apart
 
 CELL_GAP = 2
 
@@ -36,12 +37,8 @@ def _blank(w, h):
     return [" " * w for _ in range(h)]
 
 
-def _load_sprite(sprites_dir, pid):
-    try:
-        with open(os.path.join(sprites_dir, "%d.json" % pid)) as f:
-            return json.load(f)
-    except (IOError, OSError, ValueError):
-        return None
+def _load_sprite(sprites_dir, pid, shiny=False):
+    return spritelib.load(sprites_dir, pid, shiny=shiny)
 
 
 def _silhouette(blob):
@@ -139,7 +136,11 @@ def render_grid(
         # row rather than being assumed square.
         loaded = []
         for pid, caught in row:
-            blob = _load_sprite(sprites_dir, pid)
+            # Show the shiny colours for a species you own a shiny of -- that is
+            # the whole reward, and hiding it in the grid would make shinies
+            # invisible unless you knew to open the entry.
+            want_shiny = bool(caught and caught.get("shiny"))
+            blob = _load_sprite(sprites_dir, pid, shiny=want_shiny)
             if blob is not None and scale > 1:
                 blob = spritelib.downscale(blob, scale)
             loaded.append((pid, caught, blob))
@@ -157,6 +158,10 @@ def render_grid(
                 cap_name = _c(GOLD, name[:cell_w], bold=True)
                 extra = caught.get("count", 1)
                 cap_x = DIM + ("×%d" % extra if extra > 1 else "") + RESET
+                # A star marks the species as one you hold a shiny of. Cheap in
+                # width, which matters in a 21-column cell.
+                if caught.get("shiny"):
+                    cap_x = _c(SHINY, "✧") + cap_x
             else:
                 if blob and show_uncaught:
                     blob = _silhouette(blob)
@@ -238,6 +243,25 @@ def render_detail(pid, blob, info, caught, roster_ids=None):
             last = _t.strftime("%Y-%m-%d", _t.localtime(caught.get("last", 0)))
             meta_lines.append(DIM + "most recent: %s" % last + RESET)
         meta_lines.append(DIM + "times caught: %d" % n + RESET)
+
+        # Shiny is reported separately from the catch count, because the two are
+        # independent: owning 5 of a species and 1 shiny of it are both true.
+        shinies = caught.get("shiny", 0)
+        if shinies:
+            from . import encounter
+
+            odds = int(round(1.0 / encounter.SHINY_CHANCE))
+            meta_lines.append("")
+            meta_lines.append(
+                _c(SHINY, "✧ SHINY", bold=True)
+                + (_c(SHINY, "  ×%d" % shinies) if shinies > 1 else "")
+            )
+            meta_lines.append(DIM + "1 in %d per catch" % odds + RESET)
+            if caught.get("shiny_first"):
+                sf = _t.strftime(
+                    "%Y-%m-%d", _t.localtime(caught.get("shiny_first", 0))
+                )
+                meta_lines.append(DIM + "first shiny: %s" % sf + RESET)
     else:
         meta_lines.append(DIM + "not yet caught" + RESET)
 
