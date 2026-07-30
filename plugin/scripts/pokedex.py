@@ -54,6 +54,13 @@ def _term_width(default=80):
         return default
 
 
+def _shiny_chance():
+    """The configured shiny rate, for display. Imported lazily to keep startup light."""
+    from pokeclaude import encounter
+
+    return encounter.SHINY_CHANCE
+
+
 def load_meta():
     try:
         with open(META) as f:
@@ -95,7 +102,12 @@ def main():
     ap.add_argument(
         "--shiny",
         action="store_true",
-        help="with --id, show the shiny colours even if you have not caught one",
+        help="show only the shinies you have caught",
+    )
+    ap.add_argument(
+        "--normal",
+        action="store_true",
+        help="with --id, show the ordinary colours of a species you own a shiny of",
     )
     args = ap.parse_args()
     # Distinguish "user chose a scale" from "default applied", because the grid
@@ -132,10 +144,13 @@ def main():
         pid = args.id
         from pokeclaude import sprite as spritelib
 
-        # Show the shiny art if you own a shiny of this species, or if --shiny was
-        # passed explicitly to preview one you have not caught.
+        # Shiny colours are EARNED, never previewed: showing them for a species you
+        # have not caught shiny would spend the reward before it is won. So the art
+        # follows ownership, and --normal is the way back to the ordinary colours
+        # for a species you own both of.
         entry = caught.get(str(pid))
-        want_shiny = args.shiny or bool(entry and entry.get("shiny"))
+        owns_shiny = bool(entry and entry.get("shiny"))
+        want_shiny = owns_shiny and not args.normal
         blob = spritelib.load(SPRITES, pid, shiny=want_shiny)
         if blob is None:
             print("No sprite for #%d" % pid)
@@ -153,7 +168,12 @@ def main():
             blob = spritelib.downscale(blob, detail_scale)
 
         out += dex.render_detail(
-            pid, blob, meta.get(str(pid)) or {}, caught.get(str(pid)), roster_ids=roster
+            pid,
+            blob,
+            meta.get(str(pid)) or {},
+            caught.get(str(pid)),
+            roster_ids=roster,
+            showing_shiny=want_shiny,
         )
         print("\n".join(out))
         return 0
@@ -170,6 +190,8 @@ def main():
         catch_txt = ""
 
     subtitle = "  ·  %s" % scope if scope else "  ·  pokeclaude"
+    if args.shiny:
+        subtitle += "  ·  shinies only"
     out.append("")
     out.append("  " + _c(GOLD, "POKEDEX", bold=True) + DIM + subtitle + RESET)
     out.append("  " + progress_bar(unique, total, width=bar_w))
@@ -228,7 +250,23 @@ def main():
         print("\n".join(out))
         return 0
 
-    ids = roster if args.all else sorted(int(k) for k in caught)
+    if args.shiny:
+        # A shiny showcase: only species you hold a shiny of. --all is ignored
+        # here, since "every uncaught species, as a shiny" is not a thing you own.
+        ids = sorted(int(k) for k, v in caught.items() if v.get("shiny"))
+        if not ids:
+            out.append(DIM + "  No shinies yet." + RESET)
+            out.append(
+                DIM + "  Every catch has a 1 in %d chance of being shiny."
+                % int(round(1.0 / _shiny_chance())) + RESET
+            )
+            out.append("")
+            print("\n".join(out))
+            return 0
+    elif args.all:
+        ids = roster
+    else:
+        ids = sorted(int(k) for k in caught)
 
     scale = max(1, args.scale)
     cell_w = 64 // scale

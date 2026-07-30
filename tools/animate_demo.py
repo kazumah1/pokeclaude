@@ -96,6 +96,167 @@ def frames_reveal(pid):
     return out, 90
 
 
+# A Pokeball, drawn as a sprite blob so it goes through the identical renderer as
+# every Pokemon -- same half-block model, same palette encoding. Hand-authored
+# rather than fetched: PokeAPI has no ball sprite, and at this size a 16x16 grid
+# is more legible than downscaled item art.
+#
+# Palette: 1 red, 2 dark red, 3 white, 4 grey, 5 black, 6 highlight.
+_BALL_PAL = [
+    "e03a2f",  # 1 red
+    "8f1f18",  # 2 red shadow
+    "f2f2f2",  # 3 white
+    "b9bec4",  # 4 white shadow
+    "141414",  # 5 outline / seam
+    "ff8f86",  # 6 red highlight
+]
+# Shaded rather than two flat bands: the sprites it sits beside all carry interior
+# shading, and a flat silhouette reads as a placeholder next to them. Light comes
+# from the upper left, matching the sprite art.
+_BALL_ART = [
+    "0000055555550000",
+    "0005566111112500",
+    "0056611111112250",
+    "0561111111111225",
+    "5611111111111225",
+    "5111111111111122",
+    "5111111111111222",
+    "5555555555555555",
+    "5333333333333444",
+    "5333355553334444",
+    "5333533335334444",
+    "0533533335344440",
+    "0053355553444400",
+    "0005333334444000",
+    "0000544444400000",
+    "0000000000000000",
+]
+
+
+def ball_blob(shake=0, open_amount=0):
+    """The ball as a sprite blob.
+
+    `shake` nudges the whole ball horizontally by that many pixels, for the
+    wobble before it opens. `open_amount` (0-3) splits it along the seam and
+    slides the halves apart, which is what reads as "opening".
+    """
+    rows = [list(r) for r in _BALL_ART]
+    w = len(rows[0])
+
+    if open_amount:
+        top = rows[:8]
+        bottom = rows[8:]
+        blank = ["0"] * w
+        # Push the halves apart, keeping total height fixed so the frame does not
+        # jump; the gap is where the Pokemon will emerge from.
+        top = [blank] * 0 + top[open_amount:] + [blank] * open_amount
+        bottom = [blank] * open_amount + bottom[: len(bottom) - open_amount]
+        rows = top + bottom
+
+    if shake:
+        out = []
+        for r in rows:
+            if shake > 0:
+                out.append(["0"] * shake + r[:-shake])
+            else:
+                out.append(r[-shake:] + ["0"] * (-shake))
+        rows = out
+
+    return {
+        "id": "ball",
+        "w": w,
+        "h": len(rows),
+        "pal": list(_BALL_PAL),
+        "px": "".join("".join(r) for r in rows),
+    }
+
+
+def scale_up(blob, factor):
+    """Nearest-neighbour upscale, so a small hand-drawn blob matches sprite scale.
+
+    The ball is authored on a 16x16 grid for legibility, but a sprite is 32x32 at
+    grid scale. Without this the ball renders visibly tiny beside the Pokemon it
+    is supposed to contain.
+    """
+    if factor <= 1:
+        return blob
+    w, h = blob["w"], blob["h"]
+    rows = [blob["px"][y * w : (y + 1) * w] for y in range(h)]
+    out = []
+    for r in rows:
+        wide = "".join(c * factor for c in r)
+        out.extend([wide] * factor)
+    return {
+        "id": blob.get("id"),
+        "w": w * factor,
+        "h": h * factor,
+        "pal": list(blob["pal"]),
+        "px": "".join(out),
+    }
+
+
+def _pad_to(blob, width, height):
+    """Centre a blob on a larger transparent canvas, so frames share a size."""
+    w, h = blob["w"], blob["h"]
+    if w >= width and h >= height:
+        return blob
+    width, height = max(w, width), max(h, height)
+    ox = (width - w) // 2
+    oy = height - h  # sit on the floor, like the sprites do
+    rows = [blob["px"][y * w : (y + 1) * w] for y in range(h)]
+    out = ["0" * width] * oy
+    for r in rows:
+        out.append("0" * ox + r + "0" * (width - w - ox))
+    out += ["0" * width] * (height - h - oy)
+    return {
+        "id": blob.get("id"),
+        "w": width,
+        "h": height,
+        "pal": list(blob["pal"]),
+        "px": "".join(out),
+    }
+
+
+def frames_ball(pid):
+    """Pokeball throw -> wobble -> open -> Pokemon revealed.
+
+    The whole sequence is composed at one canvas size so nothing resizes
+    mid-animation: the ball is padded onto the sprite's footprint, and the sprite
+    fades up out of the opened ball's position.
+    """
+    sprite_blob = spritelib.downscale(load(pid), 2)
+    sw, sh = sprite_blob["w"], sprite_blob["h"]
+
+    # Match the ball to the sprite's scale, then pad it onto the sprite's exact
+    # footprint so the Pokemon emerges from where the ball actually was.
+    def ball(**kw):
+        return _pad_to(scale_up(ball_blob(**kw), 2), sw, sh)
+
+    frames = []
+
+    # 1. Ball sits closed, then wobbles: the classic "is it caught?" beat. Held
+    #    frames are duplicated deliberately -- GIF optimisers collapse identical
+    #    consecutive frames, so a beat has to be earned with distinct timing
+    #    rather than repetition.
+    frames += [ball(shake=0), ball(shake=0)]
+    for shake in (1, -1, 1, -1, 0):
+        frames.append(ball(shake=shake))
+
+    # 2. It splits open along the seam, one row at a time so the split is legible
+    #    rather than a single jump.
+    for amount in (1, 2, 3, 4):
+        frames.append(ball(open_amount=amount))
+
+    # 3. The Pokemon fades up out of the opened ball.
+    for f in (0.15, 0.35, 0.6, 0.85, 1.0):
+        frames.append(scale_palette(sprite_blob, f))
+
+    # 4. Hold on the finished article before the loop restarts.
+    frames += [sprite_blob] * 5
+
+    return [banner_text(b, pid) for b in frames], 110
+
+
 def shift_sprite(blob, rows):
     """Return `blob` with `rows` blank PIXEL rows added at the top.
 
@@ -217,7 +378,12 @@ def frames_sparkle(pid):
     return out, 110
 
 
-STYLES = {"reveal": frames_reveal, "bob": frames_bob, "sparkle": frames_sparkle}
+STYLES = {
+    "reveal": frames_reveal,
+    "ball": frames_ball,
+    "bob": frames_bob,
+    "sparkle": frames_sparkle,
+}
 
 
 def render_gif(texts, delay_ms, out_path, zoom=2):

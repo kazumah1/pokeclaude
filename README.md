@@ -37,9 +37,15 @@ two multiplied, a shiny legendary would sit past a human lifetime of use.
 rare — roughly one per session on `normal`. At the games' odds nobody would ever see one.
 
 Shinies are tracked separately from ordinary catches, so owning a normal Pikachu *and* a
-shiny one records both. The grid marks them with `✧`, renders them in their shiny colours,
-and `--id N` shows the count and when you first got one. `--id N --shiny` previews any
-species' shiny colours, caught or not.
+shiny one records both. The grid marks them with `✧` and renders them in their shiny
+colours; `--id N` shows the count and when you first got one.
+
+Shiny colours are **earned, never previewed** — the plugin will not show you a species'
+shiny palette until you have actually caught one, because spoiling it spends the reward
+before it is won.
+
+- `--shiny` — a showcase of just the shinies you own (combines with `--project`)
+- `--id N --normal` — the toggle back to ordinary colours, for a species you own both of
 
 ## Install
 
