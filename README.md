@@ -28,7 +28,7 @@ appearing as you work.
 
 Requires Python 3 (system `python3` is fine) and a truecolor terminal.
 
-Claude Code reports the footprint as **~26 tokens always-on** and classifies the hook as
+Claude Code reports the footprint as **~49 tokens always-on** and classifies the hook as
 `harness-only — no model context cost`; check it yourself with
 `claude plugin details pokeclaude`.
 
@@ -38,14 +38,19 @@ Claude Code reports the footprint as **~26 tokens always-on** and classifies the
 assistant `output_tokens` from the session transcript, and rolls against it. Long
 grinding turns genuinely improve your odds; idle ones do nothing.
 
-**Rate.** `TOKENS_PER_CATCH` is calibrated to roughly one catch per 45–60 minutes of
-active work — measured against a median of ~1,100 output tokens/min across 157 real
-sessions, giving ~53 min/catch. Raise it in
+**Rate.** `TOKENS_PER_CATCH` is calibrated by replaying real turns through the actual
+probability function: across 157 sessions and 30,000+ minutes of active work, it yields one
+catch per **~53 minutes of active work**. Raise it in
 [`encounter.py`](plugin/lib/pokeclaude/encounter.py) for rarer catches, lower it for more.
 
-One subtlety worth knowing if you retune it: Claude Code writes one transcript record per
-content block and repeats the message's *final* `output_tokens` on every one, so naive
-per-record summing over-counts by 2–3x. Always deduplicate by `message.id` when measuring.
+Two traps if you retune it, both of which produced wrong constants here first:
+
+1. Claude Code writes one transcript record per content block and repeats the message's
+   *final* `output_tokens` on every one — naive per-record summing over-counts by 2–3x.
+   Deduplicate by `message.id`.
+2. "Tokens per minute" depends entirely on the denominator: wall-clock gives ~1,070
+   tok/min, excluding idle gaps gives ~2,090. Prefer replaying turns over any
+   tokens-per-minute shortcut.
 
 **It costs you nothing.** The catch banner is delivered via a hook's `systemMessage`,
 which Claude Code renders to the UI *without* injecting it into the model's context.
@@ -133,8 +138,12 @@ missing sprite, unavailable lock, malformed input — all exit 0 and print nothi
 dropped catch is invisible. A crashing or hanging hook would ruin your session, so that
 never happens.
 
-Token accounting is single-spend: each assistant message's uuid is banked once, so
-resumed or compacted sessions can't re-gamble tokens that were already rolled.
+Token accounting is single-spend. Progress is a byte offset into the transcript, keyed on
+the transcript path rather than the session id — a resumed or forked session gets a new
+session id pointing at a transcript that already holds its history, and an id-keyed offset
+would re-gamble all of it. `/compact` rewrites a transcript in place to a size that can be
+unchanged or larger, so the offset is also fingerprinted against the last counted message
+id and reset when the stream turns out to be a different one.
 
 ## Assets
 

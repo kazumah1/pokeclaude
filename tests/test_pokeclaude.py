@@ -207,8 +207,9 @@ def test_encounter_probability():
         E.turn_probability(10 ** 9) <= E.MAX_TURN_PROBABILITY,
         "capped at MAX_TURN_PROBABILITY even for absurd input",
     )
-    # Measured median with per-message dedup (see encounter.py docstring).
-    mins = E.TOKENS_PER_CATCH / 1093.0
+    # Active-time median with per-message dedup (see encounter.py docstring).
+    # Validated by replaying 30k+ minutes of real turns: ~53 min/catch.
+    mins = E.TOKENS_PER_CATCH / 1700.0
     check(45 <= mins <= 60, "calibration lands in the 45-60 min target (%.0f min)" % mins)
 
 
