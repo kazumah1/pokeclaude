@@ -1,10 +1,19 @@
 """Catch-rate model and species selection.
 
-Rate is calibrated against measured throughput rather than guessed. Across 158
-real sessions the median assistant output rate was ~3,300 tokens/min, so a
-target of roughly one catch per 45-60 minutes of active work means one catch per
-~150k-200k output tokens. TOKENS_PER_CATCH encodes that directly, which keeps
-the knob interpretable: raise it for rarer catches, lower it for more.
+Rate is calibrated against measured throughput rather than guessed. Measured
+across 157 real sessions, deduplicating transcript records by message id (see
+the note below -- this matters a lot), the median assistant output rate is
+~1,100 tokens/min. A target of roughly one catch per 45-60 minutes of active
+work therefore means one catch per ~50k-65k output tokens. TOKENS_PER_CATCH
+encodes that directly, so the knob stays interpretable: raise it for rarer
+catches, lower it for more.
+
+An earlier calibration used ~3,300 tok/min, which was 3x too high because the
+same message was counted once per content block. Both the measurement and the
+hook's reader had to be fixed; with per-record summing AND the inflated
+baseline, the two errors partly cancelled, which is exactly why the bug survived
+a first round of testing. If this constant is ever retuned, measure with
+deduplication.
 
 Odds are derived per-turn from real `output_tokens` in the transcript, so a long
 grinding turn genuinely improves your chances and an idle one does not.
@@ -20,7 +29,8 @@ import os
 import random
 
 # One catch per this many assistant output tokens (see module docstring).
-TOKENS_PER_CATCH = 175_000
+# 58k / ~1,100 tok/min ~= 53 min per catch, inside the 45-60 min target.
+TOKENS_PER_CATCH = 58_000
 
 # A duplicate species is this much as likely as an unseen one.
 DUPLICATE_WEIGHT = 0.25

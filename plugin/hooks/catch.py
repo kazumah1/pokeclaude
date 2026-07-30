@@ -29,6 +29,37 @@ STATE_KEY = "offset"
 CARRY_KEY = "last_msg"  # last message id counted, for blocks split across turns
 
 
+def _same_stream(path, offset, carry):
+    """Is `carry` still the last counted message id at byte `offset`?
+
+    A rewritten-in-place transcript (e.g. /compact) can be the same size or
+    larger, so a size check alone cannot detect it. Reading the last complete
+    line before `offset` and comparing its message id is a cheap fingerprint: it
+    seeks straight to the tail of the consumed region rather than rescanning.
+    """
+    if not carry:
+        return True  # nothing to compare against; treat as continuous
+    try:
+        with open(path, "rb") as f:
+            window = min(offset, 64 * 1024)
+            f.seek(offset - window)
+            chunk = f.read(window)
+    except (IOError, OSError):
+        return True  # unreadable: do not destroy a valid offset on a transient error
+    for raw in reversed(chunk.split(b"\n")):
+        if b'"usage"' not in raw:
+            continue
+        try:
+            d = json.loads(raw.decode("utf-8", "replace"))
+        except ValueError:
+            continue
+        if d.get("type") != "assistant":
+            continue
+        msg = d.get("message") or {}
+        return (msg.get("id") or d.get("uuid")) == carry
+    return True  # no assistant record in the window; nothing contradicts carry
+
+
 def read_turn_tokens(transcript_path, offset, carry=None):
     """Sum assistant output_tokens written since byte `offset`.
 
@@ -49,6 +80,13 @@ def read_turn_tokens(transcript_path, offset, carry=None):
 
     if size < offset:  # rotated/truncated: the old position is meaningless
         offset = 0
+    elif offset and not _same_stream(transcript_path, offset, carry):
+        # /compact rewrites a transcript in place, so a byte offset can still be
+        # inside a file whose content is entirely different. Only a shrink is
+        # detectable by size, so confirm the carried message id is still at the
+        # recorded position; if not, the stream was replaced and we restart.
+        offset = 0
+        carry = None
     if size == offset:  # nothing appended since the last roll
         return 0, offset, carry
 
@@ -62,19 +100,22 @@ def read_turn_tokens(transcript_path, offset, carry=None):
     seen = {}
     last_id = None
     try:
-        with open(transcript_path, errors="replace") as f:
+        # Opened in binary so the offset is counted in real bytes. Text mode
+        # would use the locale codec, and on any non-UTF-8 locale the decoded
+        # length would not match the file's byte length, desyncing the offset.
+        with open(transcript_path, "rb") as f:
             if offset:
                 f.seek(offset)
-            for line in f:
-                if not line.endswith("\n"):
+            for raw in f:
+                if not raw.endswith(b"\n"):
                     # A partial trailing line is still being written; leave the
                     # offset before it so it is counted once it is complete.
                     break
-                offset += len(line.encode("utf-8", "replace"))
-                if '"usage"' not in line:
+                offset += len(raw)
+                if b'"usage"' not in raw:
                     continue
                 try:
-                    d = json.loads(line)
+                    d = json.loads(raw.decode("utf-8", "replace"))
                 except ValueError:
                     continue
                 if d.get("type") != "assistant":
@@ -87,7 +128,10 @@ def read_turn_tokens(transcript_path, offset, carry=None):
                 seen[key] = tokens  # replicated value: last write wins
                 last_id = key
     except (IOError, OSError):
-        return 0, offset, carry
+        # Keep whatever was already read rather than discarding it: returning
+        # tokens=0 with an advanced offset would let the caller commit past
+        # lines that were never gambled, silently losing them.
+        pass
 
     # A message whose blocks straddle a turn boundary appears in this window and
     # the previous one. It was already paid for, so drop it.
@@ -123,7 +167,13 @@ def main():
     if not transcript:
         return 0
 
-    skey = str(session_id)
+    # Key state on the transcript path, not the session id. A resumed or forked
+    # session gets a NEW session_id pointing at a transcript that already holds
+    # the previous session's records, so an id-keyed offset would start at 0 and
+    # re-gamble the entire history. Sessions with no id would also all collide
+    # on the literal key "None" and reset each other. The transcript path is
+    # exactly the identity of the token stream being counted.
+    skey = str(transcript)
     sess = store.load_state().get(skey) or {}
     offset = sess.get(STATE_KEY) or 0
     carry = sess.get(CARRY_KEY)

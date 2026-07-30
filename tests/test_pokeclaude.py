@@ -207,7 +207,8 @@ def test_encounter_probability():
         E.turn_probability(10 ** 9) <= E.MAX_TURN_PROBABILITY,
         "capped at MAX_TURN_PROBABILITY even for absurd input",
     )
-    mins = E.TOKENS_PER_CATCH / 3310.0
+    # Measured median with per-message dedup (see encounter.py docstring).
+    mins = E.TOKENS_PER_CATCH / 1093.0
     check(45 <= mins <= 60, "calibration lands in the 45-60 min target (%.0f min)" % mins)
 
 
@@ -434,6 +435,79 @@ def test_hook_block_replication():
         f.write('{"type":"assistant","uuid":"x1","message":{"usage":{"output_tokens":11}}}\n')
     tok6, _, _ = m.read_turn_tokens(t4, 0)
     check(tok6 == 11, "record without message.id falls back to uuid (got %d)" % tok6)
+
+
+def test_hook_stream_identity():
+    """Guards against offsets surviving into a different token stream."""
+    print("\n[hook] stream identity and offset keying")
+    home, _ = fresh_home()
+    m = load_hook()
+
+    # /compact rewrites in place; the file can end up the SAME size or larger, so
+    # a size check alone cannot notice. The carried message id must catch it.
+    p = os.path.join(home, "c.jsonl")
+    write_transcript(p, [assistant("a%d" % i, 100, msg_id="old%d" % i) for i in range(6)])
+    tok1, off1, last1 = m.read_turn_tokens(p, 0)
+    check(tok1 == 600, "initial read counts 600")
+
+    # Same byte size, entirely different content.
+    write_transcript(p, [assistant("z%d" % i, 100, msg_id="new%d" % i) for i in range(6)])
+    same = os.path.getsize(p) == off1
+    tok2, off2, _ = m.read_turn_tokens(p, off1, last1)
+    check(same, "rewritten transcript is byte-identical in size (worst case)")
+    check(tok2 == 600, "in-place rewrite is detected and re-read (got %d)" % tok2)
+
+    # A genuinely continuous stream must NOT be reset by the fingerprint check.
+    p2 = os.path.join(home, "d.jsonl")
+    write_transcript(p2, [assistant("k1", 50, msg_id="m1")])
+    t1, o1, l1 = m.read_turn_tokens(p2, 0)
+    with open(p2, "a") as f:
+        f.write(json.dumps(assistant("k2", 70, msg_id="m2")) + "\n")
+    t2, o2, l2 = m.read_turn_tokens(p2, o1, l1)
+    check(t2 == 70, "continuous append is not spuriously reset (got %d)" % t2)
+
+    # Multi-byte content must not desync the byte offset (binary read).
+    p3 = os.path.join(home, "u2.jsonl")
+    with open(p3, "w") as f:
+        f.write(
+            json.dumps(
+                {"type": "assistant", "uuid": "e1",
+                 "message": {"id": "me", "note": "✨完全 café 🎮",
+                             "usage": {"output_tokens": 30}}},
+                ensure_ascii=False,
+            ) + "\n"
+        )
+    t3, o3, _ = m.read_turn_tokens(p3, 0)
+    check(t3 == 30 and o3 == os.path.getsize(p3), "multibyte offset matches byte size")
+
+
+def test_hook_session_keying():
+    """A resumed/forked session must not re-gamble its inherited history."""
+    print("\n[hook] offset keyed on transcript, not session id")
+    home, _ = fresh_home()
+    from pokeclaude import store
+
+    t = write_transcript(
+        os.path.join(home, "t.jsonl"), [assistant("u%d" % i, 5000) for i in range(4)]
+    )
+
+    rc, out1, err = run_hook({"session_id": "orig", "transcript_path": t}, home)
+    check(rc == 0 and not err, "first run clean")
+    st = store.load_state()
+    check(t in st, "state is keyed on the transcript path")
+    off = st[t].get("offset")
+    check(off == os.path.getsize(t), "offset consumed the whole transcript")
+
+    # Same transcript, brand new session id (what resume/fork looks like).
+    rc, out2, err = run_hook({"session_id": "resumed-new-id", "transcript_path": t}, home)
+    check(rc == 0 and out2 == "", "resumed session with a NEW id re-gambles nothing")
+    check(store.load_state()[t].get("offset") == off, "offset unchanged by the resume")
+
+    # Missing session_id must not collide with other sessions.
+    t2 = write_transcript(os.path.join(home, "t2.jsonl"), [assistant("v1", 100)])
+    run_hook({"transcript_path": t2}, home)
+    st2 = store.load_state()
+    check(t2 in st2 and t in st2, "a session with no id gets its own entry, no collision")
 
 
 def test_state_locking():
@@ -760,6 +834,8 @@ def main():
         test_hook_noninterference,
         test_hook_no_double_spend,
         test_hook_block_replication,
+        test_hook_stream_identity,
+        test_hook_session_keying,
         test_state_locking,
         test_hook_end_to_end,
         test_pokedex_cli,

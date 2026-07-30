@@ -39,10 +39,13 @@ assistant `output_tokens` from the session transcript, and rolls against it. Lon
 grinding turns genuinely improve your odds; idle ones do nothing.
 
 **Rate.** `TOKENS_PER_CATCH` is calibrated to roughly one catch per 45–60 minutes of
-active work (measured against a median of ~3,300 output tokens/min across 158 real
-sessions, giving ~53 min/catch). Raise it in
-[`encounter.py`](plugin/lib/pokeclaude/encounter.py) for rarer catches, lower it for
-more.
+active work — measured against a median of ~1,100 output tokens/min across 157 real
+sessions, giving ~53 min/catch. Raise it in
+[`encounter.py`](plugin/lib/pokeclaude/encounter.py) for rarer catches, lower it for more.
+
+One subtlety worth knowing if you retune it: Claude Code writes one transcript record per
+content block and repeats the message's *final* `output_tokens` on every one, so naive
+per-record summing over-counts by 2–3x. Always deduplicate by `message.id` when measuring.
 
 **It costs you nothing.** The catch banner is delivered via a hook's `systemMessage`,
 which Claude Code renders to the UI *without* injecting it into the model's context.
