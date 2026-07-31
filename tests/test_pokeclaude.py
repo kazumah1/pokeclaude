@@ -1635,6 +1635,36 @@ def test_mono_render():
     check(art_style(e) == "colour", "claude gets colour art")
     check(art_style(e, ["--mono"]) == "mono", "--mono forces silhouettes anywhere")
 
+    # The `mono` CONFIG key is what reaches a GUI launched from the dock, which
+    # sees no environment. It must drive both the pokedex and use_mono, and
+    # 'auto' (null) must fall through rather than force colour off.
+    from pokeclaude import hosts
+
+    store.save_config({"mono": True})
+    check(art_style(e) == "mono", "mono=on in config selects silhouettes")
+    check(hosts.use_mono("claude", store.load_config()), "use_mono honours mono=on")
+
+    store.save_config({"mono": False})
+    check(art_style(e) == "colour", "mono=off in config selects colour")
+
+    store.save_config({"mono": None})
+    check(
+        not hosts.use_mono("claude", store.load_config()),
+        "mono=auto falls through to the per-agent default (colour here)",
+    )
+    # An env var still overrides the config.
+    e2 = dict(e)
+    e2["POKECLAUDE_MONO"] = "1"
+    check(art_style(e2) == "mono", "POKECLAUDE_MONO overrides the config")
+
+    # Setting mono must not wipe the catch rate.
+    store.save_config({"tokens_per_catch": 7777, "preset": None})
+    store.save_config({"mono": True})
+    check(
+        store.load_config().get("tokens_per_catch") == 7777,
+        "setting mono preserves the catch rate",
+    )
+
 
 def test_skills():
     """The SKILL.md bundles that give non-Claude hosts slash commands."""

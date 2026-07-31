@@ -8,8 +8,8 @@ chance at a wild encounter, rendered as truecolor pixel art directly in your ter
 All 1025 Pokemon from Gen 1–9, with shiny variants. Your Pokedex is shared across **every**
 session — parallel agents, every project, one collection.
 
-**Works on Claude Code, Codex CLI and Kiro CLI.** See [Agent support](#agent-support) for
-the full list, including where it partially works and what is untested.
+**Works on Claude Code, Codex CLI and Kiro CLI**, and runs (with colour stripped) in the
+Codex, Cursor and Kiro GUIs. See [Agent support](#agent-support) for the full list.
 
 ---
 
@@ -17,27 +17,41 @@ the full list, including where it partially works and what is untested.
 
 Requires Python 3 (system `python3` is fine, no packages) and a truecolor terminal.
 
+Any agent with a plugin marketplace and a hooks system can run PokeClaude. Use its own
+marketplace command where it has one; otherwise the bundled installer writes the hook
+config directly. Replace `<you>/pokeclaude` with your repo, or a local path to a clone.
+
+### Claude Code
+
 ```bash
 claude plugin marketplace add <you>/pokeclaude
 claude plugin install pokeclaude@pokeclaude
 ```
 
-Then restart Claude Code. Use a local path instead of `<you>/pokeclaude` to install from a
-clone. This also adds the slash commands `/pokeclaude:pokedex`, `/pokeclaude:pokeclaude`
-and `/pokeclaude:release`.
+Adds `/pokeclaude:pokedex`, `/pokeclaude:pokeclaude`, `/pokeclaude:release`.
 
-### Viewing your Pokedex
+### Codex CLI
 
-Every agent gets slash commands, though the names differ:
+```bash
+codex plugin marketplace add <you>/pokeclaude
+codex plugin add pokeclaude@pokeclaude
+```
 
-| Agent | Command |
-|---|---|
-| Claude Code | `/pokeclaude:pokedex` |
-| Codex CLI | `/pokedex` |
-| Kiro | `/pokedex` |
-| anywhere | `python3 plugin/scripts/pokedex.py` |
+Adds `/pokedex`, `/pokeclaude`, `/pokeclaude-release`.
 
-Type `/` in the agent's chat to see them listed.
+### Kiro, Cursor, Copilot, and others without a marketplace
+
+```bash
+git clone https://github.com/<you>/pokeclaude.git
+cd pokeclaude
+python3 install.py --host kiro       # or cursor, or copilot
+python3 install.py                   # or detect and install every agent found
+```
+
+Kiro also gets the `/pokedex`, `/pokeclaude`, `/pokeclaude-release` slash commands.
+
+Restart the agent after installing so it loads the hooks. Then type `/` in its chat to see
+the commands, or run `python3 plugin/scripts/pokedex.py` from anywhere.
 
 ---
 
@@ -49,19 +63,20 @@ Type `/` in the agent's chat to see them listed.
 - Codex CLI
 - Kiro (CLI)
 
-**Partially working** — output is collapsed and colour is stripped; expand the tool panel
-and use `POKECLAUDE_MONO=1` for silhouettes
+**Partially working** — these GUIs collapse tool output and strip colour. Run
+`python3 plugin/scripts/config.py --mono on` and art switches to shading silhouettes that
+survive without colour.
 
 - Codex (app / agent window)
+- Cursor (agent panel)
 - Kiro (IDE)
 
 **Not tested**
 
-- Cursor
 - GitHub Copilot CLI
 
-An adapter exists for the untested ones, but neither has been run against the real agent.
-`python3 tools/check_host.py <agent>` reports whether the hook fires and on which channel.
+An adapter exists but has not been run against the real agent.
+`python3 tools/check_host.py copilot` reports whether the hook fires and on which channel.
 
 ### Installing on another agent
 
@@ -167,6 +182,16 @@ Under Claude Code: `/pokeclaude:pokeclaude light`.
 
 Only turn tokens count — input + output, never cache. Settings live in
 `~/.claude/pokeclaude/config.json` and apply to every session and every agent.
+
+## Art mode
+
+For GUIs that strip colour (the Codex app, Cursor's panel, the Kiro IDE):
+
+```bash
+python3 plugin/scripts/config.py --mono on     # shading silhouettes, no colour needed
+python3 plugin/scripts/config.py --mono off    # force colour
+python3 plugin/scripts/config.py --mono auto    # decide per agent (default)
+```
 
 ---
 

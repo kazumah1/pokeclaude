@@ -168,9 +168,10 @@ def main():
         roster_size=len(roster),
         roster_ids=roster,
         shiny=is_shiny,
-        # Hosts that strip ANSI need density-based art, or the sprite arrives as a
-        # flat field of identical blocks.
-        mono=not hosts.has_colour(host),
+        # Shading silhouettes for surfaces that strip colour or collapse output
+        # (Codex app, Kiro IDE, Cursor). Set once via `mono` in the config, since
+        # a GUI launched from the dock sees no env var.
+        mono=hosts.use_mono(host, store.load_config()),
     )
 
     # The host decides the channel. Where none can display, the catch is still
