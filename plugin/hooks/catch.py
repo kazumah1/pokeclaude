@@ -25,6 +25,34 @@ META = os.path.join(ASSETS, "pokemon.json")
 STATE_KEY = "last_turn"
 
 
+def trace(_event, **fields):
+    """Append one line to a trace log, when POKECLAUDE_TRACE names a file.
+
+    Off unless asked for. Its purpose is to tell apart the two ways a catch can
+    fail to appear on an unverified agent: the hook never ran at all, or it ran and
+    simply did not roll a hit. Without this, both look identical from the outside,
+    which is exactly the ambiguity that has kept Codex and Cursor unverified.
+    """
+    path = os.environ.get("POKECLAUDE_TRACE")
+    if not path:
+        return
+    try:
+        import time
+
+        # The parameter is underscore-prefixed so a caller may pass its own
+        # `event` field (an agent's hook_event_name) without colliding with it.
+        # Caller fields are applied FIRST so they can never overwrite the event
+        # name -- an agent's own `event` value would otherwise replace it and every
+        # record would look like the same step.
+        record = dict(fields)
+        record["t"] = int(time.time())
+        record["event"] = _event
+        with open(os.path.expanduser(path), "a") as f:
+            f.write(json.dumps(record, default=str) + "\n")
+    except Exception:
+        pass  # tracing must never be the thing that breaks a turn
+
+
 def load_roster():
     try:
         with open(META) as f:
@@ -36,9 +64,11 @@ def load_roster():
 
 
 def main():
+    raw = sys.stdin.read()
     try:
-        payload = json.loads(sys.stdin.read() or "{}")
+        payload = json.loads(raw or "{}")
     except ValueError:
+        trace("invoked", ok=False, why="payload was not JSON", bytes=len(raw))
         return 0
 
     if os.environ.get("POKECLAUDE_DISABLE"):
@@ -48,6 +78,8 @@ def main():
 
     host = hosts.detect()
     session_id = payload.get("session_id") or payload.get("conversation_id")
+    trace("invoked", host=host, keys=sorted(payload.keys()),
+          agent_event=payload.get("hook_event_name"))
 
     # Key state on the transcript path where a host provides one, not the session
     # id: a resumed or forked session gets a NEW id pointing at a transcript that
@@ -59,9 +91,13 @@ def main():
     sess = store.load_state().get(skey) or {}
 
     tokens, turn = hosts.read_turn_tokens(payload, host)
+    trace("tokens", tokens=tokens, turn=turn,
+          source="transcript" if payload.get("transcript_path") else "payload")
     if turn is None or tokens <= 0:
+        trace("skipped", why="no countable turn")
         return 0
     if sess.get(STATE_KEY) == turn:
+        trace("skipped", why="turn already rolled")
         # Already rolled for this turn. Stop can fire more than once per turn
         # (e.g. after a subagent finishes), and rolling again would hand out
         # several chances for one prompt.
@@ -76,7 +112,8 @@ def main():
     # Rate comes from the user's chosen preset (light/normal/strict), falling
     # back to the default if the config is missing or malformed.
     tpc = encounter.configured_tokens_per_catch(store.load_config())
-    hit, _p = encounter.roll(tokens, tokens_per_catch=tpc)
+    hit, p = encounter.roll(tokens, tokens_per_catch=tpc)
+    trace("rolled", tokens=tokens, probability=round(p, 4), hit=hit)
     if not hit:
         return 0
 
@@ -139,6 +176,8 @@ def main():
     # The host decides the channel. Where none can display, the catch is still
     # recorded and marked unseen so the Pokedex can announce it later.
     channel = hosts.emit(msg, host)
+    trace("emitted", species=pid, shiny=is_shiny, channel=channel,
+          lines=msg.count("\n") + 1)
     if channel != "systemMessage":
         store.mark_unseen(pid)
     return 0

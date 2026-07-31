@@ -1365,6 +1365,74 @@ def test_shiny():
     )
 
 
+def test_trace():
+    """The hook's trace log, used to verify an agent actually invokes it.
+
+    Without this, "no catch appeared" is ambiguous between the hook never running
+    and the hook running but missing its roll -- which is what has kept several
+    agents unverified.
+    """
+    print("\n[trace] hook instrumentation")
+    home, _ = fresh_home()
+    tracefile = os.path.join(home, "trace.jsonl")
+
+    # Off by default: no variable, no file, no cost.
+    recs = [prompt("p1")] + blocks("m1", 50000, 1)
+    t = write_transcript(os.path.join(home, "t.jsonl"), recs)
+    run_hook({"session_id": "s0", "transcript_path": t, "hook_event_name": "Stop"}, home)
+    check(not os.path.exists(tracefile), "tracing is off unless asked for")
+
+    # On, and it records every stage.
+    events = []
+    for i in range(20):
+        run_hook(
+            {"session_id": "s%d" % i, "transcript_path": t, "hook_event_name": "Stop"},
+            home,
+            env={"POKECLAUDE_TRACE": tracefile, "POKECLAUDE_HOST": "claude"},
+        )
+        os.path.exists(os.path.join(home, "state.json")) and os.remove(
+            os.path.join(home, "state.json")
+        )
+    if os.path.exists(tracefile):
+        with open(tracefile) as f:
+            for line in f:
+                try:
+                    events.append(json.loads(line))
+                except ValueError:
+                    pass
+
+    kinds = {e.get("event") for e in events}
+    check(bool(events), "tracing writes records when enabled (%d)" % len(events))
+    check("invoked" in kinds, "records that the hook was invoked")
+    check("tokens" in kinds, "records the turn's token count")
+    check("rolled" in kinds, "records the roll and its probability")
+
+    # The event name must survive a payload that carries its own `event` field --
+    # an agent's hook_event_name would otherwise overwrite it and every record
+    # would look like the same stage.
+    invoked = [e for e in events if e.get("event") == "invoked"]
+    check(bool(invoked), "the event name is not shadowed by payload fields")
+    if invoked:
+        check(
+            "keys" in invoked[0] and isinstance(invoked[0]["keys"], list),
+            "the payload's keys are recorded, for adapting a new agent",
+        )
+
+    rolled = [e for e in events if e.get("event") == "rolled"]
+    check(
+        all("probability" in e and "hit" in e for e in rolled),
+        "each roll records its probability and outcome",
+    )
+
+    # Tracing must never break a turn: an unwritable path is ignored.
+    rc, _out, _err = run_hook(
+        {"session_id": "sx", "transcript_path": t, "hook_event_name": "Stop"},
+        home,
+        env={"POKECLAUDE_TRACE": "/nonexistent-dir/trace.jsonl"},
+    )
+    check(rc == 0, "an unwritable trace path does not break the hook")
+
+
 def test_hosts():
     """Host adapters: detection, display channel, and token sources."""
     print("\n[hosts] multi-host adapters")
@@ -1821,6 +1889,7 @@ def main():
         test_dupes_and_project_cli,
         test_banner_fits,
         test_shiny,
+        test_trace,
         test_hosts,
         test_mono_render,
         test_skills,
