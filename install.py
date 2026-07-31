@@ -107,12 +107,17 @@ def generic_config(spec):
 
 
 def kiro_config(spec):
-    """Kiro uses a flat list of named hooks rather than an event map."""
+    """Kiro uses a flat list of named hooks rather than an event map.
+
+    No marker key here: Kiro documents an exact field set (name, trigger, action,
+    description, matcher, timeout, enabled) and an unknown top-level key risks
+    being rejected by its schema. The hook is identified by its `name` instead,
+    which is ours by construction.
+    """
     return {
         "version": "v1",
         "hooks": [
             {
-                MARKER_KEY: True,
                 "name": "pokeclaude-catch",
                 "description": "Roll for a Pokemon catch when the agent finishes a turn",
                 "trigger": spec["event"],
@@ -133,8 +138,19 @@ BUILDERS = {
 }
 
 
-def target_path(host):
+def target_path(host, workspace=None):
+    """Where this host's hook config lives.
+
+    `workspace` writes into a project directory instead of the user's home. Kiro
+    documents hooks only at workspace level (`.kiro/hooks/`), so a user-level file
+    may simply be ignored there; the other hosts document a user-level path.
+    """
     spec = hostlib.HOSTS[host]
+    if workspace:
+        # The workspace form mirrors the user-level layout under a dot-directory
+        # in the project: ~/.kiro/hooks/x.json -> <project>/.kiro/hooks/x.json.
+        root = os.path.join(os.path.abspath(workspace), "." + host)
+        return os.path.join(root, spec["hooks_file"])
     return os.path.join(_expand(spec["config_dir"]), spec["hooks_file"])
 
 
@@ -145,8 +161,13 @@ def is_ours(entry):
     string: the command contains the repo path, which the user is free to rename
     or move, and a path-based check would then fail to clean up.
     """
-    if isinstance(entry, dict) and entry.get(MARKER_KEY):
-        return True
+    if isinstance(entry, dict):
+        if entry.get(MARKER_KEY):
+            return True
+        # Kiro entries carry no marker key (its schema is a fixed field set), so
+        # they are identified by the name we always write.
+        if entry.get("name") == "pokeclaude-catch":
+            return True
     return '"%s": true' % MARKER_KEY in json.dumps(entry).replace(" ", "")
 
 
@@ -218,9 +239,9 @@ def write_json(path, data, dry_run):
     return True
 
 
-def install_one(host, dry_run=False, uninstall=False):
+def install_one(host, dry_run=False, uninstall=False, workspace=None):
     spec = hostlib.HOSTS[host]
-    path = target_path(host)
+    path = target_path(host, workspace)
     existing = read_json(path)
     if existing == "INVALID":
         return False
@@ -249,6 +270,11 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--uninstall", action="store_true")
     ap.add_argument("--list", action="store_true", help="show detected hosts")
+    ap.add_argument(
+        "--workspace", metavar="DIR",
+        help="install into a project directory (e.g. <DIR>/.kiro/hooks/) instead "
+             "of your home directory. Kiro documents hooks only at workspace level.",
+    )
     ap.add_argument("--all", action="store_true", help="wire every known host")
     args = ap.parse_args()
 
@@ -291,7 +317,7 @@ def main():
           % (action, len(targets), " (dry run)" if args.dry_run else ""))
     ok = True
     for host in targets:
-        ok = install_one(host, args.dry_run, args.uninstall) and ok
+        ok = install_one(host, args.dry_run, args.uninstall, args.workspace) and ok
 
     print()
     if not args.uninstall and not args.dry_run:

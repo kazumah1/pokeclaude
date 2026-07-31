@@ -56,10 +56,13 @@ Writes `~/.cursor/hooks.json`.
 ```bash
 git clone https://github.com/<you>/pokeclaude.git
 cd pokeclaude
-python3 install.py --host kiro
+python3 install.py --host kiro                              # user level
+python3 install.py --host kiro --workspace /path/to/project  # workspace level
 ```
 
-Writes `~/.kiro/hooks/pokeclaude.json`.
+Kiro documents hooks at workspace level (`.kiro/hooks/`); a user-level path is
+undocumented, so install both if a catch never appears. Confirm the hook registered in
+Kiro's **Agent Hooks** panel.
 
 ### GitHub Copilot CLI
 
@@ -291,8 +294,12 @@ python3 tools/animate_demo.py --style ball --id 143 --out docs/anim-catch.gif
 ## Tests
 
 ```bash
-python3 tests/test_pokeclaude.py
+python3 tests/test_pokeclaude.py     # the suite
+python3 tools/check_host.py --all    # verify the hook under every host
 ```
+
+`check_host.py` forces a catch with a synthetic turn and reports which channel the banner
+came out on, so a host wiring problem is distinguishable from a plugin problem.
 
 324 checks, no pytest needed. They isolate via `POKECLAUDE_HOME` and assert they never
 touch a real Pokedex.
