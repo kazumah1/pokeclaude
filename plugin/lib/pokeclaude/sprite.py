@@ -161,10 +161,19 @@ def render(blob, indent=0, trim=True):
     return out
 
 
-# Shading ramp for hosts that strip colour, darkest to lightest. Chosen so the
-# blocks read as a gradient at small sizes; ASCII punctuation would be lighter
-# still but reads as noise rather than a silhouette.
-MONO_RAMP = " ░▒▓█"
+# Glyphs for hosts that strip colour.
+#
+# A SOLID SILHOUETTE, not a shading ramp. The obvious choice is " ░▒▓█", and it is
+# wrong: ░ ▒ ▓ are dither patterns, so at one glyph per pixel they render as
+# static rather than as tones, and the sprite reads as visual noise -- worse than
+# the flat blocks the mono mode exists to fix. A clean outline at full resolution
+# is far more legible than fake shading, so shape is carried by the silhouette and
+# interior detail is deliberately dropped.
+MONO_RAMP = " ██"
+
+# Kept available for callers that want tonal steps despite the dithering, e.g. a
+# host known to use a font where the shade blocks are solid.
+MONO_RAMP_SHADED = " ░▒▓█"
 
 # Rec. 709 luma, matching grayscale().
 _LUMA = (0.2126, 0.7152, 0.0722)

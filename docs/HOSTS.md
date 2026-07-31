@@ -95,9 +95,12 @@ and `pokedex.py` announces any you did not see.
 
 **Kiro strips ANSI colour** from command output while keeping the glyphs, which
 turns a normal render into a flat field of identical white blocks. So Kiro
-automatically gets `--mono`: art drawn with shading glyphs (`░▒▓█`) whose density
-carries the shape, needing no colour at all. Each sprite's luminance range is
-stretched across the ramp, so low-contrast species still show internal detail.
+automatically gets `--mono`: a solid silhouette at full resolution.
+
+Shading ramps (`░▒▓█`) were tried first and are worse — those are dither patterns
+in most fonts, so at one glyph per pixel they render as static rather than tones. A
+clean outline reads far better than fake shading, so interior detail is dropped and
+the shape carries it.
 
 `--mono` works on any host, and `POKECLAUDE_MONO=0` opts back out on a stripping
 one.

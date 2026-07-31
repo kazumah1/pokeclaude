@@ -1479,15 +1479,25 @@ def test_mono_render():
     widths = {len(row) for row in mono}
     check(len(widths) == 1, "every mono row is the same width (%s)" % sorted(widths))
 
-    # Shape must survive: more than one distinct glyph, or it is a flat blob.
+    # A SOLID silhouette, with no dither characters. The shade blocks are dither
+    # patterns in most fonts, so at one glyph per pixel they render as static
+    # rather than tones -- which looked worse than the flat blocks mono exists to
+    # fix. Shape is carried by the outline instead.
     glyphs = set("".join(mono)) - {" "}
     check(
-        len(glyphs) >= 3,
-        "mono uses a range of densities, not one tone (%s)" % sorted(glyphs),
+        not (glyphs & set("\u2591\u2592\u2593")),
+        "mono avoids dither glyphs (%s)" % sorted(glyphs),
     )
     check(
         glyphs <= set(S.MONO_RAMP),
         "mono only uses the declared ramp (%s)" % sorted(glyphs),
+    )
+    # The silhouette must have interior AND edge, i.e. actual shape.
+    filled = sum(1 for ch in "".join(mono) if ch != " ")
+    blank = sum(1 for ch in "".join(mono) if ch == " ")
+    check(
+        filled > 0 and blank > 0,
+        "mono has both filled and empty area (%d/%d)" % (filled, blank),
     )
 
     # A dark sprite must not vanish: every opaque pixel gets a visible glyph.
@@ -1498,12 +1508,13 @@ def test_mono_render():
         "a dark species still renders a silhouette",
     )
 
-    # Per-sprite normalisation: a low-contrast species must still show detail.
+    # A low-contrast species is exactly where a shading ramp failed and a
+    # silhouette does not: it must still produce a recognisable outline.
     flat = S.downscale(json.load(open(os.path.join(SPRITES, "411.json"))), 3)
-    flat_glyphs = set("".join(S.render_mono(flat))) - {" "}
+    flat_rows = S.render_mono(flat)
     check(
-        len(flat_glyphs) >= 3,
-        "a low-contrast species still shows internal detail (%s)" % sorted(flat_glyphs),
+        any(ch != " " for ch in "".join(flat_rows)) and len(flat_rows) > 4,
+        "a low-contrast species renders a full silhouette (%d rows)" % len(flat_rows),
     )
 
     # Grid alignment, which a ragged mono row would break.
