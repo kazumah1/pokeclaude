@@ -1452,6 +1452,66 @@ def test_hosts():
     )
 
 
+def test_skills():
+    """The SKILL.md bundles that give non-Claude hosts slash commands."""
+    print("\n[skills] Agent Skills bundles")
+    skills_dir = os.path.join(REPO, "skills")
+    check(os.path.isdir(skills_dir), "skills/ exists")
+
+    names = sorted(
+        n for n in os.listdir(skills_dir)
+        if os.path.isdir(os.path.join(skills_dir, n))
+    )
+    check(bool(names), "at least one skill is defined (%s)" % ", ".join(names))
+
+    for name in names:
+        path = os.path.join(skills_dir, name, "SKILL.md")
+        check(os.path.isfile(path), "%s has a SKILL.md" % name)
+        with open(path) as f:
+            body = f.read()
+
+        # Frontmatter must open the file, or the host will not parse it.
+        check(body.startswith("---\n"), "%s opens with frontmatter" % name)
+        front = body.split("---", 2)[1] if body.count("---") >= 2 else ""
+        declared = ""
+        for line in front.split("\n"):
+            if line.startswith("name:"):
+                declared = line.split(":", 1)[1].strip()
+        # Kiro requires name == folder name, lowercase/numbers/hyphens.
+        check(declared == name, "%s frontmatter name matches its folder" % name)
+        check(
+            re.match(r"^[a-z0-9-]{1,64}$", declared or "") is not None,
+            "%s name is lowercase/hyphens only" % name,
+        )
+        desc = ""
+        for line in front.split("\n"):
+            if line.startswith("description:"):
+                desc = line.split(":", 1)[1].strip()
+        check(bool(desc), "%s has a description" % name)
+        check(len(desc) <= 1024, "%s description is within 1024 chars" % name)
+
+        # The command has to locate the repo without depending on a host-set
+        # plugin-root variable, since a chat skill gets none.
+        check(
+            "plugin/scripts/" in body,
+            "%s invokes a real script" % name,
+        )
+        check(
+            "POKECLAUDE_ROOT" in body,
+            "%s can be pointed at the repo explicitly" % name,
+        )
+
+    # Every script a skill references must exist.
+    for name in names:
+        with open(os.path.join(skills_dir, name, "SKILL.md")) as f:
+            body = f.read()
+        for rel in re.findall(r"plugin/scripts/([a-z_]+\.py)", body):
+            check(
+                os.path.isfile(os.path.join(REPO, "plugin", "scripts", rel)),
+                "%s references a real script (%s)" % (name, rel),
+            )
+
+
 def test_pokeball_geometry():
     """The generated Pokeball must survive half-block rendering.
 
@@ -1646,6 +1706,7 @@ def main():
         test_banner_fits,
         test_shiny,
         test_hosts,
+        test_skills,
         test_pokeball_geometry,
         test_readme_svgs,
     ):

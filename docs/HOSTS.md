@@ -92,3 +92,23 @@ goes to the agent on exit 2. PokeClaude exits 0 and writes the banner to stderr,
 so whether Kiro surfaces it is untested — check the Agent Hooks panel in the Kiro
 UI to confirm the hook is registered and firing. Catches are recorded either way,
 and `pokedex.py` announces any you did not see.
+
+### Slash commands in chat
+
+Kiro reads Agent Skills (`SKILL.md` bundles) and exposes them as slash commands
+when you type `/` in chat. `install.py --host kiro` copies the bundles from
+`skills/` into `~/.kiro/skills/`, giving you:
+
+| Command | Does |
+|---|---|
+| `/pokedex` | browse the collection (takes the same flags as the script) |
+| `/pokeclaude` | show or change the catch rate |
+| `/pokeclaude-release` | release a Pokemon, or all of them |
+
+The name in each `SKILL.md` frontmatter must match its folder name, lowercase with
+hyphens only — Kiro rejects mismatches.
+
+Skills locate the repo themselves by probing `$POKECLAUDE_ROOT`, the working
+directory, and a few common clone paths, because a skill invoked from a chat
+sidebar gets no plugin-root variable. Set `POKECLAUDE_ROOT` if your clone lives
+somewhere unusual.

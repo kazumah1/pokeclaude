@@ -60,6 +60,9 @@ python3 install.py --host kiro                              # user level
 python3 install.py --host kiro --workspace /path/to/project  # workspace level
 ```
 
+This also installs Agent Skills, so `/pokedex`, `/pokeclaude` and
+`/pokeclaude-release` appear as slash commands when you type `/` in Kiro chat.
+
 Kiro documents hooks at workspace level (`.kiro/hooks/`); a user-level path is
 undocumented, so install both if a catch never appears. Confirm the hook registered in
 Kiro's **Agent Hooks** panel.
@@ -118,7 +121,7 @@ Browse everything you have caught, in colour, with duplicate counts:
 python3 plugin/scripts/pokedex.py
 ```
 
-Under Claude Code, use `/pokeclaude:pokedex` instead.
+Or use the slash command: `/pokeclaude:pokedex` in Claude Code, `/pokedex` in Kiro.
 
 <img src="docs/pokedex-page.svg" alt="Pokedex grid showing caught Pokemon as colour pixel art" width="840">
 
