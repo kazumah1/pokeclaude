@@ -8,8 +8,8 @@ chance at a wild encounter, rendered as truecolor pixel art directly in your ter
 All 1025 Pokemon from Gen 1–9, with shiny variants. Your Pokedex is shared across **every**
 session — parallel agents, every project, one collection.
 
-**Verified on Claude Code, Codex CLI and Kiro.** Cursor and GitHub Copilot have adapters
-but are untested — see [Agent support](#agent-support) for exactly what has been observed.
+**Works on Claude Code, Codex CLI and Kiro CLI.** See [Agent support](#agent-support) for
+the full list, including where it partially works and what is untested.
 
 ---
 
@@ -43,22 +43,25 @@ Type `/` in the agent's chat to see them listed.
 
 ## Agent support
 
-The core is agent-agnostic: rolling, the Pokedex, sprite rendering and storage are shared.
-Each agent differs only in where a turn's token count lives and how a hook can show you
-something. Each row below says what has actually been observed, not what the docs promise.
+**Working**
 
-| Agent | Status |
-|---|---|
-| **Claude Code** (CLI, plugin) | **Verified.** Catches appear inline in full colour. |
-| **Codex CLI** | **Verified.** Live catches and `/pokedex` both render in full colour. |
-| **Kiro** (CLI) | **Verified.** `/pokedex` renders in colour; hooks install and register. |
-| **Kiro** (IDE) | **Works, with a caveat.** Output lands in a collapsed tool panel that strips colour; expand it and use `POKECLAUDE_MONO=1` for silhouettes. |
-| **Cursor** | **Untested.** An adapter exists, written from Cursor's hook docs. Never run against Cursor. |
-| **GitHub Copilot CLI** | **Untested.** Its hook events are undocumented, so the adapter is a best guess. |
+- Claude Code (CLI and plugin)
+- Codex CLI
+- Kiro (CLI)
 
-If you try one of the untested ones, `python3 tools/check_host.py <agent>` reports whether
-the hook fires and which channel the banner came out on — that distinguishes an agent
-integration problem from a PokeClaude bug. Bug reports welcome.
+**Partially working** — output is collapsed and colour is stripped; expand the tool panel
+and use `POKECLAUDE_MONO=1` for silhouettes
+
+- Codex (app / agent window)
+- Kiro (IDE)
+
+**Not tested**
+
+- Cursor
+- GitHub Copilot CLI
+
+An adapter exists for the untested ones, but neither has been run against the real agent.
+`python3 tools/check_host.py <agent>` reports whether the hook fires and on which channel.
 
 ### Installing on another agent
 

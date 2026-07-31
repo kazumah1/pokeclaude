@@ -6,15 +6,15 @@ lives, and how a hook can show the user something.
 
 ## What is actually verified
 
-Only Claude Code is verified end to end. The rest are labelled by what has been
-observed, not by what the docs promise.
+Each row is what has been observed on the real agent, not what the docs promise.
 
 | Agent | Install | Hook fires | Banner seen | Notes |
 |---|---|---|---|---|
 | Claude Code | verified | verified | verified | full colour inline |
-| Kiro CLI | verified | verified | `/pokedex` verified | automatic catch not observed |
+| Codex CLI | verified | verified | verified | live catch + `/pokedex`, full colour |
+| Kiro CLI | verified | verified | verified | full colour |
+| Codex app | verified | verified | partial | collapsed panel, strips colour |
 | Kiro IDE | verified | verified | partial | collapsed panel, strips colour |
-| Codex CLI | verified | not observed | not observed | installs via `codex plugin add` |
 | Cursor | not tested | not tested | not tested | adapter written from docs only |
 | Copilot CLI | not tested | not tested | not tested | hook events undocumented |
 
