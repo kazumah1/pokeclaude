@@ -1,24 +1,41 @@
-# Host adapters
+# Agent adapters
 
-PokeClaude's core is host-agnostic. Each adapter here is the small amount of
-configuration one agent CLI needs to call the same two hooks.
+PokeClaude's core is agent-agnostic. An adapter is the small amount of configuration
+one agent needs to call the same hooks, plus two facts: where the turn's token count
+lives, and how a hook can show the user something.
 
-| Host | Install route | Event | Banner shown via |
-|---|---|---|---|
-| Claude Code | `claude plugin marketplace add` | `Stop` | `systemMessage` |
-| Codex CLI | `codex plugin marketplace add` | `Stop` | `systemMessage` |
-| Cursor | `install.py --host cursor` | `stop` | stderr |
-| Kiro | `install.py --host kiro` | `Stop` | stderr |
-| Copilot CLI | `install.py --host copilot` | `stop` | stderr |
+## What is actually verified
 
-Claude Code and Codex both read `.claude-plugin/marketplace.json` and treat
-`plugin/` as the plugin root, so one manifest serves both. The hook command uses
-`${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT}}` because they set different variables for
-the same thing.
+Only Claude Code is verified end to end. The rest are labelled by what has been
+observed, not by what the docs promise.
 
-For hosts without a marketplace, `python3 install.py --host <name>` writes the
-hook config. `python3 install.py` alone detects every installed host, and
-`--dry-run` prints what would change without writing.
+| Agent | Install | Hook fires | Banner seen | Notes |
+|---|---|---|---|---|
+| Claude Code | verified | verified | verified | full colour inline |
+| Kiro CLI | verified | verified | `/pokedex` verified | automatic catch not observed |
+| Kiro IDE | verified | verified | partial | collapsed panel, strips colour |
+| Codex CLI | verified | not observed | not observed | installs via `codex plugin add` |
+| Cursor | not tested | not tested | not tested | adapter written from docs only |
+| Copilot CLI | not tested | not tested | not tested | hook events undocumented |
+
+`python3 tools/check_host.py <agent>` runs the real hook with a synthetic turn and
+reports which channel the banner came out on. It proves the plugin side works; it
+cannot prove the agent invokes the hook, which is what "hook fires" above means.
+
+## Install routes
+
+| Agent | Route | Event |
+|---|---|---|
+| Claude Code | `claude plugin marketplace add` | `Stop` |
+| Codex CLI | `codex plugin marketplace add` | `Stop` |
+| Cursor | `install.py --host cursor` | `stop` |
+| Kiro | `install.py --host kiro` | `Stop` |
+| Copilot CLI | `install.py --host copilot` | `stop` |
+
+Claude Code and Codex both read `.claude-plugin/marketplace.json` and treat `plugin/`
+as the plugin root, so one manifest serves both. The hook command uses
+`${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT}}` because they set different variables for the
+same thing.
 
 ## Where the banner appears
 
