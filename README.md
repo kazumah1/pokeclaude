@@ -8,7 +8,8 @@ chance at a wild encounter, rendered as truecolor pixel art directly in your ter
 All 1025 Pokemon from Gen 1–9, with shiny variants. Your Pokedex is shared across **every**
 session — parallel agents, every project, one collection.
 
-Works with **Claude Code**, **Codex CLI**, **Cursor**, **Kiro**, and **GitHub Copilot CLI**.
+**Verified on Claude Code.** Support for other agents is experimental — see
+[Agent support](#agent-support) for exactly what has been tested and what has not.
 
 ---
 
@@ -16,104 +17,56 @@ Works with **Claude Code**, **Codex CLI**, **Cursor**, **Kiro**, and **GitHub Co
 
 Requires Python 3 (system `python3` is fine, no packages) and a truecolor terminal.
 
-Pick your agent below.
-
-### Claude Code
-
-Installs as a plugin, which also adds slash commands (`/pokeclaude:pokedex`).
-
 ```bash
 claude plugin marketplace add <you>/pokeclaude
 claude plugin install pokeclaude@pokeclaude
 ```
 
 Then restart Claude Code. Use a local path instead of `<you>/pokeclaude` to install from a
-clone.
+clone. This also adds the slash commands `/pokeclaude:pokedex`, `/pokeclaude:pokeclaude`
+and `/pokeclaude:release`.
 
-### Codex CLI
+---
 
-Same marketplace flow, reading the same manifest.
+## Agent support
 
-```bash
-codex plugin marketplace add <you>/pokeclaude
-codex plugin add pokeclaude@pokeclaude
-```
+The core is agent-agnostic: rolling, the Pokedex, sprite rendering and storage are shared.
+Each agent differs only in where a turn's token count lives and how a hook can show you
+something. Adapters for several are included, but **only Claude Code is verified end to
+end**, so the rest are labelled honestly rather than implied to work.
 
-`marketplace add` accepts `owner/repo`, a local path, or an HTTPS/SSH Git URL.
+| Agent | Status |
+|---|---|
+| **Claude Code** (CLI, plugin) | **Verified.** Catches appear inline in full colour. |
+| **Kiro** (CLI) | **Mostly verified.** `/pokedex` renders in colour; hooks install and register. A live automatic catch has not been observed. |
+| **Kiro** (IDE) | **Partly working.** Output lands in a collapsed tool panel that strips colour; expand it and use `POKECLAUDE_MONO=1` for silhouettes. |
+| **Codex CLI** | **Experimental.** Installs cleanly via `codex plugin add` and the hook is registered, but no live catch has been observed. |
+| **Cursor** | **Untested.** An adapter exists, written from Cursor's hook docs. Never run against Cursor. |
+| **GitHub Copilot CLI** | **Untested.** Its hook events are undocumented, so the adapter is a best guess. |
 
-### Cursor
+If you try one of the untested ones, `python3 tools/check_host.py <agent>` reports whether
+the hook fires and which channel the banner came out on — that distinguishes an agent
+integration problem from a PokeClaude bug. Bug reports welcome.
 
-```bash
-git clone https://github.com/<you>/pokeclaude.git
-cd pokeclaude
-python3 install.py --host cursor
-```
-
-Writes `~/.cursor/hooks.json`.
-
-### Kiro
-
-```bash
-git clone https://github.com/<you>/pokeclaude.git
-cd pokeclaude
-python3 install.py --host kiro                              # user level
-python3 install.py --host kiro --workspace /path/to/project  # workspace level
-```
-
-This also installs Agent Skills, so `/pokedex`, `/pokeclaude` and
-`/pokeclaude-release` appear as slash commands when you type `/` in Kiro chat.
-
-The Kiro CLI renders sprites in full colour. Kiro's IDE tool panel strips colour and
-collapses output, so there `--mono` (or `POKECLAUDE_MONO=1`) draws solid silhouettes
-instead.
-
-Kiro documents hooks at workspace level (`.kiro/hooks/`); a user-level path is
-undocumented, so install both if a catch never appears. Confirm the hook registered in
-Kiro's **Agent Hooks** panel.
-
-### GitHub Copilot CLI
+### Installing on another agent
 
 ```bash
 git clone https://github.com/<you>/pokeclaude.git
 cd pokeclaude
-python3 install.py --host copilot
+
+codex plugin marketplace add <you>/pokeclaude && codex plugin add pokeclaude@pokeclaude
+
+python3 install.py --host kiro       # or cursor, or copilot
+python3 install.py --list            # what is detected and installed
+python3 install.py --dry-run         # preview without writing
+python3 install.py --uninstall       # remove again
 ```
 
-Writes `~/.copilot/hooks.json`.
+`install.py` merges into existing hook config rather than overwriting it, and backs the
+original up to `<file>.pokeclaude-backup`. Restart the agent afterwards.
 
-### Any host: automatic detection
-
-If you use several agents, this wires up every one it finds:
-
-```bash
-python3 install.py               # detect and install
-python3 install.py --list        # show detected hosts and what's installed
-python3 install.py --dry-run     # preview changes without writing
-python3 install.py --all         # wire every supported host
-python3 install.py --uninstall   # remove again
-```
-
-Existing hook config is merged, not overwritten — your other hooks are left alone, and the
-original is backed up to `<file>.pokeclaude-backup`.
-
-Restart your agent after installing so it picks up the hooks.
-
-### Where the catch appears
-
-| Host | Install route | Catch appears |
-|---|---|---|
-| Claude Code | plugin marketplace | inline, full colour |
-| Codex CLI | plugin marketplace | inline, full colour |
-| Cursor | `install.py --host cursor` | stderr |
-| Kiro | `install.py --host kiro` | stderr |
-| GitHub Copilot CLI | `install.py --host copilot` | stderr |
-
-Claude Code and Codex render hook output directly, so catches appear inline as you work.
-The other hosts discard hook stdout, so the banner goes to stderr — whether that is shown
-depends on the host. Either way the catch is recorded, and any catch you did not see is
-announced the next time you open your Pokedex.
-
-Override host detection with `POKECLAUDE_HOST=codex` if needed.
+Kiro also gets slash commands (`/pokedex`, `/pokeclaude`, `/pokeclaude-release`) via Agent
+Skills. Override agent detection with `POKECLAUDE_HOST=codex` if needed.
 
 ---
 
@@ -198,7 +151,7 @@ python3 plugin/scripts/config.py --tokens 900000   # an exact rate
 Under Claude Code: `/pokeclaude:pokeclaude light`.
 
 Only turn tokens count — input + output, never cache. Settings live in
-`~/.claude/pokeclaude/config.json` and apply to every session and every host.
+`~/.claude/pokeclaude/config.json` and apply to every session and every agent.
 
 ---
 
@@ -268,10 +221,10 @@ leave a half-written file. A corrupt file is quarantined rather than overwritten
 transcript, missing sprite, unavailable lock. A dropped catch is invisible; a crashing hook
 would break your session.
 
-**Multi-host.** Everything above is shared. Each host differs in only two respects — where
-the turn's token count lives, and how to show you a banner — and those live in
-`plugin/lib/pokeclaude/hosts.py`. See [`docs/HOSTS.md`](docs/HOSTS.md) to add
-another host.
+**Agent adapters.** Everything above is shared. Each agent differs in only two respects —
+where the turn's token count lives, and how a hook can show you a banner — and those live in
+`plugin/lib/pokeclaude/hosts.py`. See [`docs/HOSTS.md`](docs/HOSTS.md) to add another, and
+for what is verified on each.
 
 ---
 
@@ -303,7 +256,7 @@ python3 tools/animate_demo.py --style ball --id 143 --out docs/anim-catch.gif
 
 ```bash
 python3 tests/test_pokeclaude.py     # the suite
-python3 tools/check_host.py --all    # verify the hook under every host
+python3 tools/check_host.py --all    # verify the hook under every agent adapter
 ```
 
 `check_host.py` forces a catch with a synthetic turn and reports which channel the banner
