@@ -5,8 +5,9 @@ description: Show or change how often PokeClaude Pokemon appear. Use when the us
 
 # PokeClaude settings
 
-Show or change the catch rate, then STOP. Emit no text — the panel already shows the
-active setting and all three presets.
+Show or change the catch rate, then reply with one short line, e.g. "Catch rate is
+set." The command's output already lists the active setting and all three presets,
+so do not restate them.
 
 ```bash
 for d in "$POKECLAUDE_ROOT" "$PWD" "$HOME/pokeclaude" "$HOME/proj/pokeclaude" "$HOME/src/pokeclaude"; do

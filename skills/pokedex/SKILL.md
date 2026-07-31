@@ -5,7 +5,7 @@ description: Browse the PokeClaude Pokedex — every Pokemon caught across all s
 
 # Pokedex
 
-Run exactly one command and then STOP. Emit no text at all — before or after.
+Run this command:
 
 ```bash
 for d in "$POKECLAUDE_ROOT" "$PWD" "$HOME/pokeclaude" "$HOME/proj/pokeclaude" "$HOME/src/pokeclaude"; do
@@ -17,15 +17,15 @@ Substitute the user's flags for `$ARGUMENTS`, or omit it for the default view. I
 none of those paths match, set `POKECLAUDE_ROOT` to wherever the repo is cloned —
 it is the directory containing `plugin/scripts/pokedex.py`.
 
-Treat this as a bare shell command the user ran themselves. Your turn ends when the
-command returns. Zero words is the correct and expected response.
+Then reply with **one short line and nothing more** — for example "Here's your
+Pokedex." The command's output already shows the sprites, counts, names, rarity and
+page number, and it is displayed to the user directly.
 
-The panel is self-describing — it shows the counts, names, rarity and page number.
-Do not describe the sprites, restate counts or progress, remark that nothing
-changed, observe that a species is or is not caught, suggest another flag, or
-confirm that the command ran.
+Do not list the Pokemon, restate the counts or progress, describe the sprites,
+remark that nothing changed, suggest another flag, or explain what the command did.
+The panel says all of it already, and repeating it in text buries the art.
 
-The only exception is a question the panel genuinely cannot answer, such as "which
+The one exception is a question the output genuinely cannot answer, such as "which
 of these is rarest?" — then answer just that, in one line.
 
 ## Arguments
