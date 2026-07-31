@@ -1462,9 +1462,13 @@ def test_mono_render():
     print("\n[mono] colour-free rendering")
     from pokeclaude import dex, hosts, sprite as S
 
-    check(not hosts.has_colour("kiro"), "kiro is flagged as colour-stripping")
-    check(hosts.has_colour("claude"), "claude keeps colour")
-    check(hosts.has_colour("codex"), "codex keeps colour")
+    # No host defaults to mono. Kiro's CLI preserves truecolour and renders
+    # sprites correctly; only its IDE tool panel strips escapes, and defaulting the
+    # whole host to mono would sacrifice the good surface for the worse one.
+    check(
+        all(hosts.has_colour(h) for h in hosts.HOSTS),
+        "no host defaults to mono; it is opt-in",
+    )
 
     blob = S.downscale(json.load(open(os.path.join(SPRITES, "25.json"))), 3)
     mono = S.render_mono(blob)
@@ -1553,15 +1557,15 @@ def test_mono_render():
         return "colour" if half else ("mono" if ramp else "neither")
 
     e["POKECLAUDE_HOST"] = "kiro"
-    check(art_style(e) == "mono", "kiro auto-selects mono art")
+    check(art_style(e) == "colour", "kiro gets colour art by default")
 
-    e["POKECLAUDE_MONO"] = "0"
-    check(art_style(e) == "colour", "POKECLAUDE_MONO=0 restores colour art")
+    e["POKECLAUDE_MONO"] = "1"
+    check(art_style(e) == "mono", "POKECLAUDE_MONO=1 opts into silhouettes")
     del e["POKECLAUDE_MONO"]
 
     e["POKECLAUDE_HOST"] = "claude"
     check(art_style(e) == "colour", "claude gets colour art")
-    check(art_style(e, ["--mono"]) == "mono", "--mono forces density art anywhere")
+    check(art_style(e, ["--mono"]) == "mono", "--mono forces silhouettes anywhere")
 
 
 def test_skills():

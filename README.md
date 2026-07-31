@@ -63,9 +63,9 @@ python3 install.py --host kiro --workspace /path/to/project  # workspace level
 This also installs Agent Skills, so `/pokedex`, `/pokeclaude` and
 `/pokeclaude-release` appear as slash commands when you type `/` in Kiro chat.
 
-Kiro strips ANSI colour from command output, so it automatically renders sprites as solid
-silhouettes instead — recognisable without colour. Add `--mono` to use that anywhere, or set
-`POKECLAUDE_MONO=0` to force colour.
+The Kiro CLI renders sprites in full colour. Kiro's IDE tool panel strips colour and
+collapses output, so there `--mono` (or `POKECLAUDE_MONO=1`) draws solid silhouettes
+instead.
 
 Kiro documents hooks at workspace level (`.kiro/hooks/`); a user-level path is
 undocumented, so install both if a catch never appears. Confirm the hook registered in

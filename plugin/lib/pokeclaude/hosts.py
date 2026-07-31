@@ -71,15 +71,15 @@ HOSTS = {
         "hooks_file": "hooks.json",
     },
     "kiro": {
-        # Measured, not assumed: Kiro renders a command's output in a collapsed
-        # tool-call panel and STRIPS ANSI escapes while keeping the glyphs. A
-        # normal render therefore collapses into a flat field of identical white
-        # blocks, since the shape lived entirely in the colours. `mono` switches to
-        # a density ramp so the silhouette survives.
+        # Colour support differs by surface, so it is NOT declared False here.
+        # The Kiro CLI preserves truecolour and renders sprites correctly; only the
+        # IDE's collapsed tool-call panel strips escapes, and there it also
+        # collapses the output by default. Defaulting to mono for the whole host
+        # would throw away the good rendering to accommodate the worse surface, so
+        # colour is kept and POKECLAUDE_MONO=1 is the opt-in for the IDE.
         "label": "Kiro",
         "event": "Stop",
         "display": "stderr",
-        "colour": False,
         "tokens": "payload",
         "config_dir": "~/.kiro",
         "hooks_file": "hooks/pokeclaude.json",

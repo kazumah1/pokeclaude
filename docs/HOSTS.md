@@ -93,17 +93,21 @@ so whether Kiro surfaces it is untested — check the Agent Hooks panel in the K
 UI to confirm the hook is registered and firing. Catches are recorded either way,
 and `pokedex.py` announces any you did not see.
 
-**Kiro strips ANSI colour** from command output while keeping the glyphs, which
-turns a normal render into a flat field of identical white blocks. So Kiro
-automatically gets `--mono`: a solid silhouette at full resolution.
+**Colour support differs by surface in Kiro.** The Kiro CLI preserves truecolour
+and renders sprites correctly. The IDE's tool-call panel strips escapes, which turns
+a render into a flat field of identical blocks, and also collapses the output by
+default so you must expand it.
 
-Shading ramps (`░▒▓█`) were tried first and are worse — those are dither patterns
-in most fonts, so at one glyph per pixel they render as static rather than tones. A
-clean outline reads far better than fake shading, so interior detail is dropped and
-the shape carries it.
+No host defaults to mono, because doing so would sacrifice the CLI's good rendering
+for the IDE panel's worse one. In the IDE, opt in:
 
-`--mono` works on any host, and `POKECLAUDE_MONO=0` opts back out on a stripping
-one.
+```bash
+POKECLAUDE_MONO=1 ...     # or pass --mono
+```
+
+That draws a solid silhouette at full resolution. Shading ramps (`░▒▓█`) were tried
+first and are worse — those are dither patterns in most fonts, so at one glyph per
+pixel they render as static rather than tones.
 
 ### Slash commands in chat
 
