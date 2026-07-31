@@ -26,6 +26,19 @@ Then restart Claude Code. Use a local path instead of `<you>/pokeclaude` to inst
 clone. This also adds the slash commands `/pokeclaude:pokedex`, `/pokeclaude:pokeclaude`
 and `/pokeclaude:release`.
 
+### Viewing your Pokedex
+
+Every agent gets slash commands, though the names differ:
+
+| Agent | Command |
+|---|---|
+| Claude Code | `/pokeclaude:pokedex` |
+| Codex CLI | `/pokedex` |
+| Kiro | `/pokedex` |
+| anywhere | `python3 plugin/scripts/pokedex.py` |
+
+Type `/` in the agent's chat to see them listed.
+
 ---
 
 ## Agent support

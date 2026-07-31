@@ -1639,7 +1639,9 @@ def test_mono_render():
 def test_skills():
     """The SKILL.md bundles that give non-Claude hosts slash commands."""
     print("\n[skills] Agent Skills bundles")
-    skills_dir = os.path.join(REPO, "skills")
+    # Skills live INSIDE plugin/ because that is the plugin root both Claude
+    # Code and Codex copy; a repo-root skills/ was invisible to Codex.
+    skills_dir = os.path.join(REPO, "plugin", "skills")
     check(os.path.isdir(skills_dir), "skills/ exists")
 
     names = sorted(
@@ -1676,20 +1678,30 @@ def test_skills():
 
         # The command has to locate the repo without depending on a host-set
         # plugin-root variable, since a chat skill gets none.
+        # Scripts are referenced through the "$sub" layout variable, so match the
+        # script filename rather than a fixed path.
+        scripts = set(re.findall(r"\$sub/([a-z_]+\.py)", body))
         check(
-            "plugin/scripts/" in body,
-            "%s invokes a real script" % name,
+            bool(scripts),
+            "%s invokes a real script (%s)" % (name, ", ".join(sorted(scripts)) or "none"),
         )
         check(
             "POKECLAUDE_ROOT" in body,
             "%s can be pointed at the repo explicitly" % name,
+        )
+        # TWO layouts must both resolve: a repo clone has plugin/scripts/, while an
+        # installed plugin cache has plugin/ AS the root, so the script is at
+        # scripts/. Probing only the former made the skills dead on Codex.
+        check(
+            '"plugin/scripts" "scripts"' in body or "plugin/scripts\" \"scripts" in body,
+            "%s probes both the clone and installed-cache layouts" % name,
         )
 
     # Every script a skill references must exist.
     for name in names:
         with open(os.path.join(skills_dir, name, "SKILL.md")) as f:
             body = f.read()
-        for rel in re.findall(r"plugin/scripts/([a-z_]+\.py)", body):
+        for rel in re.findall(r"\$sub/([a-z_]+\.py)", body):
             check(
                 os.path.isfile(os.path.join(REPO, "plugin", "scripts", rel)),
                 "%s references a real script (%s)" % (name, rel),
