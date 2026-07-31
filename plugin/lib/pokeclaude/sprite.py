@@ -161,6 +161,74 @@ def render(blob, indent=0, trim=True):
     return out
 
 
+# Shading ramp for hosts that strip colour, darkest to lightest. Chosen so the
+# blocks read as a gradient at small sizes; ASCII punctuation would be lighter
+# still but reads as noise rather than a silhouette.
+MONO_RAMP = " ░▒▓█"
+
+# Rec. 709 luma, matching grayscale().
+_LUMA = (0.2126, 0.7152, 0.0722)
+
+
+def render_mono(blob, indent=0, trim=True, ramp=MONO_RAMP):
+    """Render a sprite using glyph DENSITY instead of colour.
+
+    Some hosts strip ANSI escapes but keep the glyphs, which turns a normal render
+    into a flat field of the same block character -- every pixel becomes an
+    indistinguishable white rectangle, because all the shape information lived in
+    the colours. This maps each pixel's luminance onto a shading ramp instead, so
+    the silhouette survives with no colour at all.
+
+    One glyph per pixel, so a sprite is twice as tall as the half-block render.
+    """
+    pal, rows = decode(blob)
+    h = len(rows)
+
+    x0, x1 = 0, blob["w"] - 1
+    if trim:
+        cols = [
+            x for x in range(blob["w"]) if any(r[x] != TRANSPARENT for r in rows)
+        ]
+        if not cols:
+            return []
+        x0, x1 = min(cols), max(cols)
+
+    # Stretch each sprite's own luminance range across the ramp. Absolute
+    # luminance wastes most of the ramp on species that occupy a narrow band --
+    # a rock/steel type is uniformly mid-grey and renders as a single tone,
+    # losing every internal edge. Normalising per sprite keeps the contrast.
+    lumas = [
+        sum(c * w for c, w in zip(colour, _LUMA)) / 255.0
+        for colour in pal[1:]
+        if colour is not None
+    ]
+    lo, hi = (min(lumas), max(lumas)) if lumas else (0.0, 1.0)
+    span = (hi - lo) or 1.0
+
+    levels = len(ramp) - 1
+    pad = " " * indent
+    out = []
+    for y in range(h):
+        line = []
+        for x in range(x0, x1 + 1):
+            idx = rows[y][x]
+            colour = pal[idx]
+            if colour is None:
+                line.append(ramp[0])
+                continue
+            luma = sum(c * w for c, w in zip(colour, _LUMA)) / 255.0
+            # A visible pixel must never render as the blank glyph, or the
+            # silhouette gains holes wherever the art is very dark.
+            step = max(1, min(levels, int(round(((luma - lo) / span) * levels))))
+            line.append(ramp[step])
+        # NOT rstripped. Every row must be the same visible width or a grid cell
+        # cannot pad it predictably, and neighbouring cells slide left into the
+        # ragged edge -- the same failure trailing whitespace prevents in the
+        # colour renderer.
+        out.append(pad + "".join(line))
+    return out
+
+
 def visible_width(blob, trim=True):
     """Columns a rendered sprite occupies, ignoring escape sequences."""
     _, rows = decode(blob)

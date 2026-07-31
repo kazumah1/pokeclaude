@@ -49,7 +49,7 @@ def _types(type_names):
 
 
 def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_size,
-            width=80, roster_ids=None, shiny=False):
+            width=80, roster_ids=None, shiny=False, mono=False):
     """Build the banner string for a catch.
 
     Sprites are stored at 64px, which is wider than the info column can sit
@@ -129,8 +129,13 @@ def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_si
     info_w = max(len(_ANSI.sub("", line)) for line in info)
     if spritelib.visible_width(blob) + 1 + gap + info_w > width:
         blob = spritelib.downscale(blob, 2)
-    art = spritelib.render(blob, indent=1)
-    art_w = spritelib.visible_width(blob) + 1
+    if mono:
+        # One glyph per pixel rather than two, so halve again to keep the banner a
+        # similar height to the colour version.
+        art = spritelib.render_mono(spritelib.downscale(blob, 2), indent=1)
+    else:
+        art = spritelib.render(blob, indent=1)
+    art_w = max([len(_ANSI.sub("", a)) for a in art] or [0])
 
     # On a genuinely narrow terminal the info column alone can be most of the
     # width, so even halved art has nowhere to sit beside it. Stack instead of

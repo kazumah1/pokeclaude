@@ -109,7 +109,25 @@ def main():
         action="store_true",
         help="with --id, show the ordinary colours of a species you own a shiny of",
     )
+    ap.add_argument(
+        "--mono",
+        action="store_true",
+        help="render with shading glyphs instead of colour, for hosts that strip "
+             "ANSI escapes (auto-enabled on those hosts)",
+    )
     args = ap.parse_args()
+
+    # Hosts that strip ANSI turn a colour render into a flat field of identical
+    # blocks, so those switch to density-based art automatically. --mono forces it
+    # anywhere, and POKECLAUDE_MONO=0 opts back out.
+    if not args.mono:
+        from pokeclaude import hosts as _hosts
+
+        env_mono = os.environ.get("POKECLAUDE_MONO")
+        if env_mono is not None:
+            args.mono = env_mono not in ("", "0", "false", "no")
+        else:
+            args.mono = not _hosts.has_colour()
     # Distinguish "user chose a scale" from "default applied", because the grid
     # and the detail view want different defaults.
     args.scale_given = any(
@@ -174,6 +192,7 @@ def main():
             caught.get(str(pid)),
             roster_ids=roster,
             showing_shiny=want_shiny,
+            mono=args.mono,
         )
         print("\n".join(out))
         return 0
@@ -303,6 +322,7 @@ def main():
         cols=cols,
         show_uncaught=args.all,
         scale=scale,
+        mono=args.mono,
     )
 
     out.append(

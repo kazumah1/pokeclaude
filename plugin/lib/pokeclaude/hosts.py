@@ -71,9 +71,15 @@ HOSTS = {
         "hooks_file": "hooks.json",
     },
     "kiro": {
+        # Measured, not assumed: Kiro renders a command's output in a collapsed
+        # tool-call panel and STRIPS ANSI escapes while keeping the glyphs. A
+        # normal render therefore collapses into a flat field of identical white
+        # blocks, since the shape lived entirely in the colours. `mono` switches to
+        # a density ramp so the silhouette survives.
         "label": "Kiro",
         "event": "Stop",
         "display": "stderr",
+        "colour": False,
         "tokens": "payload",
         "config_dir": "~/.kiro",
         "hooks_file": "hooks/pokeclaude.json",
@@ -144,6 +150,16 @@ def spec(host=None):
 def can_display(host=None):
     """Does this host have a channel that shows a banner to the user at all?"""
     return spec(host).get("display") in ("systemMessage", "stderr")
+
+
+def has_colour(host=None):
+    """Does this host preserve ANSI colour in the channel we use?
+
+    Hosts default to True; only those measured to strip escapes declare
+    `colour: False`. Callers use this to pick a density-ramp render instead, since
+    a colour render on a colour-stripping host loses all its shape.
+    """
+    return spec(host).get("colour", True)
 
 
 def emit(message, host=None, out=None, err=None):
