@@ -8,8 +8,8 @@ chance at a wild encounter, rendered as truecolor pixel art directly in your ter
 All 1025 Pokemon from Gen 1–9, with shiny variants. Your Pokedex is shared across **every**
 session — parallel agents, every project, one collection.
 
-**Verified on Claude Code.** Support for other agents is experimental — see
-[Agent support](#agent-support) for exactly what has been tested and what has not.
+**Verified on Claude Code, Codex CLI and Kiro.** Cursor and GitHub Copilot have adapters
+but are untested — see [Agent support](#agent-support) for exactly what has been observed.
 
 ---
 
@@ -45,15 +45,14 @@ Type `/` in the agent's chat to see them listed.
 
 The core is agent-agnostic: rolling, the Pokedex, sprite rendering and storage are shared.
 Each agent differs only in where a turn's token count lives and how a hook can show you
-something. Adapters for several are included, but **only Claude Code is verified end to
-end**, so the rest are labelled honestly rather than implied to work.
+something. Each row below says what has actually been observed, not what the docs promise.
 
 | Agent | Status |
 |---|---|
 | **Claude Code** (CLI, plugin) | **Verified.** Catches appear inline in full colour. |
-| **Kiro** (CLI) | **Mostly verified.** `/pokedex` renders in colour; hooks install and register. A live automatic catch has not been observed. |
-| **Kiro** (IDE) | **Partly working.** Output lands in a collapsed tool panel that strips colour; expand it and use `POKECLAUDE_MONO=1` for silhouettes. |
-| **Codex CLI** | **Experimental.** Installs cleanly via `codex plugin add` and the hook is registered, but no live catch has been observed. |
+| **Codex CLI** | **Verified.** Live catches and `/pokedex` both render in full colour. |
+| **Kiro** (CLI) | **Verified.** `/pokedex` renders in colour; hooks install and register. |
+| **Kiro** (IDE) | **Works, with a caveat.** Output lands in a collapsed tool panel that strips colour; expand it and use `POKECLAUDE_MONO=1` for silhouettes. |
 | **Cursor** | **Untested.** An adapter exists, written from Cursor's hook docs. Never run against Cursor. |
 | **GitHub Copilot CLI** | **Untested.** Its hook events are undocumented, so the adapter is a best guess. |
 
