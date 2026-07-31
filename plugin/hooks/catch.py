@@ -131,6 +131,9 @@ def main():
         roster_size=len(roster),
         roster_ids=roster,
         shiny=is_shiny,
+        # Hosts that strip ANSI need density-based art, or the sprite arrives as a
+        # flat field of identical blocks.
+        mono=not hosts.has_colour(host),
     )
 
     # The host decides the channel. Where none can display, the catch is still

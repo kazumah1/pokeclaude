@@ -1452,6 +1452,107 @@ def test_hosts():
     )
 
 
+def test_mono_render():
+    """Density-based art for hosts that strip ANSI colour.
+
+    Kiro renders a command's output with escapes removed but glyphs intact, which
+    turns a normal render into a flat field of identical blocks -- every pixel
+    became the same white rectangle, because the shape lived in the colours.
+    """
+    print("\n[mono] colour-free rendering")
+    from pokeclaude import dex, hosts, sprite as S
+
+    check(not hosts.has_colour("kiro"), "kiro is flagged as colour-stripping")
+    check(hosts.has_colour("claude"), "claude keeps colour")
+    check(hosts.has_colour("codex"), "codex keeps colour")
+
+    blob = S.downscale(json.load(open(os.path.join(SPRITES, "25.json"))), 3)
+    mono = S.render_mono(blob)
+    check(bool(mono), "render_mono produces output")
+
+    # No escapes at all: the whole point is surviving a host that removes them.
+    check(
+        not any("\x1b" in row for row in mono),
+        "mono output contains no ANSI escapes",
+    )
+    # Uniform width, or grid cells cannot pad predictably.
+    widths = {len(row) for row in mono}
+    check(len(widths) == 1, "every mono row is the same width (%s)" % sorted(widths))
+
+    # Shape must survive: more than one distinct glyph, or it is a flat blob.
+    glyphs = set("".join(mono)) - {" "}
+    check(
+        len(glyphs) >= 3,
+        "mono uses a range of densities, not one tone (%s)" % sorted(glyphs),
+    )
+    check(
+        glyphs <= set(S.MONO_RAMP),
+        "mono only uses the declared ramp (%s)" % sorted(glyphs),
+    )
+
+    # A dark sprite must not vanish: every opaque pixel gets a visible glyph.
+    dark = S.downscale(json.load(open(os.path.join(SPRITES, "94.json"))), 3)  # gengar
+    dark_rows = S.render_mono(dark)
+    check(
+        any(ch != " " for ch in "".join(dark_rows)),
+        "a dark species still renders a silhouette",
+    )
+
+    # Per-sprite normalisation: a low-contrast species must still show detail.
+    flat = S.downscale(json.load(open(os.path.join(SPRITES, "411.json"))), 3)
+    flat_glyphs = set("".join(S.render_mono(flat))) - {" "}
+    check(
+        len(flat_glyphs) >= 3,
+        "a low-contrast species still shows internal detail (%s)" % sorted(flat_glyphs),
+    )
+
+    # Grid alignment, which a ragged mono row would break.
+    with open(META) as f:
+        meta = json.load(f)
+    entries = [(p, {"count": 1, "first": 0, "last": 0}) for p in ROSTER[:4]]
+    lines = dex.render_grid(
+        entries, SPRITES, meta, cols=4, show_uncaught=True, scale=3, mono=True
+    )
+    grid_widths = {len(visible(l)) for l in lines if l.strip()}
+    check(
+        len(grid_widths) == 1,
+        "mono grid rows are uniform width (%s)" % sorted(grid_widths),
+    )
+
+    # The CLI flag and the env override.
+    home, store = fresh_home()
+    store.record_catch(25, session_id="s")
+    e = dict(os.environ)
+    e["POKECLAUDE_HOME"] = home
+    e["POKECLAUDE_WIDTH"] = "90"
+
+    def art_style(env, extra=()):
+        """Which renderer drew the sprite: half-blocks mean colour, ramp means mono.
+
+        Checked on the ART rather than on escapes anywhere in the output, because
+        the header and labels stay coloured either way -- harmless, since a
+        stripping host removes them, and useful on a host that does not.
+        """
+        got = subprocess.run(
+            [sys.executable, POKEDEX, "--id", "25"] + list(extra),
+            capture_output=True, env=env,
+        ).stdout.decode()
+        half = any(g in got for g in "▀▄")
+        ramp = any(g in got for g in "░▒▓█")
+        return "colour" if half else ("mono" if ramp else "neither")
+
+    e["POKECLAUDE_HOST"] = "kiro"
+    check(art_style(e) == "mono", "kiro auto-selects mono art")
+
+    e["POKECLAUDE_MONO"] = "0"
+    check(art_style(e) == "colour", "POKECLAUDE_MONO=0 restores colour art")
+    del e["POKECLAUDE_MONO"]
+
+    e["POKECLAUDE_HOST"] = "claude"
+    check(art_style(e) == "colour", "claude gets colour art")
+    check(art_style(e, ["--mono"]) == "mono", "--mono forces density art anywhere")
+
+
 def test_skills():
     """The SKILL.md bundles that give non-Claude hosts slash commands."""
     print("\n[skills] Agent Skills bundles")
@@ -1706,6 +1807,7 @@ def main():
         test_banner_fits,
         test_shiny,
         test_hosts,
+        test_mono_render,
         test_skills,
         test_pokeball_geometry,
         test_readme_svgs,

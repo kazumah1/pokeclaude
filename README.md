@@ -63,6 +63,10 @@ python3 install.py --host kiro --workspace /path/to/project  # workspace level
 This also installs Agent Skills, so `/pokedex`, `/pokeclaude` and
 `/pokeclaude-release` appear as slash commands when you type `/` in Kiro chat.
 
+Kiro strips ANSI colour from command output, so it automatically renders art with
+shading glyphs instead — the shape comes through without colour. Add `--mono` to use that
+anywhere, or set `POKECLAUDE_MONO=0` to force colour.
+
 Kiro documents hooks at workspace level (`.kiro/hooks/`); a user-level path is
 undocumented, so install both if a catch never appears. Confirm the hook registered in
 Kiro's **Agent Hooks** panel.
@@ -147,6 +151,7 @@ Species you have not caught render in greyscale:
 | `--dupes` | full duplicate list, most-caught first |
 | `--project` | only Pokemon caught while working in this project |
 | `--scale 1\|2\|3` | sprite size: 1 = 64px, 2 = 32px, 3 = 21px |
+| `--mono` | shading glyphs instead of colour, for hosts that strip ANSI |
 
 `--id` accepts a dex number. Flags combine, e.g. `--project --stats` or `--shiny --project`.
 

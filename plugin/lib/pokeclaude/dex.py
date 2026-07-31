@@ -64,7 +64,7 @@ def _silhouette(blob):
     return spritelib.grayscale(blob, dim=0.7)
 
 
-def _cell(blob, caption_lines, width, sprite_h):
+def _cell(blob, caption_lines, width, sprite_h, mono=False):
     """Build one grid cell: art padded to an exact width x sprite_h block.
 
     Every row must occupy exactly `width` visible columns, including the blank
@@ -76,8 +76,14 @@ def _cell(blob, caption_lines, width, sprite_h):
     Art is bottom-aligned so Pokemon stand on a common floor rather than hanging
     from the top of their cell.
     """
-    art = spritelib.render(blob) if blob else []
-    vis = spritelib.visible_width(blob) if blob else 0
+    if not blob:
+        art, vis = [], 0
+    elif mono:
+        art = spritelib.render_mono(blob)
+        vis = max([len(_ANSI.sub("", a)) for a in art] or [0])
+    else:
+        art = spritelib.render(blob)
+        vis = spritelib.visible_width(blob)
 
     # Trim rather than overflow: a cell wider than its slot pushes the whole row
     # past the terminal edge and wraps, which destroys the art.
@@ -129,7 +135,8 @@ def fit_columns(term_width, cell_w):
 
 
 def render_grid(
-    entries, sprites_dir, meta, cols=4, cell_w=64, show_uncaught=False, scale=1
+    entries, sprites_dir, meta, cols=4, cell_w=64, show_uncaught=False, scale=1,
+    mono=False,
 ):
     """Render one page.
 
@@ -153,11 +160,17 @@ def render_grid(
             # invisible unless you knew to open the entry.
             want_shiny = bool(caught and caught.get("shiny"))
             blob = _load_sprite(sprites_dir, pid, shiny=want_shiny)
-            if blob is not None and scale > 1:
-                blob = spritelib.downscale(blob, scale)
+            if blob is not None:
+                # Mono draws one glyph per pixel where the half-block renderer
+                # draws two, so the same blob comes out twice as tall. Halving it
+                # again keeps a mono cell the same height as a colour one.
+                factor = scale * 2 if mono else scale
+                if factor > 1:
+                    blob = spritelib.downscale(blob, factor)
             loaded.append((pid, caught, blob))
+        rows_per = (lambda h: h) if mono else (lambda h: (h + 1) // 2)
         sprite_h = max(
-            [(b["h"] + 1) // 2 for _, _, b in loaded if b] or [(cell_w + 1) // 2]
+            [rows_per(b["h"]) for _, _, b in loaded if b] or [(cell_w + 1) // 2]
         )
 
         cells = []
@@ -184,7 +197,8 @@ def render_grid(
                 cap_x = ""
 
             cells.append(
-                _cell(blob, ["%s %s %s" % (cap_id, cap_name, cap_x)], cell_w, sprite_h)
+                _cell(blob, ["%s %s %s" % (cap_id, cap_name, cap_x)], cell_w,
+                      sprite_h, mono=mono)
             )
 
         height = max(len(c) for c in cells)
@@ -203,7 +217,8 @@ def render_grid(
     return lines
 
 
-def render_detail(pid, blob, info, caught, roster_ids=None, showing_shiny=False):
+def render_detail(pid, blob, info, caught, roster_ids=None, showing_shiny=False,
+                  mono=False):
     """Large single-entry view.
 
     An uncaught species renders in greyscale rather than colour, so browsing the
@@ -212,7 +227,12 @@ def render_detail(pid, blob, info, caught, roster_ids=None, showing_shiny=False)
     """
     if blob is not None and not caught:
         blob = spritelib.grayscale(blob)
-    art = spritelib.render(blob, indent=2) if blob else []
+    if not blob:
+        art = []
+    elif mono:
+        art = spritelib.render_mono(blob, indent=2)
+    else:
+        art = spritelib.render(blob, indent=2)
     name = (info.get("name") or "?").upper()
     types = ", ".join(t.upper() for t in (info.get("types") or []))
 

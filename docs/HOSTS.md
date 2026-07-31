@@ -93,6 +93,15 @@ so whether Kiro surfaces it is untested — check the Agent Hooks panel in the K
 UI to confirm the hook is registered and firing. Catches are recorded either way,
 and `pokedex.py` announces any you did not see.
 
+**Kiro strips ANSI colour** from command output while keeping the glyphs, which
+turns a normal render into a flat field of identical white blocks. So Kiro
+automatically gets `--mono`: art drawn with shading glyphs (`░▒▓█`) whose density
+carries the shape, needing no colour at all. Each sprite's luminance range is
+stretched across the ramp, so low-contrast species still show internal detail.
+
+`--mono` works on any host, and `POKECLAUDE_MONO=0` opts back out on a stripping
+one.
+
 ### Slash commands in chat
 
 Kiro reads Agent Skills (`SKILL.md` bundles) and exposes them as slash commands
