@@ -23,6 +23,7 @@ sys.path.insert(0, os.path.join(REPO, "plugin", "lib"))
 from pokeclaude import hosts as hostlib  # noqa: E402
 
 HOOKS_DIR = os.path.join(REPO, "plugin", "hooks")
+SKILLS_DIR = os.path.join(REPO, "skills")
 CATCH = os.path.join(HOOKS_DIR, "catch.py")
 SHOW = os.path.join(HOOKS_DIR, "show.py")
 
@@ -136,6 +137,46 @@ BUILDERS = {
     "kiro": kiro_config,
     "copilot": generic_config,
 }
+
+
+# Hosts that read Agent Skills (SKILL.md bundles) and expose them as slash
+# commands in chat. Installing these is what gives Kiro a /pokedex.
+SKILL_HOSTS = {
+    "kiro": "~/.kiro/skills",
+}
+
+
+def install_skills(host, dry_run=False, uninstall=False, workspace=None):
+    """Copy the SKILL.md bundles so the host offers them as slash commands."""
+    dest_root = SKILL_HOSTS.get(host)
+    if not dest_root or not os.path.isdir(SKILLS_DIR):
+        return
+    if workspace:
+        dest_root = os.path.join(os.path.abspath(workspace), "." + host, "skills")
+    else:
+        dest_root = _expand(dest_root)
+
+    names = sorted(
+        n for n in os.listdir(SKILLS_DIR)
+        if os.path.isfile(os.path.join(SKILLS_DIR, n, "SKILL.md"))
+    )
+    for name in names:
+        dest = os.path.join(dest_root, name)
+        if uninstall:
+            if os.path.isdir(dest) and not dry_run:
+                shutil.rmtree(dest, ignore_errors=True)
+            continue
+        if dry_run:
+            continue
+        os.makedirs(dest, exist_ok=True)
+        shutil.copy2(os.path.join(SKILLS_DIR, name, "SKILL.md"),
+                     os.path.join(dest, "SKILL.md"))
+    if names:
+        verb = "would remove" if (uninstall and dry_run) else (
+            "removed" if uninstall else ("would add" if dry_run else "added")
+        )
+        print("  %-18s %s slash commands: /%s"
+              % ("", verb, ", /".join(names)))
 
 
 def target_path(host, workspace=None):
@@ -261,6 +302,7 @@ def install_one(host, dry_run=False, uninstall=False, workspace=None):
     channel = spec["display"]
     note = "" if channel == "systemMessage" else "  (banner via stderr)"
     print("  %-18s %s -> %s%s" % (spec["label"], verb, path, note))
+    install_skills(host, dry_run, uninstall, workspace)
     return True
 
 

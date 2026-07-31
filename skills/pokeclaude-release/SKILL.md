@@ -1,0 +1,47 @@
+---
+name: pokeclaude-release
+description: Release a Pokemon, or all of them, from the PokeClaude Pokedex. Use when the user types /pokeclaude-release, asks to release or remove a Pokemon, asks to reset or wipe their Pokedex, or asks to start their collection over.
+---
+
+# Release
+
+**This deletes collection data and cannot be undone**, so it runs in two steps.
+
+## Step 1 — always dry-run first
+
+Run without `--confirm`. The script prints exactly what would be removed and exits
+2 without changing anything:
+
+```bash
+for d in "$POKECLAUDE_ROOT" "$PWD" "$HOME/pokeclaude" "$HOME/proj/pokeclaude" "$HOME/src/pokeclaude"; do
+  [ -n "$d" ] && [ -f "$d/plugin/scripts/release.py" ] && { python3 "$d/plugin/scripts/release.py" $ARGUMENTS; break; }
+done
+```
+
+## Step 2 — confirm, then re-run with `--confirm`
+
+Do **not** add `--confirm` on your own initiative. Only add it after the user has
+seen the dry run and agreed, or if their original request was already unambiguous
+("yes, delete everything", "release all my pokemon, I'm sure").
+
+After a dry run, the only thing worth adding is the question: whether to proceed.
+After a `--confirm` run, say nothing — the panel reports what was removed.
+
+## Arguments
+
+| Form | Effect |
+|---|---|
+| `pikachu` | one species, by name |
+| `25` | one species, by dex number |
+| `all` | the entire Pokedex |
+| `--project` | limit to this project's records; the global Pokedex is untouched |
+| `--confirm` | actually perform the release |
+
+## Exit codes
+
+- `0` — done, or nothing to do (species not in the Pokedex)
+- `1` — unknown Pokemon name, or the lock was unavailable (nothing changed)
+- `2` — dry run; nothing changed, awaiting `--confirm`
+
+`all --confirm` is the full reset. To reset only one project's stats while keeping
+the collection, add `--project`.
