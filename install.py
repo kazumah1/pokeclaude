@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.join(REPO, "plugin", "lib"))
 from pokeclaude import hosts as hostlib  # noqa: E402
 
 HOOKS_DIR = os.path.join(REPO, "plugin", "hooks")
-SKILLS_DIR = os.path.join(REPO, "skills")
+SKILLS_DIR = os.path.join(REPO, "plugin", "skills")
 CATCH = os.path.join(HOOKS_DIR, "catch.py")
 SHOW = os.path.join(HOOKS_DIR, "show.py")
 
@@ -143,6 +143,8 @@ BUILDERS = {
 # commands in chat. Installing these is what gives Kiro a /pokedex.
 SKILL_HOSTS = {
     "kiro": "~/.kiro/skills",
+    # Codex and Claude Code get skills via the plugin itself: both copy plugin/
+    # wholesale, and plugin/skills/ travels with it. Nothing to install here.
 }
 
 

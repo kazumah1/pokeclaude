@@ -10,9 +10,15 @@ set." The command's output already lists the active setting and all three preset
 so do not restate them.
 
 ```bash
-for d in "$POKECLAUDE_ROOT" "$PWD" "$HOME/pokeclaude" "$HOME/proj/pokeclaude" "$HOME/src/pokeclaude"; do
-  [ -n "$d" ] && [ -f "$d/plugin/scripts/config.py" ] && { python3 "$d/plugin/scripts/config.py" $ARGUMENTS; break; }
+for d in "$POKECLAUDE_ROOT" "$CODEX_PLUGIN_ROOT" "$PLUGIN_ROOT" "$CLAUDE_PLUGIN_ROOT" "$PWD" \
+         "$HOME/pokeclaude" "$HOME/proj/pokeclaude" "$HOME/src/pokeclaude"; do
+  for sub in "plugin/scripts" "scripts"; do
+    if [ -n "$d" ] && [ -f "$d/$sub/config.py" ]; then
+      python3 "$d/$sub/config.py" $ARGUMENTS; exit 0
+    fi
+  done
 done
+echo "pokeclaude: could not locate config.py -- set POKECLAUDE_ROOT to the repo" >&2
 ```
 
 Run with no arguments to show the current setting.

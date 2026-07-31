@@ -13,9 +13,15 @@ Run without `--confirm`. The script prints exactly what would be removed and exi
 2 without changing anything:
 
 ```bash
-for d in "$POKECLAUDE_ROOT" "$PWD" "$HOME/pokeclaude" "$HOME/proj/pokeclaude" "$HOME/src/pokeclaude"; do
-  [ -n "$d" ] && [ -f "$d/plugin/scripts/release.py" ] && { python3 "$d/plugin/scripts/release.py" $ARGUMENTS; break; }
+for d in "$POKECLAUDE_ROOT" "$CODEX_PLUGIN_ROOT" "$PLUGIN_ROOT" "$CLAUDE_PLUGIN_ROOT" "$PWD" \
+         "$HOME/pokeclaude" "$HOME/proj/pokeclaude" "$HOME/src/pokeclaude"; do
+  for sub in "plugin/scripts" "scripts"; do
+    if [ -n "$d" ] && [ -f "$d/$sub/release.py" ]; then
+      python3 "$d/$sub/release.py" $ARGUMENTS; exit 0
+    fi
+  done
 done
+echo "pokeclaude: could not locate release.py -- set POKECLAUDE_ROOT to the repo" >&2
 ```
 
 ## Step 2 — confirm, then re-run with `--confirm`

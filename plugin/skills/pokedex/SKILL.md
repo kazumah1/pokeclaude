@@ -8,9 +8,15 @@ description: Browse the PokeClaude Pokedex — every Pokemon caught across all s
 Run this command:
 
 ```bash
-for d in "$POKECLAUDE_ROOT" "$PWD" "$HOME/pokeclaude" "$HOME/proj/pokeclaude" "$HOME/src/pokeclaude"; do
-  [ -n "$d" ] && [ -f "$d/plugin/scripts/pokedex.py" ] && { python3 "$d/plugin/scripts/pokedex.py" $ARGUMENTS; break; }
+for d in "$POKECLAUDE_ROOT" "$CODEX_PLUGIN_ROOT" "$PLUGIN_ROOT" "$CLAUDE_PLUGIN_ROOT" "$PWD" \
+         "$HOME/pokeclaude" "$HOME/proj/pokeclaude" "$HOME/src/pokeclaude"; do
+  for sub in "plugin/scripts" "scripts"; do
+    if [ -n "$d" ] && [ -f "$d/$sub/pokedex.py" ]; then
+      python3 "$d/$sub/pokedex.py" $ARGUMENTS; exit 0
+    fi
+  done
 done
+echo "pokeclaude: could not locate pokedex.py -- set POKECLAUDE_ROOT to the repo" >&2
 ```
 
 Substitute the user's flags for `$ARGUMENTS`, or omit it for the default view. If
