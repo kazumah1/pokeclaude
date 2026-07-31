@@ -13,9 +13,9 @@ Each row is what has been observed on the real agent, not what the docs promise.
 | Claude Code | verified | verified | verified | full colour inline |
 | Codex CLI | verified | verified | verified | live catch + `/pokedex`, full colour |
 | Kiro CLI | verified | verified | verified | full colour |
-| Codex app | verified | verified | partial | collapsed panel, strips colour |
-| Kiro IDE | verified | verified | partial | collapsed panel, strips colour |
-| Cursor | not tested | not tested | not tested | adapter written from docs only |
+| Codex app | verified | verified | partial | collapsed, strips colour — set `--mono on` |
+| Cursor | verified | verified | partial | collapsed, strips colour — set `--mono on` |
+| Kiro IDE | verified | verified | partial | collapsed, strips colour — set `--mono on` |
 | Copilot CLI | not tested | not tested | not tested | hook events undocumented |
 
 `python3 tools/check_host.py <agent>` runs the real hook with a synthetic turn and
@@ -110,19 +110,26 @@ so whether Kiro surfaces it is untested — check the Agent Hooks panel in the K
 UI to confirm the hook is registered and firing. Catches are recorded either way,
 and `pokedex.py` announces any you did not see.
 
-**Colour support differs by surface in Kiro.** The Kiro CLI preserves truecolour
-and renders sprites correctly. The IDE's tool-call panel strips escapes, which turns
-a render into a flat field of identical blocks, and also collapses the output by
-default so you must expand it.
+## Mono (colour-free) art
 
-No host defaults to mono, because doing so would sacrifice the CLI's good rendering
-for the IDE panel's worse one. In the IDE, opt in:
+CLIs preserve truecolour and render sprites correctly. The GUI surfaces — the Codex
+app, the Cursor agent panel, the Kiro IDE — strip escapes, which turns a render into
+a flat field of identical blocks, and collapse the output so it has to be expanded.
+
+No agent defaults to mono, since that would sacrifice the CLI's good rendering for the
+GUI's worse one. Turn it on for a GUI:
 
 ```bash
-POKECLAUDE_MONO=1 ...     # or pass --mono
+python3 plugin/scripts/config.py --mono on     # solid silhouettes
+python3 plugin/scripts/config.py --mono off    # force colour
+python3 plugin/scripts/config.py --mono auto    # decide per agent (default)
 ```
 
-That draws a solid silhouette at full resolution. Shading ramps (`░▒▓█`) were tried
+This is stored in the config rather than an env var, because a GUI launched from the
+dock inherits no shell environment. `POKECLAUDE_MONO=1` still works for a one-off in a
+CLI, and overrides the config.
+
+The art is a solid silhouette at full resolution. Shading ramps (`░▒▓█`) were tried
 first and are worse — those are dither patterns in most fonts, so at one glyph per
 pixel they render as static rather than tones.
 

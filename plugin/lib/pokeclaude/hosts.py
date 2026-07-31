@@ -162,6 +162,30 @@ def has_colour(host=None):
     return spec(host).get("colour", True)
 
 
+def use_mono(host=None, config=None):
+    """Should art be drawn as shading silhouettes rather than colour?
+
+    Resolved from, in order:
+      1. POKECLAUDE_MONO env var (1/true forces on, 0/false forces off)
+      2. the `mono` key in the user's config, which a GUI launched from the dock
+         can still read even though it inherits no environment
+      3. whether the detected host is known to strip colour
+
+    The env var wins so a CLI on a mono-defaulted setup can opt back to colour for
+    one run, and the config exists because it is the only channel that reaches an
+    app started outside a shell -- the exact surface (Codex app, Kiro IDE, Cursor)
+    that needs mono.
+    """
+    env = os.environ.get("POKECLAUDE_MONO")
+    if env is not None:
+        return env.strip().lower() not in ("", "0", "false", "no", "off")
+    # A null value means "auto" -- treat it as unset, not as off, so it falls
+    # through to the per-agent default rather than forcing colour everywhere.
+    if config and config.get("mono") is not None:
+        return bool(config["mono"])
+    return not has_colour(host)
+
+
 def emit(message, host=None, out=None, err=None):
     """Show `message` to the user through whatever channel this host offers.
 

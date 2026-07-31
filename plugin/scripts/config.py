@@ -90,9 +90,28 @@ def main():
     ap = argparse.ArgumentParser(add_help=False)
     ap.add_argument("preset", nargs="?", default=None)
     ap.add_argument("--tokens", type=int, default=None)
+    ap.add_argument(
+        "--mono", choices=["on", "off", "auto"], default=None,
+        help="draw shading silhouettes instead of colour: for agents whose GUI "
+             "strips colour (Codex app, Kiro IDE, Cursor). 'auto' decides per agent.",
+    )
     args = ap.parse_args()
 
     cfg = store.load_config()
+
+    if args.mono is not None:
+        # Stored in the config so it reaches a GUI launched from the dock, which
+        # sees no environment. 'auto' clears the setting and lets detection decide.
+        value = None if args.mono == "auto" else (args.mono == "on")
+        if not store.save_config({"mono": value}):
+            print(DIM + "  Could not write settings (lock unavailable)." + RESET)
+            return 1
+        state = {True: "on (shading silhouettes)", False: "off (colour)",
+                 None: "auto (decided per agent)"}[value]
+        print("")
+        print("  Art mode: %s." % _c(GOLD, state, bold=True))
+        print("")
+        return 0
 
     if args.tokens is not None:
         if args.tokens < 1000:

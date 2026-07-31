@@ -117,17 +117,13 @@ def main():
     )
     args = ap.parse_args()
 
-    # Hosts that strip ANSI turn a colour render into a flat field of identical
-    # blocks, so those switch to density-based art automatically. --mono forces it
-    # anywhere, and POKECLAUDE_MONO=0 opts back out.
+    # --mono forces silhouettes; otherwise use_mono resolves env var, then the
+    # `mono` config key, then whether the agent strips colour. One resolver so the
+    # pokedex and the catch banner never disagree.
     if not args.mono:
         from pokeclaude import hosts as _hosts
 
-        env_mono = os.environ.get("POKECLAUDE_MONO")
-        if env_mono is not None:
-            args.mono = env_mono not in ("", "0", "false", "no")
-        else:
-            args.mono = not _hosts.has_colour()
+        args.mono = _hosts.use_mono(config=store.load_config())
     # Distinguish "user chose a scale" from "default applied", because the grid
     # and the detail view want different defaults.
     args.scale_given = any(
