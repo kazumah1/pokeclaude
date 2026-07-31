@@ -160,13 +160,12 @@ def render_grid(
             # invisible unless you knew to open the entry.
             want_shiny = bool(caught and caught.get("shiny"))
             blob = _load_sprite(sprites_dir, pid, shiny=want_shiny)
-            if blob is not None:
-                # Mono draws one glyph per pixel where the half-block renderer
-                # draws two, so the same blob comes out twice as tall. Halving it
-                # again keeps a mono cell the same height as a colour one.
-                factor = scale * 2 if mono else scale
-                if factor > 1:
-                    blob = spritelib.downscale(blob, factor)
+            if blob is not None and scale > 1:
+                # Mono is NOT downscaled further to match the colour cell height.
+                # One glyph per pixel makes it twice as tall, and that resolution
+                # is exactly what makes a silhouette readable -- halving it again
+                # produced an unrecognisable smudge. Taller cells are the cost.
+                blob = spritelib.downscale(blob, scale)
             loaded.append((pid, caught, blob))
         rows_per = (lambda h: h) if mono else (lambda h: (h + 1) // 2)
         sprite_h = max(
