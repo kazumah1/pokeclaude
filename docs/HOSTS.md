@@ -57,3 +57,38 @@ Add an entry to `HOSTS` in `plugin/lib/pokeclaude/hosts.py`:
 
 Then add a template in `adapters/<myhost>/` and a detection marker in
 `hosts.detect()`. No other code changes are needed.
+
+
+## Testing a host
+
+Verify the hook works before waiting on a real catch:
+
+```bash
+python3 tools/check_host.py kiro          # probe one host
+python3 tools/check_host.py kiro --show   # and print the banner
+python3 tools/check_host.py --all         # every host
+```
+
+This runs the real hook with a synthetic large turn, so it forces a catch rather
+than depending on luck, and uses a throwaway Pokedex so your collection is
+untouched. It reports which channel the banner came out on and whether colour and
+pixel art survived.
+
+If that passes but no catch ever shows up in the host itself, the problem is the
+host's hook wiring or how it handles that channel — not PokeClaude.
+
+### Kiro specifics
+
+Kiro documents hooks at **workspace** level (`.kiro/hooks/`). A user-level
+`~/.kiro/hooks/` is neither documented nor ruled out, so install both if unsure:
+
+```bash
+python3 install.py --host kiro --workspace /path/to/project
+python3 install.py --host kiro
+```
+
+Kiro's docs say a command hook's stdout is "ignored" for `Stop`, and that stderr
+goes to the agent on exit 2. PokeClaude exits 0 and writes the banner to stderr,
+so whether Kiro surfaces it is untested — check the Agent Hooks panel in the Kiro
+UI to confirm the hook is registered and firing. Catches are recorded either way,
+and `pokedex.py` announces any you did not see.
