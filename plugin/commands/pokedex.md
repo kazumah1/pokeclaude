@@ -42,10 +42,12 @@ Useful arguments to pass through when the user asks:
   the toggle back. Shiny colours are never shown for a species whose shiny you have not
   caught.
 - `--project` — only Pokemon caught while working in this project
-- `--scale 1` — full 64px sprites. Renders 12-26KB depending on the species, which
-  straddles the size at which Claude Code persists output to a file and shows only a
-  preview; whether it appears inline is therefore not predictable. Pass it when the user
-  explicitly asks for maximum detail, and expect they may need ctrl+o.
+- `--scale 1` — full 64px sprites. Renders 10-33KB depending on the species, which for 1001
+  of 1025 species crosses the size where Claude Code persists the hook output to a file and
+  logs a truncated duplicate preview underneath the (still fully rendered) art. This is not
+  an occasional edge case at this scale -- expect it basically every time. Pass it when the
+  user explicitly wants real 64px detail and is fine with a saved file and a duplicate
+  preview appearing below the sprite.
 
 `--project` scopes to the current repo (git toplevel, else the working directory), so it
 answers "how has my luck been on *this* project". It combines with the other flags, e.g.

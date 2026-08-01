@@ -118,7 +118,17 @@ def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_si
         DIM + "/pokeclaude:pokedex to browse" + RESET,
     ]
 
-    # Halve the art only if it genuinely does not fit beside the info column.
+    # Cap the base sprite at 32px (half the stored 64px) unconditionally. This
+    # banner is emitted as a hook `systemMessage`, and those are hard-capped at
+    # 10,000 characters with no override -- past that Claude Code truncates to
+    # a file preview, which for a catch banner means the reveal itself gets cut.
+    # At true 64px, roughly an eighth of the roster (the larger, more detailed
+    # newer-gen sprites) composes past that cap; 32px stays comfortably under it
+    # for every species while still reading clearly larger than the Pokedex
+    # grid's 16px cells.
+    blob = spritelib.downscale(blob, 2)
+
+    # Halve again only if it genuinely does not fit beside the info column.
     #
     # The info width is MEASURED, not assumed. It used to be a hardcoded 34,
     # which was the widest line back when the longest was "/pokeclaude:pokedex
