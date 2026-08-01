@@ -86,9 +86,9 @@ def main():
     ap.add_argument("--stats", action="store_true")
     ap.add_argument("--width", type=int, default=None, help="override terminal width")
     ap.add_argument(
-        "--scale", type=int, default=3,
+        "--scale", type=int, default=4,
         help="sprite divisor: 1 = full 64px, 2 = 32px (detail default), "
-             "3 = 21px (grid default)"
+             "3 = 21px, 4 = 16px (grid default)"
     )
     ap.add_argument(
         "--project",
@@ -170,11 +170,16 @@ def main():
             print("No sprite for #%d" % pid)
             return 1
 
-        # A 64px sprite renders to 10-19KB because ~88% of the bytes are colour
-        # escapes. That exceeds the size at which Claude Code persists tool
-        # output to a file and shows only a 2KB preview -- which truncated the
-        # art mid-sprite. 32px lands at 3.5-6KB and always survives intact.
-        # --scale 1 still gives the full-resolution view for ctrl+o.
+        # A 64px sprite renders to 10-33KB because ~88% of the bytes are colour
+        # escapes. Claude Code separately persists any hook systemMessage over
+        # ~10,000 characters to a file on disk and logs a truncated duplicate in
+        # the transcript underneath the (still fully rendered) art -- there is no
+        # flag to keep the content but skip that side effect. Checked across the
+        # full roster: --scale 1 crosses that line for 1001 of 1025 species, so
+        # it does this almost every time, not just for unlucky species. Clamping
+        # it to 32px was tried and reverted -- losing the resolution bump was
+        # worse than the saved-file tradeoff, so --scale 1 is opt-in as-is:
+        # accept the persisted file and duplicate preview for real 64px detail.
         detail_scale = args.scale if args.scale_given else 2
         if detail_scale > 1:
             from pokeclaude import sprite as spritelib
@@ -304,7 +309,19 @@ def main():
     scale = max(1, args.scale)
     cell_w = 64 // scale
     cols = args.cols or dex.fit_columns(width, cell_w)
-    per = max(1, args.per_page or cols * 3)  # three rows per page by default
+    # Fixed page budget, independent of terminal width. Tying this to cols (e.g.
+    # "three rows" = cols * 3) let a wide terminal fit more columns and thus MORE
+    # sprites per page. The binding constraint isn't the ~30KB Bash output limit
+    # (raising per-page count alone still fits under that) -- it's that the
+    # PostToolUse hook re-emits this same text as a `systemMessage`, and hook
+    # output strings are hard-capped at 10,000 characters with no override
+    # (unlike BASH_MAX_OUTPUT_LENGTH). Past that, Claude Code saves it to a file
+    # and shows only a preview, which is the truncation this page must never
+    # trigger. 4 entries at scale 4 measures 6.5-8KB even in adversarial cases
+    # (max dupes, all-shiny, the largest sprites in the roster) -- comfortably
+    # under 10,000 at any terminal width, since page size no longer depends on
+    # cols.
+    per = max(1, args.per_page or 4)
 
     pages = max(1, (len(ids) + per - 1) // per)
     page = min(max(1, args.page), pages)

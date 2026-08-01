@@ -17,8 +17,16 @@ import os
 import sys
 
 MARKERS = ("pokedex.py", "release.py", "config.py")
-# A systemMessage is a single UI string; a very long one would flood the view, and
-# the pokedex is paginated precisely so it does not need to.
+# A systemMessage still paints in full colour live even past several KB (verified:
+# a 12.9KB `--scale 1` detail view rendered completely) -- Claude Code separately
+# logs a size-capped "<persisted-output>" summary of the hook's own stdout in the
+# transcript underneath it, which is cosmetic noise, not a sign the paint failed.
+# Lowering this to chase that cosmetic duplicate away (previously tried, 9_500)
+# was a mistake: it made the hook bail and print nothing, which loses the live
+# render entirely instead of just tidying up the line under it. 60,000 is a
+# backstop for genuinely huge output; anything that big has almost always already
+# been replaced with Claude Code's own "<persisted-output>" wrapper before it
+# reaches here, which the check below catches directly.
 MAX_CHARS = 60_000
 
 
