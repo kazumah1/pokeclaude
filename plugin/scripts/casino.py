@@ -26,7 +26,7 @@ def _emit(summary):
 def _apply_result(payout, is_win, pot_size=0):
     """Move the bankroll by a signed payout and update stats. Returns new state."""
     def mut(s):
-        s["bankroll"] += payout
+        s["bankroll"] = max(0, s["bankroll"] + payout)
         s["stats"]["hands"] += 1
         s["stats"]["net"] += payout
         if is_win:
@@ -71,7 +71,7 @@ def cmd_bj(args):
     if args.bj_cmd == "deal":
         if args.bet <= 0:
             return {"error": "bet must be positive", "bankroll": s["bankroll"]}
-        if args.bet > s["bankroll"]:
+        if s["config"]["stakes"] != "real" and args.bet > s["bankroll"]:
             return {"error": "bet exceeds bankroll", "bankroll": s["bankroll"]}
         game = blackjack.new_game(args.bet, rng.make_seed())
         _save_game(game, "blackjack")
@@ -82,7 +82,8 @@ def cmd_bj(args):
     game = _load_game("blackjack")
     if game is None:
         return {"error": "no blackjack game open", "bankroll": s["bankroll"]}
-    if args.bj_cmd == "double" and 2 * game["bet"] > s["bankroll"]:
+    if (args.bj_cmd == "double" and s["config"]["stakes"] != "real"
+            and 2 * game["bet"] > s["bankroll"]):
         return {"error": "insufficient bankroll to double", "bankroll": s["bankroll"]}
     try:
         game = blackjack.act(game, args.bj_cmd)
@@ -106,7 +107,8 @@ def _bj_summary(game, bankroll_now):
 def _bj_finish(game):
     payout = game["payout"]
     loss = -payout if payout < 0 else 0
-    burn = bankroll.resolve_burn(loss, store.load()["config"], os.environ)
+    s = store.load()
+    _bankroll_after, burn = bankroll.settle_loss(loss, s["bankroll"], s["config"], os.environ)
     state = _apply_result(payout, is_win=payout > 0)
     store.write_frame(render_table.blackjack_frame(game["player"], game["dealer"], False))
     _clear_game()
@@ -134,7 +136,7 @@ def cmd_roulette(args):
             except ValueError as e:
                 return {"error": str(e), "bankroll": s["bankroll"]}
         staked = sum(a for _k, _sel, a in parsed) + sum(a for _k, _sel, a in game["bets"])
-        if staked > s["bankroll"]:
+        if s["config"]["stakes"] != "real" and staked > s["bankroll"]:
             return {"error": "total bets exceed bankroll", "bankroll": s["bankroll"]}
         game["bets"].extend(parsed)
         _save_game(game, "roulette")
@@ -146,7 +148,7 @@ def cmd_roulette(args):
         number = roulette.spin(rng.make_seed())
         total_return, net = roulette.resolve(game["bets"], number)
         loss = -net if net < 0 else 0
-        burn = bankroll.resolve_burn(loss, s["config"], os.environ)
+        _bankroll_after, burn = bankroll.settle_loss(loss, s["bankroll"], s["config"], os.environ)
         state = _apply_result(net, is_win=net > 0)
         store.write_frame(render_table.roulette_frame(number))
         _clear_game()
@@ -205,9 +207,10 @@ def cmd_holdem(args):
 def _holdem_finish(game):
     hero_delta = game["result"].get(0, 0)
     loss = -hero_delta if hero_delta < 0 else 0
-    burn = bankroll.resolve_burn(loss, store.load()["config"], os.environ)
+    s = store.load()
+    _bankroll_after, burn = bankroll.settle_loss(loss, s["bankroll"], s["config"], os.environ)
     state = _apply_result(hero_delta, is_win=hero_delta > 0, pot_size=game["pot"])
-    revealed = [s["hole"] for s in game["seats"] if not s["folded"]]
+    revealed = [seat["hole"] for seat in game["seats"] if not seat["folded"]]
     store.write_frame(render_table.holdem_frame(
         game["seats"][0]["hole"], game["board"], len(game["seats"]) - 1,
         revealed=revealed))

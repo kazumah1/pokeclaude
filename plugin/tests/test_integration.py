@@ -119,3 +119,39 @@ def test_blackjack_double_cannot_overdraw_bankroll(casino_home, monkeypatch):
     assert store.load()["bankroll"] == 10000                # unchanged
     # Bankroll must never go negative regardless of path.
     assert store.load()["bankroll"] >= 0
+
+
+def test_real_mode_allows_overdraw_bet(casino_home, monkeypatch):
+    cli = _load_cli()
+    from casino import store, roulette
+    cli.dispatch(["stakes", "real"])
+    # 15000 > 10000 bankroll, allowed in real mode
+    out = cli.dispatch(["roulette", "bet", "15000 on 7"])
+    assert "error" not in out
+    # force a loss: spin lands on 8, not 7
+    monkeypatch.setattr(roulette, "spin", lambda seed: 8)
+    res = cli.dispatch(["roulette", "spin"])
+    assert res["payout"] == -15000
+    assert res["burn"] == 5000            # shortfall 15000 - 10000, under the 20000 cap
+    assert store.load()["bankroll"] == 0  # floored, never negative
+
+
+def test_sim_mode_still_rejects_overdraw_bet(casino_home):
+    cli = _load_cli()
+    from casino import store
+    # default stakes are sim
+    out = cli.dispatch(["roulette", "bet", "15000 on 7"])
+    assert out.get("error")
+    assert store.load()["bankroll"] == 10000  # unchanged
+
+
+def test_real_mode_funded_loss_does_not_burn(casino_home, monkeypatch):
+    cli = _load_cli()
+    from casino import store, roulette
+    cli.dispatch(["stakes", "real"])
+    cli.dispatch(["roulette", "bet", "100 on 7"])
+    monkeypatch.setattr(roulette, "spin", lambda seed: 8)  # lose 100
+    res = cli.dispatch(["roulette", "spin"])
+    assert res["payout"] == -100
+    assert res["burn"] == 0                       # fully shielded by bankroll
+    assert store.load()["bankroll"] == 10000 - 100
