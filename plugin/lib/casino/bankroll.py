@@ -39,3 +39,19 @@ def credit_amount(turn_tokens, config):
         return 0
     mult = float(config.get("earn_multiplier", DEFAULT_EARN_MULTIPLIER))
     return int(math.floor(turn_tokens * mult))
+
+
+def settle_loss(loss, bankroll_before, config, env):
+    """Resolve a losing hand under the merged bankroll.
+
+    A funded bankroll fully shields the loss; only the uncovered "red" burns.
+    Returns (bankroll_after, burn). Bankroll never goes negative. resolve_burn
+    keeps burn real-mode-only, capped, and kill-switchable, so this can only ever
+    reduce the burn a player would owe, never bypass those gates.
+    """
+    if loss <= 0:
+        return bankroll_before, 0
+    shortfall = max(0, loss - bankroll_before)
+    burn = resolve_burn(shortfall, config, env)
+    bankroll_after = max(0, bankroll_before - loss)
+    return bankroll_after, burn
