@@ -181,3 +181,26 @@ def test_roulette_loss_grants_nothing(casino_home, pokeclaude_home, monkeypatch)
     res = cli.dispatch(["roulette", "spin"])
     assert res["payout"] == -100
     assert res["granted"] is None
+
+
+def test_sell_subcommand_round_trips_price_to_bankroll(casino_home, pokeclaude_home):
+    cli = _load_cli()
+    from casino import store
+    from pokeclaude import store as dex_store
+    dex_store.record_catch(25, path=dex_store.DEX_PATH)
+    dex_store.record_catch(25, path=dex_store.DEX_PATH)  # two Pikachu
+    out = cli.dispatch(["sell", "pikachu"])
+    assert out["sold"] == {"name": "pikachu", "tier": "COMMON", "price": 500}
+    assert out["bankroll"] == 10000 + 500
+    assert store.load()["bankroll"] == 10000 + 500
+
+
+def test_sell_subcommand_last_copy_needs_confirm(casino_home, pokeclaude_home):
+    cli = _load_cli()
+    from pokeclaude import store as dex_store
+    dex_store.record_catch(25, path=dex_store.DEX_PATH)  # one Pikachu
+    out = cli.dispatch(["sell", "pikachu"])
+    assert out.get("needs_confirm") is True
+    out2 = cli.dispatch(["sell", "pikachu", "--confirm"])
+    assert out2["sold"]["price"] == 500
+    assert 25 not in dex_store.caught_ids(path=dex_store.DEX_PATH)

@@ -74,6 +74,10 @@ def cmd_reset(args):
             % bankroll.START_STAKE}
 
 
+def cmd_sell(args):
+    return economy.sell_species(args.target, confirm=args.confirm)
+
+
 # ---- blackjack ----------------------------------------------------------
 
 def cmd_bj(args):
@@ -299,6 +303,10 @@ def _build_parser():
     sp = sub.add_parser("stakes"); sp.add_argument("mode")
     sub.add_parser("reset")
 
+    se = sub.add_parser("sell")
+    se.add_argument("target")
+    se.add_argument("--confirm", action="store_true")
+
     bj = sub.add_parser("bj"); bjs = bj.add_subparsers(dest="bj_cmd", required=True)
     d = bjs.add_parser("deal"); d.add_argument("--bet", type=int, required=True)
     bjs.add_parser("hit"); bjs.add_parser("stand"); bjs.add_parser("double")
@@ -319,6 +327,7 @@ def _build_parser():
 
 _HANDLERS = {
     "balance": cmd_balance, "stakes": cmd_stakes, "reset": cmd_reset,
+    "sell": cmd_sell,
     "bj": cmd_bj, "roulette": cmd_roulette, "holdem": cmd_holdem,
 }
 
