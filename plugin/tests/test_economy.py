@@ -63,3 +63,64 @@ def test_grant_on_win_rare_falls_back_and_still_grants(pokeclaude_home):
     # but the species actually granted is from the fallback band (LEGENDARY)
     assert encounter.rarity_tier(granted["id"]) == "LEGENDARY"
     assert granted["id"] in dex_store.caught_ids(path=dex_store.DEX_PATH)
+
+
+def _give(species_id, times, pokeclaude_home):
+    from pokeclaude import store as dex_store
+    for _ in range(times):
+        dex_store.record_catch(species_id, path=dex_store.DEX_PATH)
+
+
+def test_sell_unknown_species_errors(pokeclaude_home, casino_home):
+    out = economy.sell_species("notapokemon", confirm=False)
+    assert "error" in out
+
+
+def test_sell_not_owned_errors_no_mutation(pokeclaude_home, casino_home):
+    from casino import store as casino_store
+    out = economy.sell_species("pikachu", confirm=False)  # id 25, not caught
+    assert out["error"] == "you don't own pikachu"
+    assert casino_store.load()["bankroll"] == 10000  # unchanged
+
+
+def test_sell_last_copy_needs_confirm_no_mutation(pokeclaude_home, casino_home):
+    from pokeclaude import store as dex_store
+    from casino import store as casino_store
+    _give(25, 1, pokeclaude_home)  # one Pikachu
+    out = economy.sell_species("pikachu", confirm=False)
+    assert out.get("needs_confirm") is True
+    # still owned, bankroll untouched
+    assert 25 in dex_store.caught_ids(path=dex_store.DEX_PATH)
+    assert casino_store.load()["bankroll"] == 10000
+
+
+def test_sell_duplicate_decrements_and_credits(pokeclaude_home, casino_home):
+    from pokeclaude import store as dex_store
+    from casino import store as casino_store
+    _give(25, 2, pokeclaude_home)  # two Pikachu (COMMON)
+    out = economy.sell_species("pikachu", confirm=False)
+    assert out["sold"] == {"name": "pikachu", "tier": "COMMON", "price": 500}
+    assert out["bankroll"] == 10000 + 500
+    # count went 2 -> 1, still owned
+    dex = dex_store.load(path=dex_store.DEX_PATH)
+    assert dex["caught"]["25"]["count"] == 1
+    assert dex["totals"]["catches"] == 1
+    assert casino_store.load()["bankroll"] == 10000 + 500
+
+
+def test_sell_last_copy_with_confirm_removes_and_credits(pokeclaude_home, casino_home):
+    from pokeclaude import store as dex_store
+    from casino import store as casino_store
+    _give(25, 1, pokeclaude_home)
+    out = economy.sell_species("pikachu", confirm=True)
+    assert out["sold"]["price"] == 500
+    assert out["bankroll"] == 10000 + 500
+    # species key removed entirely at count 0
+    assert 25 not in dex_store.caught_ids(path=dex_store.DEX_PATH)
+    assert dex_store.load(path=dex_store.DEX_PATH)["totals"]["catches"] == 0
+
+
+def test_sell_accepts_numeric_id(pokeclaude_home, casino_home):
+    _give(25, 2, pokeclaude_home)
+    out = economy.sell_species("25", confirm=False)
+    assert out["sold"]["name"] == "pikachu"

@@ -106,3 +106,66 @@ def grant_on_win(net_payout, total_staked):
         return None
     name = (load_meta().get(str(pid)) or {}).get("name", "pokemon")
     return {"id": pid, "name": name, "tier": won_tier}
+
+
+def _resolve_species(target, meta):
+    """Map a user-supplied name or dex number to a species id (mirrors
+    pokeclaude's release.resolve)."""
+    t = str(target).strip().lower()
+    if t.isdigit():
+        return int(t) if str(int(t)) in meta else None
+    for k, v in meta.items():
+        if (v.get("name") or "").lower() == t:
+            return int(k)
+    return None
+
+
+def sell_species(name_or_id, confirm):
+    """Sell one copy of a species for its rarity price, crediting the bankroll.
+
+    Decrements the GLOBAL owned count (the source of truth for ownership) via
+    pokeclaude's own transaction/lock; project catch-history tallies are left
+    intact (they record catches that happened, not current inventory). The last
+    copy requires confirm, mirroring pokeclaude's release --confirm safety.
+    """
+    meta = load_meta()
+    sid = _resolve_species(name_or_id, meta)
+    if sid is None:
+        return {"error": "unknown pokemon: %s" % name_or_id}
+    key = str(sid)
+    name = (meta.get(key) or {}).get("name", "#%d" % sid)
+
+    dex = dex_store.load(path=dex_store.DEX_PATH)
+    entry = (dex.get("caught") or {}).get(key)
+    count = entry.get("count", 0) if isinstance(entry, dict) else 0
+    if count <= 0:
+        return {"error": "you don't own %s" % name}
+    if count == 1 and not confirm:
+        return {"needs_confirm": True,
+                "msg": "Selling your last %s removes it from the Pokedex. "
+                       "Re-run with --confirm." % name}
+
+    tier = encounter.rarity_tier(sid)
+    price = PRICE[tier]
+
+    def _decrement(d):
+        caught = d.get("caught") or {}
+        e = caught.get(key)
+        if not isinstance(e, dict):
+            return None  # vanished under a concurrent sale
+        e["count"] = e.get("count", 1) - 1
+        d["totals"]["catches"] = max(0, d.get("totals", {}).get("catches", 0) - 1)
+        if e["count"] <= 0:
+            del caught[key]
+        return e.get("count", 0)
+
+    new_count = dex_store.transaction(_decrement, path=dex_store.DEX_PATH)
+    if new_count is None:
+        return {"error": "could not update the Pokedex — nothing was sold"}
+
+    st = casino_store.transaction(lambda s: s.__setitem__("bankroll",
+                                                          s["bankroll"] + price))
+    if st is None:
+        st = casino_store.load()
+    return {"sold": {"name": name, "tier": tier, "price": price},
+            "bankroll": st["bankroll"]}
