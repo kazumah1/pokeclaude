@@ -155,3 +155,29 @@ def test_real_mode_funded_loss_does_not_burn(casino_home, monkeypatch):
     assert res["payout"] == -100
     assert res["burn"] == 0                       # fully shielded by bankroll
     assert store.load()["bankroll"] == 10000 - 100
+
+
+def test_roulette_straight_up_win_grants_mythical(casino_home, pokeclaude_home, monkeypatch):
+    cli = _load_cli()
+    from casino import store, roulette
+    from pokeclaude import store as dex_store, encounter
+    cli.dispatch(["roulette", "bet", "100 on 7"])
+    monkeypatch.setattr(roulette, "spin", lambda seed: 7)  # straight-up hit, 35:1
+    res = cli.dispatch(["roulette", "spin"])
+    assert res["payout"] == 3500
+    assert res["granted"] is not None
+    assert res["granted"]["tier"] == "MYTHICAL"
+    assert res["granted"]["id"] in dex_store.caught_ids(path=dex_store.DEX_PATH)
+    # the frame carries the catch line
+    with open(store.frame_path()) as f:
+        assert "Caught" in f.read()
+
+
+def test_roulette_loss_grants_nothing(casino_home, pokeclaude_home, monkeypatch):
+    cli = _load_cli()
+    from casino import roulette
+    cli.dispatch(["roulette", "bet", "100 on 7"])
+    monkeypatch.setattr(roulette, "spin", lambda seed: 8)  # miss
+    res = cli.dispatch(["roulette", "spin"])
+    assert res["payout"] == -100
+    assert res["granted"] is None

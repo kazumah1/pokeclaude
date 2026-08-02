@@ -14,7 +14,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "lib"))
 
 from casino import (  # noqa: E402
-    bankroll, blackjack, cards, holdem, rng, roulette, render_table, store,
+    bankroll, blackjack, cards, economy, holdem, rng, roulette, render_table, store,
 )
 
 
@@ -33,6 +33,16 @@ def _apply_result(payout, is_win, pot_size=0):
             s["stats"]["wins"] += 1
         s["stats"]["biggest_pot"] = max(s["stats"]["biggest_pot"], pot_size)
     return store.transaction(mut) or store.load()
+
+
+def _grant_and_frame(frame_text, net_payout, total_staked):
+    """Grant one Pokemon on a net win and append a catch line to the frame.
+    Returns the `granted` dict (or None). The frame is written here."""
+    granted = economy.grant_on_win(net_payout, total_staked) if net_payout > 0 else None
+    if granted:
+        frame_text = frame_text + "\n✨ Caught %s!" % granted["name"]
+    store.write_frame(frame_text)
+    return granted
 
 
 # ---- top-level commands -------------------------------------------------
@@ -110,10 +120,11 @@ def _bj_finish(game):
     s = store.load()
     _bankroll_after, burn = bankroll.settle_loss(loss, s["bankroll"], s["config"], os.environ)
     state = _apply_result(payout, is_win=payout > 0)
-    store.write_frame(render_table.blackjack_frame(game["player"], game["dealer"], False))
+    frame = render_table.blackjack_frame(game["player"], game["dealer"], False)
+    granted = _grant_and_frame(frame, payout, game["bet"])
     _clear_game()
     return {"bankroll": state["bankroll"], "outcome": game["outcome"],
-            "payout": payout, "burn": burn,
+            "payout": payout, "burn": burn, "granted": granted,
             "msg": "%s — net %+d tokens." % (game["outcome"], payout)}
 
 
@@ -150,10 +161,12 @@ def cmd_roulette(args):
         loss = -net if net < 0 else 0
         _bankroll_after, burn = bankroll.settle_loss(loss, s["bankroll"], s["config"], os.environ)
         state = _apply_result(net, is_win=net > 0)
-        store.write_frame(render_table.roulette_frame(number))
+        staked = sum(a for _k, _sel, a in game["bets"])
+        frame = render_table.roulette_frame(number)
+        granted = _grant_and_frame(frame, net, staked)
         _clear_game()
         return {"bankroll": state["bankroll"], "number": number, "payout": net,
-                "burn": burn, "color": _roulette_color(number),
+                "burn": burn, "granted": granted, "color": _roulette_color(number),
                 "msg": "Landed on %d. Net %+d tokens." % (number, net)}
 
 
@@ -211,12 +224,13 @@ def _holdem_finish(game):
     _bankroll_after, burn = bankroll.settle_loss(loss, s["bankroll"], s["config"], os.environ)
     state = _apply_result(hero_delta, is_win=hero_delta > 0, pot_size=game["pot"])
     revealed = [seat["hole"] for seat in game["seats"] if not seat["folded"]]
-    store.write_frame(render_table.holdem_frame(
+    frame = render_table.holdem_frame(
         game["seats"][0]["hole"], game["board"], len(game["seats"]) - 1,
-        revealed=revealed))
+        revealed=revealed)
+    granted = _grant_and_frame(frame, hero_delta, game["seats"][0]["committed_total"])
     _clear_game()
     return {"bankroll": state["bankroll"], "result": game["result"],
-            "payout": hero_delta, "burn": burn,
+            "payout": hero_delta, "burn": burn, "granted": granted,
             "board": [cards.card_code(c) for c in game["board"]],
             "msg": "Showdown. You netted %+d tokens." % hero_delta}
 
