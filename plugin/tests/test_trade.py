@@ -100,3 +100,42 @@ def test_gift_last_copy_removes_species_key():
     out = trade.gift_species("25")                 # by numeric id
     assert out["gifted"]["id"] == 25
     assert 25 not in store.caught_ids(path=store.DEX_PATH)   # key gone at 0
+
+
+def test_claim_invalid_code_errors():
+    out = trade.claim_trade("POKETRADE-garbage!!!")
+    assert out["error"] == "not a valid trade code"
+
+
+def test_gift_then_claim_round_trip():
+    from pokeclaude import store
+    _give(25, 1)
+    code = trade.gift_species("pikachu")["code"]     # giver side: count 25 -> gone
+    # Simulate the claimer's separate machine by clearing the giver's dex first:
+    store.release(path=store.DEX_PATH)               # empty the (now already-empty) dex
+    out = trade.claim_trade(code)
+    assert out["received"] == {"name": "pikachu", "id": 25}
+    assert out["count"] == 1
+    assert 25 in store.caught_ids(path=store.DEX_PATH)
+
+
+def test_claim_same_code_twice_is_courtesy_blocked():
+    _give_none = None
+    code = trade._encode({"v": 1, "id": 25, "name": "pikachu", "tid": "dup123"})
+    first = trade.claim_trade(code)
+    assert first["received"]["id"] == 25
+    second = trade.claim_trade(code)
+    assert second["error"] == "already claimed this trade"
+    # only one copy recorded despite two claims
+    from pokeclaude import store
+    assert store.load(path=store.DEX_PATH)["caught"]["25"]["count"] == 1
+
+
+def test_claim_different_tid_same_species_still_claims():
+    code_a = trade._encode({"v": 1, "id": 25, "name": "pikachu", "tid": "aaa"})
+    code_b = trade._encode({"v": 1, "id": 25, "name": "pikachu", "tid": "bbb"})
+    trade.claim_trade(code_a)
+    out = trade.claim_trade(code_b)
+    assert out["received"]["id"] == 25              # per-trade guard, not per-species
+    from pokeclaude import store
+    assert store.load(path=store.DEX_PATH)["caught"]["25"]["count"] == 2

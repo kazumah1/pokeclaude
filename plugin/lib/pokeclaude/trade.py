@@ -122,3 +122,47 @@ def gift_species(name_or_id):
     return {"gifted": {"name": name, "id": sid}, "code": code,
             "msg": "Gifted %s — its copy left your Pokedex. Send this code to a "
                    "friend, who runs: trade claim <code>." % name}
+
+
+_CLAIM_KEY = "trade"          # namespace inside pokeclaude's state.json
+_CLAIMED_FIELD = "claimed"    # list of claimed tids
+
+
+def _claimed_tids():
+    state = store.load_state(path=store.STATE_PATH)
+    entry = state.get(_CLAIM_KEY) or {}
+    tids = entry.get(_CLAIMED_FIELD)
+    return list(tids) if isinstance(tids, list) else []
+
+
+def _mark_claimed(tid):
+    """Append `tid` to the claimed list under the pokedex lock. Best-effort: the
+    list is disposable courtesy bookkeeping, never the collection."""
+    tids = _claimed_tids()
+    if tid not in tids:
+        tids.append(tid)
+    store.update_session_state(_CLAIM_KEY, {_CLAIMED_FIELD: tids},
+                               path=store.STATE_PATH)
+
+
+def claim_trade(code):
+    """Decode a trade code and record the species into this Pokedex."""
+    payload = _decode(code)
+    if payload is None:
+        return {"error": "not a valid trade code"}
+    sid = payload.get("id")
+    name = payload.get("name", "#%s" % sid)
+    tid = payload.get("tid")
+
+    if tid and tid in _claimed_tids():
+        return {"error": "already claimed this trade"}
+
+    result = store.record_catch(int(sid), path=store.DEX_PATH)
+    if result is None:
+        return {"error": "pokedex busy — try again"}
+
+    if tid:
+        _mark_claimed(tid)
+    return {"received": {"name": name, "id": int(sid)},
+            "count": result.get("count", 1),
+            "msg": "✨ Received %s!" % name}
