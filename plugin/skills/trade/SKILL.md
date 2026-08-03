@@ -20,8 +20,9 @@ python3 "${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT}}/scripts/trade.py" <args>
 
 ## What to tell the user
 
-- **Gifting releases your copy immediately** (even if the code is never sent) — the
-  safe direction, so a Pokémon can never exist in two Pokédexes at once.
+- **Gifting releases your copy immediately** (even if the code is never sent) — your
+  copy is gone before the code can be claimed, so **gifting never duplicates a
+  Pokémon on your side**.
 - **It's trust-based.** A code is plain text: claiming the same code twice on one
   machine is refused, but a code can be forwarded to several people, each receiving
   a copy. There is no server to prevent this by design. Trade with people you trust.
