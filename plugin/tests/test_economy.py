@@ -124,3 +124,26 @@ def test_sell_accepts_numeric_id(pokeclaude_home, casino_home):
     _give(25, 2, pokeclaude_home)
     out = economy.sell_species("25", confirm=False)
     assert out["sold"]["name"] == "pikachu"
+
+
+def test_sell_last_copy_race_still_needs_confirm(pokeclaude_home, casino_home, monkeypatch):
+    """A concurrent 2->1 sale between the pre-check and the lock must NOT let the
+    final copy sell without --confirm — the gate is re-checked inside the lock."""
+    from pokeclaude import store as dex_store
+    dex_store.record_catch(25, path=dex_store.DEX_PATH)
+    dex_store.record_catch(25, path=dex_store.DEX_PATH)  # count 2
+
+    real_txn = dex_store.transaction
+    fired = {"done": False}
+    def racing_txn(mutate, path=None):
+        if not fired["done"]:
+            fired["done"] = True
+            # another session sells one copy (2 -> 1), committed before our lock
+            real_txn(lambda d: d["caught"]["25"].__setitem__("count", 1),
+                     path=dex_store.DEX_PATH)
+        return real_txn(mutate, path=path)
+    monkeypatch.setattr(dex_store, "transaction", racing_txn)
+
+    out = economy.sell_species("pikachu", confirm=False)
+    assert out.get("needs_confirm") is True
+    assert 25 in dex_store.caught_ids(path=dex_store.DEX_PATH)   # last copy NOT sold

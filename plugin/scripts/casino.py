@@ -23,16 +23,31 @@ def _emit(summary):
     return 0
 
 
-def _apply_result(payout, is_win, pot_size=0):
-    """Move the bankroll by a signed payout and update stats. Returns new state."""
+def _settle(payout, is_win, pot_size=0):
+    """Apply a signed payout to the bankroll, update stats, AND compute the
+    real-token burn — all under ONE lock. Reading the pre-loss bankroll,
+    computing the burn from it, and deducting the loss happen against the same
+    locked snapshot, so a concurrent credit cannot make `burn` diverge from the
+    balance the loss is actually charged against. Returns (state, burn).
+
+    For a loss, settle_loss's floored bankroll_after equals max(0, bankroll+payout);
+    for a win/push, settle_loss returns burn 0 and does not add winnings, so the
+    bankroll move stays the explicit max(0, bankroll + payout)."""
+    box = {"burn": 0}
     def mut(s):
+        loss = -payout if payout < 0 else 0
+        _after, box["burn"] = bankroll.settle_loss(
+            loss, s["bankroll"], s["config"], os.environ)
         s["bankroll"] = max(0, s["bankroll"] + payout)
         s["stats"]["hands"] += 1
         s["stats"]["net"] += payout
         if is_win:
             s["stats"]["wins"] += 1
         s["stats"]["biggest_pot"] = max(s["stats"]["biggest_pot"], pot_size)
-    return store.transaction(mut) or store.load()
+    state = store.transaction(mut)
+    if state is None:            # lock unavailable -> nothing deducted, nothing owed
+        return store.load(), 0
+    return state, box["burn"]
 
 
 def _grant_and_frame(frame_text, net_payout, total_staked):
@@ -120,10 +135,7 @@ def _bj_summary(game, bankroll_now):
 
 def _bj_finish(game):
     payout = game["payout"]
-    loss = -payout if payout < 0 else 0
-    s = store.load()
-    _bankroll_after, burn = bankroll.settle_loss(loss, s["bankroll"], s["config"], os.environ)
-    state = _apply_result(payout, is_win=payout > 0)
+    state, burn = _settle(payout, is_win=payout > 0)
     frame = render_table.blackjack_frame(game["player"], game["dealer"], False)
     granted = _grant_and_frame(frame, payout, game["bet"])
     _clear_game()
@@ -162,9 +174,7 @@ def cmd_roulette(args):
             return {"error": "no bets placed", "bankroll": s["bankroll"]}
         number = roulette.spin(rng.make_seed())
         total_return, net = roulette.resolve(game["bets"], number)
-        loss = -net if net < 0 else 0
-        _bankroll_after, burn = bankroll.settle_loss(loss, s["bankroll"], s["config"], os.environ)
-        state = _apply_result(net, is_win=net > 0)
+        state, burn = _settle(net, is_win=net > 0)
         staked = sum(a for _k, _sel, a in game["bets"])
         frame = render_table.roulette_frame(number)
         granted = _grant_and_frame(frame, net, staked)
@@ -223,10 +233,7 @@ def cmd_holdem(args):
 
 def _holdem_finish(game):
     hero_delta = game["result"].get(0, 0)
-    loss = -hero_delta if hero_delta < 0 else 0
-    s = store.load()
-    _bankroll_after, burn = bankroll.settle_loss(loss, s["bankroll"], s["config"], os.environ)
-    state = _apply_result(hero_delta, is_win=hero_delta > 0, pot_size=game["pot"])
+    state, burn = _settle(hero_delta, is_win=hero_delta > 0, pot_size=game["pot"])
     revealed = [seat["hole"] for seat in game["seats"] if not seat["folded"]]
     frame = render_table.holdem_frame(
         game["seats"][0]["hole"], game["board"], len(game["seats"]) - 1,

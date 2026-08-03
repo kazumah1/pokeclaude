@@ -120,13 +120,20 @@ def _resolve_species(target, meta):
     return None
 
 
+def _needs_confirm(name):
+    return {"needs_confirm": True,
+            "msg": "Selling your last %s removes it from the Pokedex. "
+                   "Re-run with --confirm." % name}
+
+
 def sell_species(name_or_id, confirm):
     """Sell one copy of a species for its rarity price, crediting the bankroll.
 
-    Decrements the GLOBAL owned count (the source of truth for ownership) via
-    pokeclaude's own transaction/lock; project catch-history tallies are left
-    intact (they record catches that happened, not current inventory). The last
-    copy requires confirm, mirroring pokeclaude's release --confirm safety.
+    Decrements the GLOBAL owned count and the global catch tally via pokeclaude's
+    own transaction/lock. Selling the last copy removes the species and requires
+    confirm, mirroring pokeclaude's release --confirm safety; that gate is
+    enforced INSIDE the lock, so a concurrent sale that drops the count to its
+    last copy cannot slip an unconfirmed removal through.
     """
     meta = load_meta()
     sid = _resolve_species(name_or_id, meta)
@@ -135,15 +142,16 @@ def sell_species(name_or_id, confirm):
     key = str(sid)
     name = (meta.get(key) or {}).get("name", "#%d" % sid)
 
+    # Fast, lock-free pre-checks for the common case. The AUTHORITATIVE last-copy
+    # gate runs inside the transaction below (a concurrent 2->1 sale between here
+    # and the lock cannot sell a last copy without --confirm).
     dex = dex_store.load(path=dex_store.DEX_PATH)
     entry = (dex.get("caught") or {}).get(key)
     count = entry.get("count", 0) if isinstance(entry, dict) else 0
     if count <= 0:
         return {"error": "you don't own %s" % name}
     if count == 1 and not confirm:
-        return {"needs_confirm": True,
-                "msg": "Selling your last %s removes it from the Pokedex. "
-                       "Re-run with --confirm." % name}
+        return _needs_confirm(name)
 
     tier = encounter.rarity_tier(sid)
     price = PRICE[tier]
@@ -153,7 +161,12 @@ def sell_species(name_or_id, confirm):
         e = caught.get(key)
         if not isinstance(e, dict):
             return None  # vanished under a concurrent sale
-        e["count"] = e.get("count", 1) - 1
+        cur = e.get("count", 1)
+        if cur <= 0:
+            return None  # nothing left to sell
+        if cur == 1 and not confirm:
+            return "needs_confirm"  # raced down to the last copy -> gate it, no mutation
+        e["count"] = cur - 1
         d["totals"]["catches"] = max(0, d.get("totals", {}).get("catches", 0) - 1)
         if e["count"] <= 0:
             del caught[key]
@@ -162,6 +175,8 @@ def sell_species(name_or_id, confirm):
     new_count = dex_store.transaction(_decrement, path=dex_store.DEX_PATH)
     if new_count is None:
         return {"error": "could not update the Pokedex — nothing was sold"}
+    if new_count == "needs_confirm":
+        return _needs_confirm(name)
 
     st = casino_store.transaction(lambda s: s.__setitem__("bankroll",
                                                           s["bankroll"] + price))
