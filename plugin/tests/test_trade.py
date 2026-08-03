@@ -60,3 +60,43 @@ def test_decode_rejects_non_dict_payload():
     import json as _json
     body = _b64.urlsafe_b64encode(_json.dumps([1, 2, 3]).encode()).decode()
     assert trade._decode("POKETRADE-" + body) is None
+
+
+def _give(species_id, times):
+    from pokeclaude import store
+    for _ in range(times):
+        store.record_catch(species_id, path=store.DEX_PATH)
+
+
+def test_gift_unknown_species_errors():
+    out = trade.gift_species("notapokemon")
+    assert "error" in out
+
+
+def test_gift_not_owned_errors_no_mutation():
+    from pokeclaude import store
+    out = trade.gift_species("pikachu")           # id 25, not caught
+    assert out["error"] == "you don't own pikachu"
+    assert 25 not in store.caught_ids(path=store.DEX_PATH)
+
+
+def test_gift_decrements_one_copy_and_returns_code():
+    from pokeclaude import store
+    _give(25, 2)                                   # two Pikachu
+    out = trade.gift_species("pikachu")
+    assert out["gifted"] == {"name": "pikachu", "id": 25}
+    assert out["code"].startswith("POKETRADE-")
+    # count 2 -> 1, still owned
+    dex = store.load(path=store.DEX_PATH)
+    assert dex["caught"]["25"]["count"] == 1
+    # the code decodes to the gifted species
+    payload = trade._decode(out["code"])
+    assert payload["id"] == 25 and payload["name"] == "pikachu"
+
+
+def test_gift_last_copy_removes_species_key():
+    from pokeclaude import store
+    _give(25, 1)                                   # one Pikachu
+    out = trade.gift_species("25")                 # by numeric id
+    assert out["gifted"]["id"] == 25
+    assert 25 not in store.caught_ids(path=store.DEX_PATH)   # key gone at 0
