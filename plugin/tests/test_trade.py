@@ -170,3 +170,13 @@ def test_cli_unknown_subcommand_exits():
     cli = _load_cli()
     with pytest.raises(SystemExit):
         cli.dispatch(["frobnicate"])
+
+
+def test_decode_tolerates_stripped_padding():
+    """A chat client that strips trailing '=' padding must not break a code."""
+    code = trade._encode({"v": 1, "id": 25, "name": "pikachu", "tid": "pad123"})
+    stripped = code.rstrip("=")
+    # only meaningful if the original actually had padding; either way it must decode:
+    assert trade._decode(stripped) == {"v": 1, "id": 25, "name": "pikachu", "tid": "pad123"}
+    # and the normal (padded) form still works:
+    assert trade._decode(code) == {"v": 1, "id": 25, "name": "pikachu", "tid": "pad123"}
