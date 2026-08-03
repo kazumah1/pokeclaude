@@ -139,3 +139,34 @@ def test_claim_different_tid_same_species_still_claims():
     assert out["received"]["id"] == 25              # per-trade guard, not per-species
     from pokeclaude import store
     assert store.load(path=store.DEX_PATH)["caught"]["25"]["count"] == 2
+
+
+import importlib.util
+import os as _os
+
+
+def _load_cli():
+    root = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+    path = _os.path.join(root, "scripts", "trade.py")
+    spec = importlib.util.spec_from_file_location("trade_cli", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_cli_gift_then_claim_round_trip():
+    from pokeclaude import store
+    _give(25, 1)
+    cli = _load_cli()
+    gifted = cli.dispatch(["gift", "pikachu"])
+    assert gifted["code"].startswith("POKETRADE-")
+    store.release(path=store.DEX_PATH)               # simulate empty claimer dex
+    got = cli.dispatch(["claim", gifted["code"]])
+    assert got["received"]["id"] == 25
+
+
+def test_cli_unknown_subcommand_exits():
+    import pytest
+    cli = _load_cli()
+    with pytest.raises(SystemExit):
+        cli.dispatch(["frobnicate"])
