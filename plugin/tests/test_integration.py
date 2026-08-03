@@ -204,3 +204,34 @@ def test_sell_subcommand_last_copy_needs_confirm(casino_home, pokeclaude_home):
     out2 = cli.dispatch(["sell", "pikachu", "--confirm"])
     assert out2["sold"]["price"] == 500
     assert 25 not in dex_store.caught_ids(path=dex_store.DEX_PATH)
+
+
+def test_burn_uses_locked_bankroll_not_stale_read(casino_home, pokeclaude_home, monkeypatch):
+    """A concurrent credit that commits before the settlement lock must shield
+    the loss: burn is computed from the LOCKED bankroll, not a stale pre-read."""
+    import json as _json
+    cli = _load_cli()
+    from casino import store, roulette
+    cli.dispatch(["stakes", "real"])
+    cli.dispatch(["roulette", "bet", "12000 on 7"])   # 12000 > 10000: real-mode overdraw
+    monkeypatch.setattr(roulette, "spin", lambda seed: 8)  # miss -> lose 12000
+
+    # Simulate another session's credit (e.g. a Pokemon sale) committing just
+    # before our settlement transaction takes the lock.
+    real_txn = store.transaction
+    fired = {"done": False}
+    def injecting_txn(mut):
+        if not fired["done"]:
+            fired["done"] = True
+            with open(store._state_path()) as f:
+                raw = _json.load(f)
+            raw["bankroll"] += 50000              # 10000 -> 60000, fully covers the loss
+            with open(store._state_path(), "w") as f:
+                _json.dump(raw, f)
+        return real_txn(mut)
+    monkeypatch.setattr(store, "transaction", injecting_txn)
+
+    res = cli.dispatch(["roulette", "spin"])
+    assert res["payout"] == -12000
+    assert res["burn"] == 0                        # covered by the 60000 balance under lock
+    assert res["bankroll"] == 60000 - 12000        # 48000
