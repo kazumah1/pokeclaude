@@ -27,7 +27,8 @@ _TID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz"
 
 
 def _encode(payload):
-    """dict -> 'POKETRADE-<base64url>' (compact, url-safe, unpadded-safe)."""
+    """dict -> 'POKETRADE-<base64url>' (compact, url-safe; may emit '=' padding,
+    which _decode tolerates even if a chat client strips it)."""
     raw = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
     return CODE_PREFIX + base64.urlsafe_b64encode(raw).decode("ascii")
 
@@ -38,6 +39,7 @@ def _decode(code):
     if not isinstance(code, str) or not code.startswith(CODE_PREFIX):
         return None
     body = code[len(CODE_PREFIX):].strip()
+    body += "=" * (-len(body) % 4)   # tolerate chat clients that strip '=' padding
     try:
         raw = base64.urlsafe_b64decode(body.encode("ascii"))
         payload = json.loads(raw.decode("utf-8"))
