@@ -24,8 +24,9 @@ python3 "${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT}}/scripts/trade.py" <args>
 ## How it works, and its one honest limit
 
 Gifting **releases your copy the moment the code is created** — even if you never
-send it. That is the safe direction: a Pokémon is never in two Pokédexes at once;
-the worst case is a code you generate and never share (that copy is gone).
+send it. That is the safe direction: your copy is gone before the code can be
+claimed, so **gifting never duplicates a Pokémon on your side**; the worst case is
+a code you generate and never share (that copy is gone).
 
 This is a **trust-based** feature for friends. A code is plain text, so it *can* be
 claimed more than once or forwarded to several people, each of whom would receive a
