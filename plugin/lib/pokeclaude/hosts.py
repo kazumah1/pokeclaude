@@ -60,7 +60,7 @@ HOSTS = {
         # Event names are PascalCase, matching Claude Code -- confirmed against an
         # installed Codex plugin's hooks.json, not the lowercase form the prose
         # docs use.
-        "label": "Codex CLI",
+        "label": "Codex",
         "event": "Stop",
         "display": "systemMessage",
         "tokens": "transcript_jsonl",

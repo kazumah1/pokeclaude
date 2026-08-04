@@ -2014,6 +2014,40 @@ def decode_png(data):
     return w, h, rows
 
 
+def test_logo():
+    """The mark is generated, so it must stay reproducible and committed."""
+    print("\n[logo] the generated mark")
+    sys.path.insert(0, os.path.join(REPO, "tools"))
+    import make_logo
+
+    committed = os.path.join(REPO, "docs", "logo.png")
+    check(os.path.exists(committed), "docs/logo.png is committed")
+    if os.path.exists(committed):
+        with open(committed, "rb") as f:
+            w, h, rows = decode_png(f.read())
+        check(w == h and w >= 128, "it is square and large enough (%dx%d)" % (w, h))
+
+        # Regenerating must reproduce it byte for byte, or the checked-in asset
+        # and the script that claims to produce it have drifted apart.
+        fresh = make_logo.render(w).to_png()
+        with open(committed, "rb") as f:
+            check(fresh == f.read(), "regenerating reproduces the committed file")
+
+        drawn = {px for row in rows for px in row}
+        check(make_logo.BAND in drawn, "the band colour is drawn")
+        check(make_logo.BUTTON in drawn, "so is the button")
+
+        # The whole point of the design: it must not be a Poke Ball. Nintendo's
+        # is red over white split by a black equator. Ours has no red at all.
+        reds = [c for c in drawn if c[0] > 150 and c[1] < 90 and c[2] < 90]
+        check(not reds, "no red anywhere -- this is not a Poke Ball (%s)" % (reds[:2]))
+
+    check(
+        make_logo.render(64).w == 64,
+        "it renders at small sizes too, for a favicon or a list row",
+    )
+
+
 def test_image_card():
     """The PNG catch card, for GUI hosts that mangle the text banner."""
     from pokeclaude import banner, card, hosts, image, sprite as spritelib
@@ -2443,6 +2477,7 @@ def main():
         test_skills,
         test_pokeball_geometry,
         test_readme_svgs,
+        test_logo,
         test_image_card,
         test_pokedex_card,
         test_pokedex_card_cli,

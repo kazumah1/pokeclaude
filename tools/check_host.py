@@ -28,7 +28,9 @@ from pokeclaude import card, hosts as hostlib  # noqa: E402
 HOOK = os.path.join(REPO, "plugin", "hooks", "catch.py")
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
 
-GREEN, RED, DIM, RESET = "\033[32m", "\033[31m", "\033[2m", "\033[0m"
+GREEN, RED, DIM, BOLD, RESET = (
+    "\033[32m", "\033[31m", "\033[2m", "\033[1m", "\033[0m"
+)
 
 
 def synthetic_transcript(path, tokens):
@@ -177,7 +179,11 @@ def explain():
     markers = [
         (k, os.environ.get(k)) for k in (
             "POKECLAUDE_HOST", "POKECLAUDE_IMAGE_TAB", "POKECLAUDE_INLINE",
-            "CURSOR_TRACE_ID", "KIRO_IDE", "KIRO_WORKSPACE", "CODEX_HOME",
+            "CURSOR_TRACE_ID", "KIRO_IDE", "KIRO_WORKSPACE",
+            # CODEX_SANDBOX matters as much as CODEX_HOME -- the Codex app sets
+            # it and not the other, so omitting it made a correct detection look
+            # like it had come from nowhere.
+            "CODEX_HOME", "CODEX_SANDBOX", "COPILOT_HOME",
             "CLAUDE_PLUGIN_ROOT", "CLAUDECODE", "TERM_PROGRAM", "TERM",
         )
     ]
@@ -192,8 +198,13 @@ def explain():
     # tell those apart, because an agent may hand its tool a pty.
     print("")
     print("  launched by")
-    for depth, (pid, comm) in enumerate(_ancestry()):
+    chain = _ancestry()
+    for depth, (pid, comm) in enumerate(chain):
         print("    %s%-6d %s" % ("  " * depth, pid, comm))
+    if not chain:
+        # Sandboxed hosts (the Codex app) give `ps` nothing. Only a problem if
+        # the environment was silent too, since this is the last resort.
+        print("    " + DIM + "unavailable -- this host sandboxes `ps`" + RESET)
 
     print("")
     print("  config          mono=%r image_tab=%r inline=%r" % (
@@ -203,6 +214,22 @@ def explain():
     if mode == "tab":
         argv = card.viewer_argv(card.default_path(), host)
         print("  would run       %s" % (" ".join(argv) if argv else "nothing"))
+
+    # A host that declares NOTHING about markdown images is one where a setting
+    # decides. Say so here rather than leaving someone to find it in a doc: this
+    # is the exact spot where "it did not work" gets diagnosed.
+    if (mode is None and not tty
+            and hostlib.HOSTS[host].get("markdown_images") is None
+            and not hostlib.viewer(host)
+            and (cfg.get("inline") is None)):
+        print("")
+        print("  " + BOLD + "This host may be able to render an inline image."
+              + RESET)
+        print(DIM + "  It is opt-in because one adapter serves surfaces that differ:"
+              " the app" + RESET)
+        print(DIM + "  renders markdown images, the CLI is a terminal and cannot."
+              + RESET)
+        print("      python3 plugin/scripts/config.py --inline on")
     print("")
     print(DIM + "  If this says the wrong thing, that is the bug: the mode is decided")
     print("  entirely by the two lines at the top." + RESET)

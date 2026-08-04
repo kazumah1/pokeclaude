@@ -1,4 +1,8 @@
+<img src="docs/logo.png" alt="PokeClaude" width="96" align="left">
+
 # PokeClaude
+
+<br clear="left">
 
 Catch Pokemon while you work. Every turn you spend tokens in your AI coding agent is a
 chance at a wild encounter, rendered as truecolor pixel art directly in your terminal.
