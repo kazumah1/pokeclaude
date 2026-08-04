@@ -50,6 +50,11 @@ HOSTS = {
         "tokens": "transcript_jsonl",
         "config_dir": "~/.claude",
         "hooks_file": "hooks/hooks.json",
+        # Explicitly False, not merely absent. Measured on the desktop app: a
+        # markdown image in a reply does not render. Recorded so that `--inline
+        # on` -- a global setting someone turns on for the Codex app -- cannot
+        # reach across and replace working truecolour art here with a dead link.
+        "markdown_images": False,
     },
     "codex": {
         # Event names are PascalCase, matching Claude Code -- confirmed against an
@@ -61,6 +66,14 @@ HOSTS = {
         "tokens": "transcript_jsonl",
         "config_dir": "~/.codex",
         "hooks_file": "hooks.json",
+        # NOT `markdown_images`, despite the Codex app rendering them (measured).
+        # This one entry serves two surfaces: the app, whose panel eats escapes,
+        # and the CLI, which paints truecolour perfectly. Declaring the capability
+        # here would hand the CLI a markdown link to print into a terminal that
+        # cannot render it -- trading working art for literal `![pokedex](...)`.
+        # Nothing in the environment tells the two apart, so this follows the
+        # precedent `mono` already set for exactly this split: the app's user
+        # opts in once, with `config.py --inline on`.
     },
     "cursor": {
         "label": "Cursor",
@@ -69,6 +82,15 @@ HOSTS = {
         "tokens": "payload",
         "config_dir": "~/.cursor",
         "hooks_file": "hooks.json",
+        # Same story as Kiro, same fix: the agent panel collapses output and
+        # strips escapes, but Cursor is a VS Code fork and its `cursor -r` opens
+        # a PNG in a real image preview. Flag list confirmed against the
+        # installed CLI, not assumed from the lineage.
+        "viewer": {"cli": "cursor", "app": "Cursor"},
+        # And its panel renders a markdown image in an agent reply, which beats
+        # the tab -- measured in both the sidebar and the agents window, with a
+        # bare absolute path. (Public bug reports say otherwise; they are stale.)
+        "markdown_images": True,
     },
     "kiro": {
         # Colour support differs by surface, so it is NOT declared False here.
@@ -83,6 +105,15 @@ HOSTS = {
         "tokens": "payload",
         "config_dir": "~/.kiro",
         "hooks_file": "hooks/pokeclaude.json",
+        # Kiro's IDE is a VS Code fork, so it already has an image viewer that
+        # neither strips colour nor collapses anything. `viewer` says how to
+        # reach it: the CLI first, falling back to the macOS app bundle, which
+        # is there whether or not the user installed the shell command.
+        "viewer": {"cli": "kiro", "app": "Kiro"},
+        # No `markdown_images` claim: Cursor and the Codex app were both measured
+        # to render one, and Kiro very likely does too, but nobody has run it. It
+        # therefore gets the tab, which IS verified. Add the key once someone
+        # checks -- inline is the better channel wherever it works.
     },
     "copilot": {
         "label": "GitHub Copilot CLI",
@@ -184,6 +215,99 @@ def use_mono(host=None, config=None):
     if config and config.get("mono") is not None:
         return bool(config["mono"])
     return not has_colour(host)
+
+
+def viewer(host=None):
+    """How to open an image file in this host's own UI, or None if it cannot."""
+    return spec(host).get("viewer")
+
+
+def renders_markdown_images(host=None, config=None):
+    """Does this host's chat panel draw `![](/abs/path.png)` in an agent reply?
+
+    Three-state per host, because there are genuinely three answers and collapsing
+    them loses the one that matters:
+
+      True     measured to render them (Cursor).
+      False    measured NOT to (Claude Code, which paints truecolour art inline
+               instead and would simply drop the link).
+      absent   nobody has checked, or -- as with `codex` -- one adapter serves
+               two surfaces that disagree, and nothing in the environment tells
+               them apart.
+
+    The `inline` setting decides the absent case, and may also switch OFF a host
+    that declares True. What it must never do is switch ON a host declared False:
+    the config is global across every agent, so `--inline on` for the Codex app
+    would otherwise cost Claude Code its art entirely. A preference can override a
+    measured possibility; it cannot override a measured impossibility.
+
+    POKECLAUDE_INLINE beats both, and is the clean way out of the Codex split: the
+    app is launched from the dock and sees no shell environment, so `--inline on`
+    in the config reaches it, while `export POKECLAUDE_INLINE=0` in a shell
+    profile reaches only the CLI.
+    """
+    env = os.environ.get("POKECLAUDE_INLINE")
+    if env is not None:
+        return env.strip().lower() not in ("", "0", "false", "no", "off")
+    declared = spec(host).get("markdown_images")
+    if declared is False:
+        return False
+    if config and config.get("inline") is not None:
+        return bool(config["inline"])
+    return bool(declared)
+
+
+def is_terminal(stream):
+    """Is this stream a real terminal, which will paint our escapes itself?
+
+    The discriminator between the two ways these hosts run us. In an integrated
+    terminal -- where someone may well be running a different agent entirely --
+    stdout is a tty and the ANSI art works perfectly, so replacing it with an
+    image would be a downgrade AND a stolen tab. From the agent panel stdout is a
+    pipe, which is exactly the surface that eats the escapes.
+    """
+    try:
+        return bool(stream.isatty())
+    except Exception:
+        return False
+
+
+def use_image(host=None, config=None, stream=None):
+    """Should art be delivered as a PNG here rather than as escapes?
+
+    Precedence, highest first:
+      1. POKECLAUDE_IMAGE_TAB -- an explicit answer, so it beats even the tty
+         check; someone piping deliberately gets what they asked for.
+      2. a tty on `stream`, when given: a terminal renders the art itself.
+      3. the `image_tab` config key, which is the only channel that reaches a GUI
+         launched from the dock with no shell environment.
+      4. whether this host can show an image at all.
+
+    Callers that can never be on a terminal (the turn-end hook) pass no stream.
+    """
+    env = os.environ.get("POKECLAUDE_IMAGE_TAB")
+    if env is not None:
+        return env.strip().lower() not in ("", "0", "false", "no", "off")
+    if stream is not None and is_terminal(stream):
+        return False
+    if config and config.get("image_tab") is not None:
+        return bool(config["image_tab"])
+    return viewer(host) is not None or renders_markdown_images(host, config)
+
+
+def image_mode(host=None, config=None, stream=None):
+    """How to deliver a PNG here: 'inline', 'tab', or None for text as usual.
+
+    `inline` wins wherever it is available: the art lands in the conversation
+    with nothing to open, nothing to expand and no tab spent. It needs the agent
+    to echo a markdown link, though, so only a command can use it -- a turn-end
+    hook fires after the agent has stopped talking and must take `tab`.
+    """
+    if not use_image(host, config, stream):
+        return None
+    if renders_markdown_images(host, config):
+        return "inline"
+    return "tab" if viewer(host) else None
 
 
 def emit(message, host=None, out=None, err=None):

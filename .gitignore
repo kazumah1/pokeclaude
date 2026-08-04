@@ -3,5 +3,14 @@ __pycache__/
 *.pyc
 spike/*.log
 
+# tools/preview_card.py output
+card-*.png
+
+# Local install artifacts. `install.py --host kiro --workspace .` copies the
+# skills in and backs up whatever hook config it replaces; both are specific to
+# one machine and belong to whoever installed, not to the repo.
+*.pokeclaude-backup
+.kiro/skills/
+
 # Publishing scaffolding — not part of the project
 PUBLISH.md

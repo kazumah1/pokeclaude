@@ -67,9 +67,9 @@ the commands, or run `python3 plugin/scripts/pokedex.py` from anywhere.
 `python3 plugin/scripts/config.py --mono on` and art switches to shading silhouettes that
 survive without colour.
 
-- Codex (app / agent window)
-- Cursor (agent panel)
-- Kiro (IDE)
+- Codex (app / agent window) — or skip mono: see [Images](#images-cursor-codex-app-kiro)
+- Cursor (agent panel) — same
+- Kiro (IDE) — same
 
 **Not tested**
 
@@ -192,6 +192,35 @@ python3 plugin/scripts/config.py --mono on     # shading silhouettes, no colour 
 python3 plugin/scripts/config.py --mono off    # force colour
 python3 plugin/scripts/config.py --mono auto    # decide per agent (default)
 ```
+
+### Images (Cursor, Codex app, Kiro)
+
+Where a GUI collapses output and strips colour, the art is drawn as a real PNG
+instead — full 64px sprite, name, types, rarity, Pokedex progress, nothing to
+expand. No tokens are spent: a file is written and the app draws it.
+
+| Surface | How it arrives |
+|---|---|
+| Cursor sidebar / agents window | **inline in the reply** — the agent echoes one `![](…)` line and the panel renders it |
+| Codex **app** | the same, after `config.py --inline on` — its adapter is shared with the Codex CLI, which is a terminal, so this one is opt-in |
+| Kiro IDE | an **editor tab**, which redraws itself as the file changes |
+| Codex CLI, Claude Code, any integrated terminal | untouched — real terminals paint the ANSI art perfectly |
+
+`/pokedex` uses whichever applies, so a page of 24 entries renders in colour
+instead of four collapsed ones. A **catch** always uses the tab: the hook fires
+after the agent has stopped speaking, so there is nobody left to echo a link.
+
+```bash
+python3 plugin/scripts/config.py --inline on       # art in the reply (Codex app)
+python3 plugin/scripts/config.py --image-tab off   # never, text only
+python3 plugin/scripts/config.py --image-tab auto  # per agent (default)
+python3 plugin/scripts/pokedex.py --image          # force a card, print its path
+python3 plugin/scripts/pokedex.py --no-image       # ANSI art, just this once
+```
+
+Exactly two files ever exist — `latest-catch.png` and `pokedex.png` in
+`~/.claude/pokeclaude/` — each overwritten in place. Nothing accumulates.
+`python3 tools/preview_card.py 25 --new` renders one without waiting for a catch.
 
 ---
 

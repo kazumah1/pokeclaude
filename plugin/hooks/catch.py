@@ -111,7 +111,8 @@ def main():
 
     # Rate comes from the user's chosen preset (light/normal/strict), falling
     # back to the default if the config is missing or malformed.
-    tpc = encounter.configured_tokens_per_catch(store.load_config())
+    cfg = store.load_config()
+    tpc = encounter.configured_tokens_per_catch(cfg)
     hit, p = encounter.roll(tokens, tokens_per_catch=tpc)
     trace("rolled", tokens=tokens, probability=round(p, 4), hit=hit)
     if not hit:
@@ -157,8 +158,7 @@ def main():
         return 0
 
     info = meta.get(str(pid)) or {}
-    msg = banner.compose(
-        blob,
+    facts = dict(
         name=info.get("name", "pokemon"),
         dex_id=pid,
         type_names=info.get("types") or [],
@@ -168,10 +168,32 @@ def main():
         roster_size=len(roster),
         roster_ids=roster,
         shiny=is_shiny,
+    )
+
+    # Hosts whose UI mangles the text banner but ships an image viewer (Kiro's
+    # IDE, a VS Code fork) get the art as a real PNG opened in an editor tab.
+    # Attempted BEFORE composing the banner, because whether it worked decides
+    # whether the banner still needs to carry a picture.
+    # Asks for a tab specifically, rather than taking `image_mode`'s answer. That
+    # resolver prefers `inline` wherever the panel renders markdown images, and a
+    # hook can never use it: this fires after the agent has stopped speaking, so
+    # there is nobody left to echo the link. On Cursor -- which supports both --
+    # deferring to image_mode would mean a catch silently showed nothing.
+    carded = False
+    if hosts.use_image(host, cfg) and hosts.viewer(host):
+        from pokeclaude import card
+
+        carded = card.show(blob, host=host, **facts)
+        trace("carded", species=pid, shown=carded)
+
+    msg = banner.compose(
+        blob,
+        art=not carded,
         # Shading silhouettes for surfaces that strip colour or collapse output
         # (Codex app, Kiro IDE, Cursor). Set once via `mono` in the config, since
         # a GUI launched from the dock sees no env var.
-        mono=hosts.use_mono(host, store.load_config()),
+        mono=hosts.use_mono(host, cfg),
+        **facts
     )
 
     # The host decides the channel. Where none can display, the catch is still

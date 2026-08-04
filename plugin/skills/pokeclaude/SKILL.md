@@ -34,5 +34,13 @@ Run with no arguments to show the current setting.
 `--tokens N` sets an exact rate between or beyond the presets, and overrides the
 preset until one is chosen again.
 
+## Art
+
+| Flag | Effect |
+|---|---|
+| `--inline on\|off\|auto` | put the art in the reply as a markdown image. Automatic in Cursor; turn it **on** for the Codex app, and leave it off for the Codex CLI, which is a terminal and renders the art itself. |
+| `--image-tab on\|off\|auto` | draw catches as a PNG at all. On by default wherever the agent can show one; `off` restores the text banner everywhere. |
+| `--mono on\|off\|auto` | solid silhouettes instead of colour, for surfaces that strip ANSI and cannot show an image either. |
+
 Only turn tokens count — input + output, never cache. Settings live in
 `~/.claude/pokeclaude/config.json` and apply to every session and every host.

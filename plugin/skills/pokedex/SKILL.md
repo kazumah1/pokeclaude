@@ -23,7 +23,18 @@ Substitute the user's flags for `$ARGUMENTS`, or omit it for the default view. I
 none of those paths match, set `POKECLAUDE_ROOT` to wherever the repo is cloned —
 it is the directory containing `plugin/scripts/pokedex.py`.
 
-Then reply with **one short line and nothing more** — for example "Here's your
+## If the output contains a `![pokedex](...)` line
+
+Reply with **that line, copied exactly, and nothing else**. Not in a code fence,
+not with the path altered, not with a sentence before or after it.
+
+That is the whole reply. It renders the Pokedex as a real image in the chat panel,
+in full colour, which the escape-stripped tool output cannot do. Anything else in
+the message pushes the art down; a code fence stops it rendering at all.
+
+## Otherwise
+
+Reply with **one short line and nothing more** — for example "Here's your
 Pokedex." The command's output already shows the sprites, counts, names, rarity and
 page number, and it is displayed to the user directly.
 

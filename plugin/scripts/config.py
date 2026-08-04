@@ -95,9 +95,45 @@ def main():
         help="draw shading silhouettes instead of colour: for agents whose GUI "
              "strips colour (Codex app, Kiro IDE, Cursor). 'auto' decides per agent.",
     )
+    ap.add_argument(
+        "--image-tab", choices=["on", "off", "auto"], default=None,
+        help="open each catch as a PNG in the editor's own image viewer, for "
+             "agents built on VS Code (Kiro). 'auto' decides per agent.",
+    )
+    ap.add_argument(
+        "--inline", choices=["on", "off", "auto"], default=None,
+        help="put the art in the agent's reply as a markdown image rather than an "
+             "editor tab. Turn on for the Codex app; leave off for the Codex CLI, "
+             "which is a terminal and renders the art itself.",
+    )
     args = ap.parse_args()
 
     cfg = store.load_config()
+
+    if args.inline is not None:
+        value = None if args.inline == "auto" else (args.inline == "on")
+        if not store.save_config({"inline": value}):
+            print(DIM + "  Could not write settings (lock unavailable)." + RESET)
+            return 1
+        state = {True: "on (markdown image in the reply)",
+                 False: "off (editor tab, or text)",
+                 None: "auto (decided per agent)"}[value]
+        print("")
+        print("  Inline images: %s." % _c(GOLD, state, bold=True))
+        print("")
+        return 0
+
+    if args.image_tab is not None:
+        value = None if args.image_tab == "auto" else (args.image_tab == "on")
+        if not store.save_config({"image_tab": value}):
+            print(DIM + "  Could not write settings (lock unavailable)." + RESET)
+            return 1
+        state = {True: "on (PNG in an editor tab)", False: "off (text banner only)",
+                 None: "auto (on where the agent has a viewer)"}[value]
+        print("")
+        print("  Image tab: %s." % _c(GOLD, state, bold=True))
+        print("")
+        return 0
 
     if args.mono is not None:
         # Stored in the config so it reaches a GUI launched from the dock, which

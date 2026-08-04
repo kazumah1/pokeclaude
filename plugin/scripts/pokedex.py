@@ -40,6 +40,45 @@ def _c(rgb, text, bold=False):
     )
 
 
+def _deliver(canvas, mode, host, header, note=""):
+    """Emit a view as an image. True if the art was delivered that way.
+
+    Two channels, decided by the host rather than here. `inline` writes the PNG
+    and prints the markdown link for the agent to echo, which puts the art in the
+    conversation itself -- no tab, nothing to expand. `tab` opens it in the
+    editor, for hosts that mangle the escapes but do not render markdown images.
+
+    False means nothing was shown and the caller must fall back to ANSI art.
+    """
+    from pokeclaude import card
+
+    path = None
+    if mode == "inline":
+        path = card.write_inline(canvas, card.FILENAME_DEX)
+    elif mode == "tab":
+        path = card.show_canvas(canvas, card.FILENAME_DEX, host=host)
+    if not path:
+        return False
+
+    print("\n".join(header))
+    print("")
+    if mode == "inline":
+        # The agent has to repeat this line for it to render: a tool result is
+        # shown as terminal output, and only the reply itself goes through the
+        # markdown renderer. Stated as an instruction because that is what the
+        # skill files point at.
+        print("![pokedex](%s)" % path)
+        print("")
+        print("  ^ Reply with exactly that line and nothing else. It renders the")
+        print("    Pokedex inline. Do not describe or summarise the image.")
+    else:
+        print("  Opened in an editor tab: %s" % path)
+    if note:
+        print("")
+        print(note)
+    return True
+
+
 def _term_width(default=80):
     """Terminal width, falling back sanely when there is no tty (pipes, hooks)."""
     env = os.environ.get("POKECLAUDE_WIDTH") or os.environ.get("COLUMNS")
@@ -115,15 +154,38 @@ def main():
         help="render with shading glyphs instead of colour, for hosts that strip "
              "ANSI escapes (auto-enabled on those hosts)",
     )
+    ap.add_argument(
+        "--no-image", action="store_true",
+        help="never render as a PNG; force the ANSI art even on a host that would "
+             "otherwise show an image",
+    )
+    ap.add_argument(
+        "--image", action="store_true",
+        help="always render as a PNG and print its path, even from a terminal. "
+             "The way to see what an agent panel would get without being in one.",
+    )
     args = ap.parse_args()
+
+    from pokeclaude import hosts as _hosts
+
+    config = store.load_config()
+    host = _hosts.detect()
 
     # --mono forces silhouettes; otherwise use_mono resolves env var, then the
     # `mono` config key, then whether the agent strips colour. One resolver so the
     # pokedex and the catch banner never disagree.
     if not args.mono:
-        from pokeclaude import hosts as _hosts
+        args.mono = _hosts.use_mono(host, config)
 
-        args.mono = _hosts.use_mono(config=store.load_config())
+    # Whether to draw a PNG instead, and how to deliver it. `stream` is what keeps
+    # this off a terminal: someone running another agent in the IDE's integrated
+    # terminal gets a tty, real colour, and none of this.
+    mode = None if args.no_image else _hosts.image_mode(host, config, sys.stdout)
+    if args.image and not args.no_image:
+        # Forced. Falls back to `inline`, which writes the file and prints its
+        # path without launching anything -- the safe thing to do on a host that
+        # has no viewer, and enough to inspect the render by hand.
+        mode = mode or "inline"
     # Distinguish "user chose a scale" from "default applied", because the grid
     # and the detail view want different defaults.
     args.scale_given = any(
@@ -169,6 +231,28 @@ def main():
         if blob is None:
             print("No sprite for #%d" % pid)
             return 1
+
+        # An image view is built from the FULL 64px sprite, before the downscale
+        # below: the size cap that forces one is a limit on text, and this is not
+        # text.
+        if mode:
+            from pokeclaude import card
+
+            entry = caught.get(str(pid))
+            n = (entry or {}).get("count", 0)
+            head = "  " + _c(GOLD, "POKEDEX", bold=True) + DIM + "  ·  entry #%03d %s%s" % (
+                pid,
+                (meta.get(str(pid)) or {}).get("name", "?"),
+                "  ×%d" % n if n > 1 else "",
+            ) + RESET
+            if _deliver(
+                card.detail(
+                    pid, blob, meta.get(str(pid)) or {}, entry,
+                    roster_ids=roster, showing_shiny=want_shiny,
+                ),
+                mode, host, [head],
+            ):
+                return 0
 
         # A 64px sprite renders to 10-33KB because ~88% of the bytes are colour
         # escapes. Claude Code separately persists any hook systemMessage over
@@ -321,13 +405,40 @@ def main():
     # (max dupes, all-shiny, the largest sprites in the roster) -- comfortably
     # under 10,000 at any terminal width, since page size no longer depends on
     # cols.
-    per = max(1, args.per_page or 4)
+    #
+    # None of that binds an image. A PNG has no character cap at all, so a page
+    # there is sized by what reads well on screen instead -- 24 entries, six to a
+    # row, which is six times what the text grid can carry.
+    if mode:
+        per = max(1, args.per_page or 24)
+        img_cols = max(1, args.cols or 6)
+    else:
+        per = max(1, args.per_page or 4)
 
     pages = max(1, (len(ids) + per - 1) // per)
     page = min(max(1, args.page), pages)
     chunk = ids[(page - 1) * per : page * per]
 
     entries = [(pid, caught.get(str(pid))) for pid in chunk]
+
+    if mode:
+        from pokeclaude import card
+
+        pct = (100.0 * unique / total) if total else 0.0
+        head = "  " + _c(GOLD, "POKEDEX", bold=True) + DIM + "  %d/%d (%.0f%%)   page %d/%d" % (
+            unique, total, pct, page, pages
+        ) + RESET
+        note = DIM + "  --page %d for more" % (page + 1) + RESET if page < pages else ""
+        if _deliver(
+            card.grid(
+                entries, SPRITES, meta, cols=img_cols, show_uncaught=args.all,
+                title=[("POKEDEX  %d/%d (%.0f%%)" % (unique, total, pct), (246, 200, 60))],
+                footer=[("PAGE %d/%d" % (page, pages), (124, 128, 145))],
+            ),
+            mode, host, [head], note,
+        ):
+            return 0
+
     out += dex.render_grid(
         entries,
         SPRITES,

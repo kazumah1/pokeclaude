@@ -14,8 +14,8 @@ Each row is what has been observed on the real agent, not what the docs promise.
 | Codex CLI | verified | verified | verified | live catch + `/pokedex`, full colour |
 | Kiro CLI | verified | verified | verified | full colour |
 | Codex app | verified | verified | partial | collapsed, strips colour — set `--mono on` |
-| Cursor | verified | verified | partial | collapsed, strips colour — set `--mono on` |
-| Kiro IDE | verified | verified | partial | collapsed, strips colour — set `--mono on` |
+| Cursor | verified | verified | partial | collapsed, strips colour — opens a PNG in the editor instead |
+| Kiro IDE | verified | verified | partial | collapsed, strips colour — opens a PNG in the editor instead |
 | Copilot CLI | not tested | not tested | not tested | hook events undocumented |
 
 `python3 tools/check_host.py <agent>` runs the real hook with a synthetic turn and
@@ -132,6 +132,131 @@ CLI, and overrides the config.
 The art is a solid silhouette at full resolution. Shading ramps (`░▒▓█`) were tried
 first and are worse — those are dither patterns in most fonts, so at one glyph per
 pixel they render as static rather than tones.
+
+## Images
+
+Mono is a salvage operation: it gives up colour and half the resolution to survive
+a channel that mangles both. Where a host can show an image instead, that is
+strictly better, so the escape-stripping surface is bypassed rather than
+accommodated.
+
+There are two ways to get an image onto these surfaces, and they are not equal.
+
+| Mode | How | Who |
+|---|---|---|
+| `inline` | the agent's reply contains `![](/abs/path.png)`, and the panel renders it | Cursor (sidebar + agents window); the Codex app via `--inline on` |
+| `tab` | the editor is told to open the file (`cursor -r`, `kiro -r`) | Kiro |
+
+### One adapter, two surfaces
+
+`codex` is a single entry serving the Codex CLI and the Codex app, and they
+disagree about exactly this. The app's panel renders a markdown image; the CLI is
+a terminal that paints the escapes itself and would print a literal
+`![pokedex](/…)` instead of art. Nothing in the environment tells them apart, and
+the tty check does not help — both invoke us with a pipe.
+
+So `codex` declares no capability and defaults to text, which is right for the
+CLI and no worse than before for the app. An app user opts in once:
+
+```bash
+python3 plugin/scripts/config.py --inline on
+```
+
+This is the same shape as `mono`, which faced the identical split and resolved it
+the same way. The `inline` config key overrides any host's declared answer in
+both directions, so it also turns the channel on for Kiro if it turns out to work
+there, or off for Cursor if a future version breaks it.
+
+`inline` wins wherever it works: the art lands in the conversation, in colour,
+with nothing to open, nothing to expand and no editor tab spent. It needs the
+agent to echo one line, which is why only a **command** can use it — the
+`/pokedex` skill instructs exactly that.
+
+A **catch** cannot. The hook fires after the agent has stopped talking, so there
+is nobody left to echo anything; catches take `tab`, which needs no cooperation.
+That is the whole reason both modes exist.
+
+`hosts.image_mode()` resolves which one applies. On a catch the hook writes the
+whole banner — 64px sprite in full colour, name, types, rarity, Pokedex progress —
+to a PNG. The text banner then carries the same facts with no art, so nothing is
+shown twice.
+
+### Never on a terminal
+
+Both modes are suppressed when stdout is a tty. An integrated terminal inside
+Kiro or Cursor is a real terminal — people run Claude Code and other agents in
+one — and there the ANSI art renders perfectly. Replacing it with an image would
+be a downgrade *and* a stolen tab. The panel gives us a pipe, the terminal gives
+us a tty, and that is the whole test. `POKECLAUDE_IMAGE_TAB=1` overrides it for
+anyone who wants an image from a terminal anyway.
+
+### Two files, overwritten
+
+`latest-catch.png` and `pokedex.png`, both in `~/.claude/pokeclaude/`, each
+rewritten in place through a temp file and an atomic rename. Nothing accumulates:
+the hundredth catch of a session costs the same ~10KB as the first, and a failed
+write removes its own scratch file rather than leaving an orphan behind. The
+stable names are also what make a `tab` redraw itself instead of stacking.
+
+```bash
+python3 plugin/scripts/config.py --image-tab on     # always
+python3 plugin/scripts/config.py --image-tab off    # text banner only
+python3 plugin/scripts/config.py --image-tab auto   # per agent (default)
+```
+
+Costs no tokens: the hook writes a file, the editor renders it. Encoding is
+stdlib-only (`zlib`) and takes ~40ms for a ~10KB card, well inside the hook's
+5-second timeout.
+
+A host opts in by declaring a `viewer` in its `HOSTS` entry:
+
+```python
+"viewer": {"cli": "kiro", "app": "Kiro"},
+```
+
+`cli` is tried first (`kiro --reuse-window <path>`, the VS Code convention every
+fork inherits) and `app` is the macOS fallback for when the shell command was
+never installed — `open -g` so the editor does not steal focus. A host with
+neither declares no viewer and falls back to mono.
+
+Kiro and Cursor both declare one. The Codex app does not — it is standalone
+Electron, not a VS Code fork, so there is no editor tab to open a PNG in. It
+declares `markdown_images` instead and reaches the same result inline, which is
+why a capability table beats a list of special cases.
+
+### What is actually verified
+
+Inline rendering was measured on the real apps: Cursor's sidebar, Cursor's agents
+window and the Codex app all draw `![](/abs/path.png)` from an agent reply, with a
+bare absolute path and no `file://` scheme. Public bug reports say otherwise and
+are stale. Claude Code's desktop app does **not** — it renders truecolour art
+inline already, so it needs neither mode. Kiro is untested and takes `tab`, which
+is verified; add `"markdown_images": True` to its entry once someone checks.
+
+Only Cursor declares the capability. The Codex app has it but shares its adapter
+with a CLI that does not, so it is a setting there rather than a default.
+
+The `tab` mode was read out of Cursor's own bundled `media-preview` extension
+(1.0.0), not inferred from the VS Code lineage:
+
+- PNG opens as an image, not as text. Its `customEditors` entry claims
+  `*.{jpg,jpe,jpeg,png,bmp,gif,ico,webp,avif,svg}` at priority `builtin`, which
+  makes the preview the default editor rather than an opt-in "reopen with".
+- The preview reloads on change. It registers a `FileSystemWatcher` over the
+  file's directory and, on a change matching its own resource, calls
+  `updateBinarySize()` then `render()`. This is what makes the stable path
+  (`~/.claude/pokeclaude/latest-catch.png`) work: one tab redraws itself for the
+  whole session instead of a tab per catch. `onDidDelete` disposes the editor,
+  so removing the file closes the tab cleanly too.
+
+Kiro ships the same upstream extension, but Kiro is not installed here, so that
+is inference rather than measurement. The remaining question on both is
+subjective and cannot be answered from a terminal: whether a tab opening
+mid-turn is welcome. `--image-tab off` if not.
+
+`python3 tools/preview_card.py 25 --new` renders a card locally, and
+`tools/check_host.py kiro` prints the exact command it would launch without
+running it.
 
 ### Slash commands in chat
 

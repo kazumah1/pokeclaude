@@ -49,7 +49,7 @@ def _types(type_names):
 
 
 def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_size,
-            width=80, roster_ids=None, shiny=False, mono=False):
+            width=80, roster_ids=None, shiny=False, mono=False, art=True):
     """Build the banner string for a catch.
 
     Sprites are stored at 64px, which is wider than the info column can sit
@@ -117,6 +117,13 @@ def compose(blob, name, dex_id, type_names, is_new, dup_count, unique, roster_si
         DIM + "Pokedex %d/%d (%.0f%%)" % (unique, roster_size, pct) + RESET,
         DIM + "/pokeclaude:pokedex to browse" + RESET,
     ]
+
+    # Text only, for when the art has already been shown somewhere better -- the
+    # image card a VS Code-fork host opens in a real editor tab. Repeating a
+    # blocky half-size render underneath it would only make the good one look
+    # like a mistake, so the banner keeps the facts and drops the picture.
+    if not art:
+        return "\n".join([header, ""] + [l for l in info if l.strip()])
 
     # Cap the base sprite at 32px (half the stored 64px) unconditionally. This
     # banner is emitted as a hook `systemMessage`, and those are hard-capped at

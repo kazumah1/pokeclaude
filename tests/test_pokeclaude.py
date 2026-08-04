@@ -34,6 +34,7 @@ ROSTER_SIZE = len(ROSTER)
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
 FAILURES = []
 PASSED = []
+SKIPPED = []
 
 
 def visible(line):
@@ -1901,8 +1902,445 @@ def test_readme_svgs():
     check(not missing, "every referenced image exists (%s)" % (missing or "all present"))
 
 
+def decode_png(data):
+    """Parse a PNG into (width, height, rows-of-(r,g,b)). Verifies every CRC.
+
+    Hand-rolled because the encoder is too: a test that trusted the same code it
+    is testing would only prove the bytes round-trip through themselves. This
+    reads the file the way any other decoder would, so a malformed chunk length
+    or a bad CRC fails here rather than in someone's editor.
+    """
+    import binascii
+    import struct
+    import zlib
+
+    assert data[:8] == b"\x89PNG\r\n\x1a\n", "not a PNG"
+    pos, chunks = 8, {}
+    order = []
+    while pos < len(data):
+        (n,) = struct.unpack(">I", data[pos:pos + 4])
+        tag = data[pos + 4:pos + 8]
+        body = data[pos + 8:pos + 8 + n]
+        (crc,) = struct.unpack(">I", data[pos + 8 + n:pos + 12 + n])
+        assert crc == binascii.crc32(tag + body) & 0xFFFFFFFF, "bad CRC on %s" % tag
+        chunks.setdefault(tag, b"")
+        chunks[tag] += body
+        order.append(tag)
+        pos += 12 + n
+    assert order[0] == b"IHDR" and order[-1] == b"IEND", "chunk order %s" % order
+
+    w, h, depth, colour, comp, filt, inter = struct.unpack(">IIBBBBB", chunks[b"IHDR"])
+    assert (depth, colour, comp, filt, inter) == (8, 2, 0, 0, 0), "unexpected header"
+    raw = zlib.decompress(chunks[b"IDAT"])
+    stride = w * 3
+    assert len(raw) == h * (stride + 1), "IDAT is %d bytes, expected %d" % (
+        len(raw), h * (stride + 1)
+    )
+
+    rows = []
+    for y in range(h):
+        off = y * (stride + 1)
+        assert raw[off] == 0, "row %d uses filter %d, only 0 is written" % (y, raw[off])
+        line = raw[off + 1:off + 1 + stride]
+        rows.append([tuple(line[x * 3:x * 3 + 3]) for x in range(w)])
+    return w, h, rows
+
+
+def test_image_card():
+    """The PNG catch card, for GUI hosts that mangle the text banner."""
+    from pokeclaude import banner, card, hosts, image, sprite as spritelib
+
+    home, store = fresh_home()
+    with open(META) as f:
+        meta = json.load(f)
+    blob = spritelib.load(SPRITES, 25)
+    facts = dict(
+        name="pikachu", dex_id=25, type_names=meta["25"]["types"], is_new=True,
+        dup_count=1, unique=137, roster_size=ROSTER_SIZE, roster_ids=ROSTER,
+    )
+
+    # --- the encoder produces a real PNG, not something only we can read.
+    canvas = card.compose(blob, **facts)
+    w, h, rows = decode_png(canvas.to_png())
+    check(w == canvas.w and h == canvas.h, "PNG header matches the canvas (%dx%d)" % (w, h))
+    check(rows[0][w - 1] == card.BG, "card paints an opaque background (no checkerboard)")
+    check(rows[h // 2][0] == banner.GOLD, "a new catch gets the gold accent bar")
+
+    silver = card.compose(blob, **dict(facts, is_new=False, dup_count=4))
+    _, sh, srows = decode_png(silver.to_png())
+    check(srows[sh // 2][0] == banner.SILVER, "a duplicate gets the silver accent bar")
+
+    # The sprite's own colours must appear, or the card is drawing a blank panel
+    # beside some text. Checked against the palette rather than a fixed pixel:
+    # trimming means no coordinate is guaranteed to be opaque.
+    pal, _ = spritelib.decode(blob)
+    want = {c for c in pal if c is not None}
+    drawn = {px for row in rows for px in row}
+    check(len(want & drawn) > 3, "sprite palette colours are drawn (%d of %d)"
+          % (len(want & drawn), len(want)))
+
+    # Text is drawn in its own colours, so a stripped-colour host is irrelevant:
+    # ELECTRIC must be electric-yellow somewhere on the card.
+    check(banner.TYPE_RGB["electric"] in drawn, "type colours survive into the image")
+
+    # --- a glyph the font does not have must not crash a turn.
+    odd = card.compose(blob, **dict(facts, name="mr. mime♂"))
+    check(odd.w > 0, "an unmapped character renders as a gap, not an exception")
+    check(image.text_width("", 3) == 0, "empty text measures zero")
+
+    # --- which command opens it, per host and per platform.
+    path = "/tmp/x.png"
+    for host, cli, app in (("kiro", "kiro", "Kiro"), ("cursor", "cursor", "Cursor")):
+        argv = card.viewer_argv(path, host, which=lambda c: "/usr/local/bin/" + c)
+        check(argv == [cli, "--reuse-window", path],
+              "%s: its own CLI is preferred (%s)" % (host, argv))
+        argv = card.viewer_argv(path, host, which=lambda c: None, platform="darwin")
+        check(argv == ["open", "-g", "-a", app, path],
+              "%s: macOS falls back to the app bundle, without stealing focus (%s)"
+              % (host, argv))
+    check(
+        card.viewer_argv(path, "kiro", which=lambda c: None, platform="linux") is None,
+        "no CLI and no app bundle means no image tab",
+    )
+    check(card.viewer_argv(path, "claude") is None, "hosts without a viewer get none")
+
+    # --- and whether it is used at all.
+    class FakeTTY(object):
+        def __init__(self, tty):
+            self._tty = tty
+
+        def isatty(self):
+            return self._tty
+
+    term, pipe = FakeTTY(True), FakeTTY(False)
+
+    for env, cfg, host, stream, want, why in (
+        ({}, {}, "kiro", None, True, "on by default where a viewer exists"),
+        ({}, {}, "cursor", None, True, "on where the panel renders markdown images"),
+        ({}, {}, "claude", None, False, "off where neither does"),
+        # One adapter, two surfaces: the Codex app renders markdown images, the
+        # Codex CLI is a terminal. Defaulting to on would print a raw link into
+        # that terminal, so the app opts in instead.
+        ({}, {}, "codex", None, False, "off for codex, which is also a CLI"),
+        ({}, {"inline": True}, "codex", None, True, "the Codex app opts in with inline"),
+        ({}, {"image_tab": False}, "kiro", None, False, "config off beats the default"),
+        ({}, {"image_tab": True}, "claude", None, True, "config on beats the default"),
+        ({}, {"image_tab": None}, "kiro", None, True, "null config means auto"),
+        ({}, {}, "cursor", term, False, "a tty is a terminal that paints its own art"),
+        ({}, {"image_tab": True}, "cursor", term, False, "a tty beats config on"),
+        ({}, {}, "cursor", pipe, True, "a pipe is the panel, and needs the image"),
+        ({"POKECLAUDE_IMAGE_TAB": "1"}, {}, "cursor", term, True,
+         "an explicit env yes beats even the tty check"),
+        ({"POKECLAUDE_IMAGE_TAB": "0"}, {"image_tab": True}, "kiro", None, False,
+         "env off overrides the config"),
+        ({"POKECLAUDE_IMAGE_TAB": "1"}, {"image_tab": False}, "claude", None, True,
+         "env on overrides the config"),
+    ):
+        old = os.environ.pop("POKECLAUDE_IMAGE_TAB", None)
+        os.environ.update(env)
+        try:
+            got = hosts.use_image(host, cfg, stream)
+        finally:
+            os.environ.pop("POKECLAUDE_IMAGE_TAB", None)
+            if old is not None:
+                os.environ["POKECLAUDE_IMAGE_TAB"] = old
+        check(got == want, "use_image: %s" % why)
+
+    # --- which delivery channel each host gets. The suite-wide veto has to come
+    # off for these: they are asking what a host would do when nobody has said.
+    veto = os.environ.pop("POKECLAUDE_IMAGE_TAB", None)
+    for host, cfg, want, why in (
+        ("cursor", {}, "inline", "Cursor renders a markdown image in the reply"),
+        ("kiro", {}, "tab", "Kiro has a viewer but no measured inline support"),
+        ("claude", {}, None, "Claude Code shows truecolour art and needs neither"),
+        ("codex", {}, None, "codex stays text: the same entry serves its CLI"),
+        ("codex", {"inline": True}, "inline", "until the Codex app turns it on"),
+        ("kiro", {"inline": True}, "inline", "inline beats a tab wherever it works"),
+        ("codex", {"inline": False}, None, "and inline off is respected"),
+        ("cursor", {"inline": False}, "tab", "inline off on Cursor falls back to a tab"),
+        # The global-setting trap: `--inline on` is set for the Codex app, and
+        # the same config file is read by every agent. It must not reach a host
+        # measured to not render them.
+        ("claude", {"inline": True}, None,
+         "inline on cannot force a host measured not to render them"),
+    ):
+        check(hosts.image_mode(host, cfg, None) == want,
+              "image_mode %s: %s" % (host, why))
+    check(
+        hosts.image_mode("cursor", {}, term) is None,
+        "image_mode is None on a terminal, whatever the host",
+    )
+    if veto is not None:
+        os.environ["POKECLAUDE_IMAGE_TAB"] = veto
+
+    # --- show() must be silent and side-effect free where it cannot work.
+    target = os.path.join(home, "nothing.png")
+    check(
+        card.show(blob, host="claude", path=target, **facts) is False,
+        "show() declines on a host with no viewer",
+    )
+    check(not os.path.exists(target), "and writes nothing when it declines")
+
+    # --- the text banner drops the art once the image carries it.
+    with_art = banner.compose(blob, shiny=False, **facts)
+    without = banner.compose(blob, art=False, **facts)
+    check(any(g in with_art for g in "▀▄"), "the normal banner still draws pixels")
+    check(
+        not any(g in without for g in "▀▄█░▒▓"),
+        "art=False leaves no art behind to compete with the image",
+    )
+    check("PIKACHU" in without and "137/%d" % ROSTER_SIZE in without,
+          "and keeps every fact the art was sitting beside")
+
+
+def test_pokedex_card():
+    """The Pokedex as an image: grid, detail, and the two delivery channels."""
+    from pokeclaude import card
+
+    home, store = fresh_home()
+    with open(META) as f:
+        meta = json.load(f)
+    for pid in (25, 25, 384, 143):
+        store.record_catch(pid, session_id="s", shiny=(pid == 384))
+
+    caught = store.load()["caught"]
+    entries = [(pid, caught.get(str(pid))) for pid in (25, 384, 143, 999)]
+
+    canvas = card.grid(entries, SPRITES, meta, cols=2, show_uncaught=True,
+                       title=[("POKEDEX", (246, 200, 60))],
+                       footer=[("PAGE 1/1", (124, 128, 145))])
+    w, h, rows = decode_png(canvas.to_png())
+    check(w > 400 and h > 200, "the grid card renders (%dx%d)" % (w, h))
+    drawn = {px for row in rows for px in row}
+    # An uncaught entry is greyscale, a caught one is not: the grid has to show
+    # both, or the whole point of --all is lost.
+    greys = {c for c in drawn if c[0] == c[1] == c[2] and 30 < c[0] < 250}
+    colours = {c for c in drawn if len(set(c)) > 1}
+    check(len(greys) > 3, "uncaught entries render as greyscale (%d tones)" % len(greys))
+    check(len(colours) > 8, "caught entries keep their colours (%d)" % len(colours))
+
+    # A page is capped by pixels, not by the 10,000-character systemMessage limit
+    # the text grid has to live under -- so it can hold far more per page.
+    big = card.grid([(p, caught.get(str(p))) for p in range(1, 25)],
+                    SPRITES, meta, cols=6, show_uncaught=True)
+    bw, bh, _ = decode_png(big.to_png())
+    check(bw > 1000 and bh > 400, "24 entries fit one card (%dx%d)" % (bw, bh))
+
+    detail = card.detail(384, __import__("pokeclaude.sprite", fromlist=["x"]).load(
+        SPRITES, 384, shiny=True), meta["384"], caught.get("384"), roster_ids=ROSTER,
+        showing_shiny=True)
+    dw, dh, _ = decode_png(detail.to_png())
+    check(dw > 300 and dh > 100, "the detail card renders (%dx%d)" % (dw, dh))
+
+    # --- inline writes a file and launches nothing.
+    path = card.write_inline(canvas, "pokedex.png")
+    check(path == os.path.join(home, "pokedex.png"), "inline writes to the dex path")
+    check(os.path.exists(path), "and the file is there for the agent to link")
+
+    # --- the two card files are the only ones, and they are overwritten.
+    before = sorted(f for f in os.listdir(home) if f.endswith(".png"))
+    for _ in range(5):
+        card.write_inline(canvas, "pokedex.png")
+    after = sorted(f for f in os.listdir(home) if f.endswith(".png"))
+    check(before == after == ["pokedex.png"],
+          "repeated renders overwrite one file rather than accumulating (%s)" % after)
+    check(
+        not [f for f in os.listdir(home) if ".tmp" in f],
+        "no scratch files are left behind",
+    )
+
+
+def test_pokedex_card_cli():
+    """`pokedex.py` under a panel host prints a markdown link, not art."""
+    home, store = fresh_home()
+    store.record_catch(25, session_id="s")
+
+    e = dict(os.environ)
+    e["POKECLAUDE_HOME"] = home
+    e["POKECLAUDE_HOST"] = "cursor"  # renders markdown images, so: inline
+    e.pop("POKECLAUDE_IMAGE_TAB", None)
+
+    got = subprocess.run(
+        [sys.executable, POKEDEX], capture_output=True, env=e
+    ).stdout.decode()
+    png = os.path.join(home, "pokedex.png")
+    check("![pokedex](%s)" % png in got, "prints the markdown link the agent echoes")
+    check(os.path.exists(png), "and writes the image it points at")
+    check(not any(g in got for g in "▀▄"), "and no longer prints the ANSI art")
+
+    # The detail view takes the same path.
+    got = subprocess.run(
+        [sys.executable, POKEDEX, "--id", "25"], capture_output=True, env=e
+    ).stdout.decode()
+    check("![pokedex](" in got, "--id renders as an image too")
+
+    # --no-image is the way back, and a host with no image channel is unaffected.
+    got = subprocess.run(
+        [sys.executable, POKEDEX, "--no-image"], capture_output=True, env=e
+    ).stdout.decode()
+    check(any(g in got for g in "▀▄"), "--no-image forces the ANSI art back")
+
+    e["POKECLAUDE_HOST"] = "claude"
+    got = subprocess.run(
+        [sys.executable, POKEDEX], capture_output=True, env=e
+    ).stdout.decode()
+    check(any(g in got for g in "▀▄"), "Claude Code still gets truecolour art inline")
+    check("![pokedex](" not in got, "and no markdown link it cannot render")
+
+    # --image is the way to see a card from anywhere, including a host that has
+    # no image channel at all -- otherwise the only way to check a render is to
+    # be sitting in the right agent.
+    got = subprocess.run(
+        [sys.executable, POKEDEX, "--image"], capture_output=True, env=e
+    ).stdout.decode()
+    check("![pokedex](" in got, "--image forces a card even on Claude Code")
+    check(not any(g in got for g in "▀▄"), "and replaces the art rather than adding to it")
+    got = subprocess.run(
+        [sys.executable, POKEDEX, "--image", "--no-image"], capture_output=True, env=e
+    ).stdout.decode()
+    check(any(g in got for g in "▀▄"), "--no-image wins when both are given")
+
+    # The Codex CLI and the Codex app share one adapter and disagree about this,
+    # so the default must be the one that cannot break a terminal.
+    e["POKECLAUDE_HOST"] = "codex"
+    got = subprocess.run(
+        [sys.executable, POKEDEX], capture_output=True, env=e
+    ).stdout.decode()
+    check(any(g in got for g in "▀▄"), "Codex gets truecolour art by default (the CLI)")
+    check(
+        "![pokedex](" not in got,
+        "and never a raw markdown link printed into a terminal",
+    )
+    store.save_config({"inline": True})
+    got = subprocess.run(
+        [sys.executable, POKEDEX], capture_output=True, env=e
+    ).stdout.decode()
+    check("![pokedex](" in got, "`--inline on` switches the Codex app to an image")
+
+    # ...and the CLI half of that split gets out via the shell, which is the one
+    # channel an app launched from the dock does not have.
+    got = subprocess.run(
+        [sys.executable, POKEDEX], capture_output=True,
+        env=dict(e, POKECLAUDE_INLINE="0"),
+    ).stdout.decode()
+    check(any(g in got for g in "▀▄"),
+          "POKECLAUDE_INLINE=0 gets the Codex CLI its art back")
+
+    # The same global setting must not follow the user to Claude Code.
+    got = subprocess.run(
+        [sys.executable, POKEDEX], capture_output=True,
+        env=dict(e, POKECLAUDE_HOST="claude"),
+    ).stdout.decode()
+    check(any(g in got for g in "▀▄"),
+          "and inline on does not cost Claude Code its truecolour art")
+    store.save_config({"inline": None})
+
+
+def test_image_card_end_to_end():
+    """A real hook run on Kiro: a PNG on disk and an editor asked to open it."""
+    sandbox = tempfile.mkdtemp(prefix="pokeclaude-card-")
+    home = os.path.join(sandbox, "home")
+    bindir = os.path.join(sandbox, "bin")
+    os.makedirs(home)
+    os.makedirs(bindir)
+
+    # A stand-in for the editor's CLI. The point is to prove the hook launches
+    # it with the right argv -- installing Kiro to run the suite would be a
+    # ridiculous requirement, and would open windows on a developer's machine.
+    log = os.path.join(sandbox, "launch.log")
+    fake = os.path.join(bindir, "kiro")
+    with open(fake, "w") as f:
+        f.write('#!/bin/sh\necho "$@" >> "$FAKE_LOG"\n')
+    os.chmod(fake, 0o755)
+
+    transcript = write_transcript(
+        os.path.join(sandbox, "t.jsonl"),
+        [prompt("p"), assistant("a", 900000)],
+    )
+    env = {
+        "PATH": bindir + os.pathsep + os.environ.get("PATH", ""),
+        "POKECLAUDE_HOST": "kiro",
+        "FAKE_LOG": log,
+        "POKECLAUDE_IMAGE_TAB": "1",  # lift the suite-wide veto for this one run
+    }
+
+    banner_text = None
+    for i in range(40):
+        _, out, err = run_hook(
+            {"session_id": "card-%d" % i, "transcript_path": transcript,
+             "hook_event_name": "Stop", "cwd": REPO},
+            home, env=env,
+        )
+        if err.strip():
+            banner_text = err
+            break
+        try:
+            os.remove(os.path.join(home, "state.json"))
+        except OSError:
+            pass
+
+    check(banner_text is not None, "the hook caught something within 40 turns")
+
+    # Cursor supports BOTH channels, and a hook can only use one of them. If the
+    # hook ever asks image_mode() what to do it will be told 'inline', which it
+    # cannot do, and the catch will show nothing at all.
+    from pokeclaude import hosts
+
+    veto = os.environ.pop("POKECLAUDE_IMAGE_TAB", None)
+    try:
+        check(
+            hosts.image_mode("cursor", {}, None) == "inline"
+            and hosts.viewer("cursor") is not None,
+            "Cursor offers inline AND a tab -- the case the hook must not defer on",
+        )
+    finally:
+        if veto is not None:
+            os.environ["POKECLAUDE_IMAGE_TAB"] = veto
+    png = os.path.join(home, "latest-catch.png")
+    check(os.path.exists(png), "a catch writes latest-catch.png into POKECLAUDE_HOME")
+    if os.path.exists(png):
+        with open(png, "rb") as f:
+            w, h, _ = decode_png(f.read())
+        check(w > 200 and h > 100, "the written PNG decodes (%dx%d)" % (w, h))
+
+    # The launcher is spawned detached, so it may land just after the hook exits.
+    for _ in range(50):
+        if os.path.exists(log):
+            break
+        time.sleep(0.05)
+    launched = open(log).read().strip() if os.path.exists(log) else ""
+    check(launched.startswith("--reuse-window "),
+          "the editor is asked to reuse its window (%r)" % launched[:40])
+    check(launched.endswith("latest-catch.png"),
+          "and to open the card that was just written")
+
+    if banner_text:
+        check(
+            not any(g in banner_text for g in "▀▄█░▒▓"),
+            "the stderr banner carries no art once the image tab has it",
+        )
+        check("appeared!" in banner_text, "but still announces the catch")
+
+    # The same file every time: one editor tab that updates, not one per catch.
+    check(
+        card_path_is_stable(home),
+        "the card path is stable, so the preview reloads instead of stacking tabs",
+    )
+
+
+def card_path_is_stable(home):
+    pngs = [f for f in os.listdir(home) if f.endswith(".png")]
+    return pngs == ["latest-catch.png"]
+
+
 def main():
     print("PokeClaude test suite (python %s)" % sys.version.split()[0])
+    # Images off for the suite at large. Otherwise every test that asserts on
+    # rendered ANSI art depends on which host the suite HAPPENS to be run from --
+    # run it inside Cursor's agent panel and the pokedex correctly prints a
+    # markdown link instead of pixels, failing a dozen unrelated tests. Worse, it
+    # would spawn an editor per run. The image tests lift this explicitly.
+    os.environ["POKECLAUDE_IMAGE_TAB"] = "0"
     real = os.path.join(os.path.expanduser("~"), ".claude", "pokeclaude")
     before = os.path.exists(real)
 
@@ -1937,9 +2375,21 @@ def main():
         test_skills,
         test_pokeball_geometry,
         test_readme_svgs,
+        test_image_card,
+        test_pokedex_card,
+        test_pokedex_card_cli,
+        test_image_card_end_to_end,
     ):
         try:
             fn()
+        except SystemExit as e:
+            # Some tools sys.exit() at IMPORT when an optional dependency is
+            # missing (bake_sprites and animate_demo both do, without Pillow).
+            # Without this that exit propagates out of main(), and the suite
+            # stops dead before printing a summary -- so every test after the
+            # affected one silently never runs, and the run still looks fine.
+            SKIPPED.append("%s: %s" % (fn.__name__, e))
+            print("  skip %s (%s)" % (fn.__name__, e))
         except Exception as e:
             import traceback
 
@@ -1950,7 +2400,12 @@ def main():
     if not before:
         check(not os.path.exists(real), "real pokedex was never created by the tests")
 
-    print("\n%d passed, %d failed" % (len(PASSED), len(FAILURES)))
+    print("\n%d passed, %d failed%s" % (
+        len(PASSED), len(FAILURES),
+        ", %d skipped" % len(SKIPPED) if SKIPPED else "",
+    ))
+    for s in SKIPPED:
+        print("  SKIPPED: %s" % s)
     for f in FAILURES:
         print("  FAILED: %s" % f)
     return 1 if FAILURES else 0
