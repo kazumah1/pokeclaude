@@ -110,14 +110,19 @@ HOSTS = {
         # reach it: the CLI first, falling back to the macOS app bundle, which
         # is there whether or not the user installed the shell command.
         "viewer": {"cli": "kiro", "app": "Kiro"},
-        # Images at all, ONLY in the IDE. This entry serves two surfaces: the
-        # IDE panel, which eats escapes, and the Kiro CLI, which paints
-        # truecolour perfectly and wants neither a markdown link nor an editor
-        # window opening on top of it. The tty check cannot separate them --
-        # a CLI agent runs its tools on a pipe, same as a panel -- so the
-        # surface is named instead. `codex` has the identical split and no such
-        # marker, which is why it is a setting there.
-        "gui_env": "KIRO_IDE",
+        # Inline, like Cursor. Its IDE panel eats escapes and renders a
+        # markdown image; the art arrives in the reply rather than as a tab.
+        #
+        # NOT gated on KIRO_IDE, though this entry serves the CLI as well and a
+        # gate is what that split wants. The variable is simply not there:
+        # measured inside a real Kiro IDE panel, KIRO_IDE and KIRO_WORKSPACE are
+        # both unset while detection still resolves to kiro. Gating on it meant
+        # the IDE -- the surface that needs images -- never got one.
+        #
+        # So the CLI's protection is the same as Cursor's: a person at a prompt
+        # gets a tty and keeps their art, and anyone hitting this through a CLI
+        # agent turns it off with `--inline off` or POKECLAUDE_INLINE=0. A
+        # `gui_env` marker is still the right answer if one is ever found.
         "markdown_images": True,
     },
     "copilot": {
@@ -344,6 +349,11 @@ def is_gui(host=None):
     from in here, since a CLI agent hands its tools a pipe exactly like a panel
     does, and the CLI would get an editor window opening over the terminal art
     it renders perfectly well.
+
+    No host declares one today. Kiro looked like the candidate -- KIRO_IDE is in
+    the detection list -- but a real Kiro IDE panel reports it unset, so gating
+    on it disabled images exactly where they were needed. Kept because the split
+    is real and a measured marker would still be the right fix.
     """
     marker = spec(host).get("gui_env")
     return bool(os.environ.get(marker)) if marker else True

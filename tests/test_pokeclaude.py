@@ -2238,11 +2238,11 @@ def test_image_card():
     veto = os.environ.pop("POKECLAUDE_IMAGE_TAB", None)
     for host, cfg, want, why in (
         ("cursor", {}, "inline", "Cursor renders a markdown image in the reply"),
-        ("kiro", {}, None, "Kiro without KIRO_IDE is the CLI: no image at all"),
+        ("kiro", {}, "inline", "Kiro's IDE panel renders a markdown image"),
         ("claude", {}, None, "Claude Code shows truecolour art and needs neither"),
         ("codex", {}, None, "codex stays text: the same entry serves its CLI"),
         ("codex", {"inline": True}, "inline", "until the Codex app turns it on"),
-        ("kiro", {"image_tab": True, "inline": False}, "tab", "images forced on Kiro without inline give a tab"),
+        ("kiro", {"inline": False}, "tab", "inline off on Kiro falls back to its viewer"),
         ("codex", {"inline": False}, None, "and inline off is respected"),
         ("cursor", {"inline": False}, "tab", "inline off on Cursor falls back to a tab"),
         # The global-setting trap: `--inline on` is set for the Codex app, and
@@ -2264,19 +2264,20 @@ def test_image_card():
     # not catch it: a CLI agent runs its tools on a pipe, same as a panel.
     old_kiro = os.environ.pop("KIRO_IDE", None)
     try:
-        check(
-            hosts.image_mode("kiro", {}, pipe) is None,
-            "Kiro CLI gets no image at all -- it renders truecolour itself",
-        )
-        os.environ["KIRO_IDE"] = "1"
+        # Measured in a real Kiro IDE panel: KIRO_IDE and KIRO_WORKSPACE are
+        # both unset while detection still resolves to kiro. So the panel must
+        # get its image WITHOUT that variable, or the gate defeats the feature.
         check(
             hosts.image_mode("kiro", {}, pipe) == "inline",
-            "Kiro IDE gets the inline image",
+            "the Kiro IDE panel gets an inline image with KIRO_IDE unset",
         )
-        del os.environ["KIRO_IDE"]
         check(
-            hosts.image_mode("kiro", {"image_tab": True}, pipe) == "inline",
-            "and the setting still reaches the CLI for anyone who wants it",
+            hosts.image_mode("kiro", {}, term) is None,
+            "and a person at a Kiro prompt keeps their truecolour art",
+        )
+        check(
+            hosts.image_mode("kiro", {"inline": False}, pipe) == "tab",
+            "`--inline off` is the way out for a CLI agent",
         )
         # The env var is what the skills set, because a flag breaks hard on an
         # older script ("unrecognized arguments: --agent") while an unknown

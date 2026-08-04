@@ -206,13 +206,16 @@ the panel eats escapes, the CLI paints truecolour perfectly and wants neither a
 markdown link nor an editor window opening over it. The tty check cannot separate
 them, because a CLI agent hands its tools a pipe exactly like a panel does.
 
-Kiro names the difference, so its entry does too:
+`gui_env` exists for this — name the variable the GUI sets and images apply only
+there. **No host declares one.** Kiro looked like the candidate, since KIRO_IDE
+is in the detection list, but a real Kiro IDE panel reports `KIRO_IDE` and
+`KIRO_WORKSPACE` both unset while still detecting as kiro. Gating on it disabled
+images precisely where they were wanted.
 
-```python
-"gui_env": "KIRO_IDE",   # images only when this is set
-```
-
-Codex has no such marker, which is why it is a setting there instead.
+So Kiro takes Cursor's treatment: inline by default, with a person at a prompt
+protected by the tty check, and `--inline off` (or `POKECLAUDE_INLINE=0`) as the
+way out for anyone who hits it through a CLI agent. Codex, whose app and CLI
+have no distinguishing marker either, stays opt-in the other way round.
 
 `codex` is a single entry serving the Codex CLI and the Codex app, and they
 disagree about exactly this. The app's panel renders a markdown image; the CLI is
