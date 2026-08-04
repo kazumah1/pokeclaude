@@ -10,6 +10,7 @@ set." The command's output already lists the active setting and all three preset
 so do not restate them.
 
 ```bash
+# 1. Where the repo or installed plugin says it is.
 for d in "$POKECLAUDE_ROOT" "$CODEX_PLUGIN_ROOT" "$PLUGIN_ROOT" "$CLAUDE_PLUGIN_ROOT" "$PWD" \
          "$HOME/pokeclaude" "$HOME/proj/pokeclaude" "$HOME/src/pokeclaude"; do
   for sub in "plugin/scripts" "scripts"; do
@@ -17,6 +18,16 @@ for d in "$POKECLAUDE_ROOT" "$CODEX_PLUGIN_ROOT" "$PLUGIN_ROOT" "$CLAUDE_PLUGIN_
       python3 "$d/$sub/config.py" $ARGUMENTS; exit 0
     fi
   done
+done
+# 2. Where the agent that installed us actually put it. A marketplace install
+#    lands in a per-agent cache that no environment variable points at, and some
+#    hosts (the Codex app) set none of the variables above at all. Newest first,
+#    so an upgrade wins over the version it replaced.
+for f in $(ls -1dt "$HOME"/.codex/plugins/cache/*/*/*/scripts/config.py \
+                   "$HOME"/.claude/plugins/cache/*/*/*/scripts/config.py \
+                   "$HOME"/.cursor/plugins/cache/*/*/*/scripts/config.py \
+                   "$HOME"/.claude/plugins/marketplaces/*/plugin/scripts/config.py 2>/dev/null); do
+  python3 "$f" $ARGUMENTS; exit 0
 done
 echo "pokeclaude: could not locate config.py -- set POKECLAUDE_ROOT to the repo" >&2
 ```

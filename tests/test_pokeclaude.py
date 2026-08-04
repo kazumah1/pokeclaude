@@ -1795,6 +1795,21 @@ def test_skills():
             '"plugin/scripts" "scripts"' in body or "plugin/scripts\" \"scripts" in body,
             "%s probes both the clone and installed-cache layouts" % name,
         )
+        # Knowing the LAYOUT is not enough if nothing points at the directory.
+        # A marketplace install lands in a per-agent cache that no environment
+        # variable names, and the Codex app sets none of the variables at all --
+        # so every probe above it comes back empty and the skill reports itself
+        # missing. These globs are the floor.
+        for cache in (".codex/plugins/cache", ".claude/plugins/cache",
+                      ".cursor/plugins/cache"):
+            check(
+                cache in body,
+                "%s falls back to the %s install" % (name, cache.split("/")[0]),
+            )
+        check(
+            "ls -1dt" in body,
+            "%s prefers the newest cached version over the one it replaced" % name,
+        )
 
     # Every script a skill references must exist.
     for name in names:
