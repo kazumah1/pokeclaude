@@ -128,6 +128,29 @@ def probe(host, attempts=60, show=False, open_image=False):
     return {"ok": False, "why": "no catch in %d attempts (unexpected)" % attempts}
 
 
+def _ancestry(limit=6):
+    """This process and its parents, as (pid, command) from us upward."""
+    chain = []
+    pid = os.getpid()
+    for _ in range(limit):
+        try:
+            proc = subprocess.run(
+                ["ps", "-o", "ppid=,comm=", "-p", str(pid)], capture_output=True
+            )
+            line = proc.stdout.decode("utf-8", "replace").strip()
+            if not line:
+                break
+            parts = line.split(None, 1)
+            ppid = int(parts[0])
+            chain.append((pid, os.path.basename(parts[1]) if len(parts) > 1 else "?"))
+            if ppid <= 1:
+                break
+            pid = ppid
+        except Exception:
+            break
+    return chain
+
+
 def explain():
     """Report what this process sees, without probing or launching anything.
 
@@ -162,6 +185,15 @@ def explain():
     print("  environment")
     for k, v in markers:
         print("    %-22s %s" % (k, (v if v else DIM + "unset" + RESET)))
+
+    # Who launched us, up the tree. This is the one thing that cannot be
+    # mistaken: run from a shell prompt the parent is a shell, run as an agent's
+    # tool call it is the agent's own process. `stdout is a tty` alone cannot
+    # tell those apart, because an agent may hand its tool a pty.
+    print("")
+    print("  launched by")
+    for depth, (pid, comm) in enumerate(_ancestry()):
+        print("    %s%-6d %s" % ("  " * depth, pid, comm))
 
     print("")
     print("  config          mono=%r image_tab=%r inline=%r" % (
