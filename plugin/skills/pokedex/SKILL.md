@@ -13,7 +13,7 @@ for d in "$POKECLAUDE_ROOT" "$CODEX_PLUGIN_ROOT" "$PLUGIN_ROOT" "$CLAUDE_PLUGIN_
          "$HOME/pokeclaude" "$HOME/proj/pokeclaude" "$HOME/src/pokeclaude"; do
   for sub in "plugin/scripts" "scripts"; do
     if [ -n "$d" ] && [ -f "$d/$sub/pokedex.py" ]; then
-      python3 "$d/$sub/pokedex.py" $ARGUMENTS; exit 0
+      python3 "$d/$sub/pokedex.py" --agent $ARGUMENTS; exit 0
     fi
   done
 done
@@ -25,7 +25,7 @@ for f in $(ls -1dt "$HOME"/.codex/plugins/cache/*/*/*/scripts/pokedex.py \
                    "$HOME"/.claude/plugins/cache/*/*/*/scripts/pokedex.py \
                    "$HOME"/.cursor/plugins/cache/*/*/*/scripts/pokedex.py \
                    "$HOME"/.claude/plugins/marketplaces/*/plugin/scripts/pokedex.py 2>/dev/null); do
-  python3 "$f" $ARGUMENTS; exit 0
+  python3 "$f" --agent $ARGUMENTS; exit 0
 done
 echo "pokeclaude: could not locate pokedex.py -- set POKECLAUDE_ROOT to the repo" >&2
 ```

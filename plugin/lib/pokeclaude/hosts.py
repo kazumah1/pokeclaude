@@ -142,6 +142,10 @@ PROCESS_MARKERS = (
     ("cursor", "cursor"),
     ("kiro", "kiro"),
     ("codex", "codex"),
+    # The Codex app ships inside the ChatGPT desktop app, so that is the process
+    # name its children see -- measured, not guessed. Without this the chain ends
+    # in an unrecognised name and detection falls back to the default host.
+    ("chatgpt", "codex"),
     ("claude", "claude"),
 )
 
@@ -342,7 +346,7 @@ def is_terminal(stream):
         return False
 
 
-def use_image(host=None, config=None, stream=None):
+def use_image(host=None, config=None, stream=None, agent=False):
     """Should art be delivered as a PNG here rather than as escapes?
 
     Precedence, highest first:
@@ -358,14 +362,20 @@ def use_image(host=None, config=None, stream=None):
     env = os.environ.get("POKECLAUDE_IMAGE_TAB")
     if env is not None:
         return env.strip().lower() not in ("", "0", "false", "no", "off")
-    if stream is not None and is_terminal(stream):
+    # `agent` beats the tty check, and has to. Some panels run a tool through a
+    # pty, so stdout is a terminal there in the technical sense while the surface
+    # eating our escapes is a chat window -- the ChatGPT-hosted Codex app does
+    # exactly this. A heuristic cannot separate those; the caller knows. Only a
+    # skill file passes it, and a skill is agent-invoked by definition, so a
+    # human running the same script by hand still gets the tty answer.
+    if not agent and stream is not None and is_terminal(stream):
         return False
     if config and config.get("image_tab") is not None:
         return bool(config["image_tab"])
     return viewer(host) is not None or renders_markdown_images(host, config)
 
 
-def image_mode(host=None, config=None, stream=None):
+def image_mode(host=None, config=None, stream=None, agent=False):
     """How to deliver a PNG here: 'inline', 'tab', or None for text as usual.
 
     `inline` wins wherever it is available: the art lands in the conversation
@@ -373,7 +383,7 @@ def image_mode(host=None, config=None, stream=None):
     to echo a markdown link, though, so only a command can use it -- a turn-end
     hook fires after the agent has stopped talking and must take `tab`.
     """
-    if not use_image(host, config, stream):
+    if not use_image(host, config, stream, agent):
         return None
     if renders_markdown_images(host, config):
         return "inline"

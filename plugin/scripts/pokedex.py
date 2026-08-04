@@ -160,6 +160,13 @@ def main():
              "otherwise show an image",
     )
     ap.add_argument(
+        "--agent", action="store_true",
+        help="an agent invoked this, not a person at a shell prompt. Skips the "
+             "tty check: some panels run tools through a pty, so stdout looks "
+             "like a terminal while the surface strips escapes. Skill files pass "
+             "it; typing the command yourself does not.",
+    )
+    ap.add_argument(
         "--image", action="store_true",
         help="always render as a PNG and print its path, even from a terminal. "
              "The way to see what an agent panel would get without being in one.",
@@ -180,7 +187,9 @@ def main():
     # Whether to draw a PNG instead, and how to deliver it. `stream` is what keeps
     # this off a terminal: someone running another agent in the IDE's integrated
     # terminal gets a tty, real colour, and none of this.
-    mode = None if args.no_image else _hosts.image_mode(host, config, sys.stdout)
+    mode = None if args.no_image else _hosts.image_mode(
+        host, config, sys.stdout, agent=args.agent
+    )
     if args.image and not args.no_image:
         # Forced. Falls back to `inline`, which writes the file and prints its
         # path without launching anything -- the safe thing to do on a host that

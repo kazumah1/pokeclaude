@@ -2245,6 +2245,30 @@ def test_image_card():
         hosts.image_mode("cursor", {}, term) is None,
         "image_mode is None on a terminal, whatever the host",
     )
+    # Some panels run a tool through a pty, so stdout is a terminal in the
+    # technical sense while the surface still strips escapes -- the Codex app
+    # inside ChatGPT does exactly that. Only a skill passes --agent, so a person
+    # running the same script by hand still gets the tty answer.
+    check(
+        hosts.image_mode("cursor", {}, term, agent=True) == "inline",
+        "an agent invocation overrides the tty check",
+    )
+    check(
+        hosts.use_image("cursor", {}, term, agent=True) is True,
+        "and use_image agrees",
+    )
+    check(
+        hosts.image_mode("claude", {}, pipe, agent=True) is None,
+        "but --agent cannot conjure a channel the host does not have",
+    )
+
+    # The Codex app ships inside ChatGPT desktop, so that is the process name in
+    # the chain. Measured from a real run.
+    chatgpt = {1: (2, "python3"), 2: (3, "zsh"), 3: (1, "ChatGPT")}
+    check(
+        hosts.ancestor_host(chatgpt, 1) == "codex",
+        "a ChatGPT-hosted Codex app is recognised",
+    )
     if veto is not None:
         os.environ["POKECLAUDE_IMAGE_TAB"] = veto
 
