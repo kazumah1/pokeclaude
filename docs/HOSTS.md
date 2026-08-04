@@ -196,8 +196,8 @@ There are two ways to get an image onto these surfaces, and they are not equal.
 
 | Mode | How | Who |
 |---|---|---|
-| `inline` | the agent's reply contains `![](/abs/path.png)`, and the panel renders it | Cursor (sidebar + agents window), the Kiro **IDE**; the Codex app via `--inline on` |
-| `tab` | the editor is told to open the file (`cursor -r`, `kiro -r`) | catches everywhere, since a hook cannot use `inline` |
+| `inline` | the agent's reply contains `![](/abs/path.png)`, and the panel renders it | Cursor (sidebar + agents window); the Codex app via `--inline on` |
+| `tab` | the editor is told to open the file (`cursor -r`, `kiro -r`) | Kiro; and catches everywhere, since a hook cannot use `inline` |
 
 ### One adapter, two surfaces
 
@@ -209,13 +209,28 @@ them, because a CLI agent hands its tools a pipe exactly like a panel does.
 `gui_env` exists for this — name the variable the GUI sets and images apply only
 there. **No host declares one.** Kiro looked like the candidate, since KIRO_IDE
 is in the detection list, but a real Kiro IDE panel reports `KIRO_IDE` and
-`KIRO_WORKSPACE` both unset while still detecting as kiro. Gating on it disabled
-images precisely where they were wanted.
+`KIRO_WORKSPACE` both unset while still detecting as kiro.
 
-So Kiro takes Cursor's treatment: inline by default, with a person at a prompt
-protected by the tty check, and `--inline off` (or `POKECLAUDE_INLINE=0`) as the
-way out for anyone who hits it through a CLI agent. Codex, whose app and CLI
-have no distinguishing marker either, stays opt-in the other way round.
+It stopped mattering for Kiro once inline was ruled out there entirely (below),
+so only `codex` still carries this split, and it stays a setting.
+
+### Kiro does not render a local markdown image
+
+Worth recording, because being a VS Code fork like Cursor is not sufficient and
+the assumption cost several rounds. Kiro's panel *engages* its image renderer —
+it prompts for permission — and then displays nothing. Four forms, in a real IDE
+panel:
+
+| Form | Result |
+|---|---|
+| `![](file:///abs/path.png)` | blocked |
+| `![](/abs/path.png)` | blocked |
+| `![](workspace-relative.png)` | blocked |
+| `![](./workspace-relative.png)` | element created, image never loaded |
+
+Cursor renders the second of those. Kiro renders none. So Kiro declares
+`markdown_images: False` and takes the `tab`, which its bundled media-preview
+handles properly — including re-rendering when the file changes.
 
 `codex` is a single entry serving the Codex CLI and the Codex app, and they
 disagree about exactly this. The app's panel renders a markdown image; the CLI is

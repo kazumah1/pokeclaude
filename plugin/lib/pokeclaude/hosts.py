@@ -110,20 +110,24 @@ HOSTS = {
         # reach it: the CLI first, falling back to the macOS app bundle, which
         # is there whether or not the user installed the shell command.
         "viewer": {"cli": "kiro", "app": "Kiro"},
-        # Inline, like Cursor. Its IDE panel eats escapes and renders a
-        # markdown image; the art arrives in the reply rather than as a tab.
+        # Explicitly False, and measured rather than assumed. Kiro's panel does
+        # engage its image renderer -- it prompts for permission -- but will not
+        # display a local file. Four forms were tried in a real IDE panel:
         #
-        # NOT gated on KIRO_IDE, though this entry serves the CLI as well and a
-        # gate is what that split wants. The variable is simply not there:
-        # measured inside a real Kiro IDE panel, KIRO_IDE and KIRO_WORKSPACE are
-        # both unset while detection still resolves to kiro. Gating on it meant
-        # the IDE -- the surface that needs images -- never got one.
+        #   ![](file:///abs/path.png)     blocked
+        #   ![](/abs/path.png)            blocked
+        #   ![](workspace-relative.png)   blocked
+        #   ![](./workspace-relative.png) element created, image never loaded
         #
-        # So the CLI's protection is the same as Cursor's: a person at a prompt
-        # gets a tty and keeps their art, and anyone hitting this through a CLI
-        # agent turns it off with `--inline off` or POKECLAUDE_INLINE=0. A
-        # `gui_env` marker is still the right answer if one is ever found.
-        "markdown_images": True,
+        # Being a VS Code fork like Cursor was not enough; Cursor renders a bare
+        # absolute path and Kiro renders none of them. So Kiro takes the `tab`,
+        # which IS verified here: its bundled media-preview opens the PNG in a
+        # real editor tab and re-renders it when the file changes.
+        #
+        # False rather than absent, so `--inline on` -- a global setting someone
+        # turns on for the Codex app -- cannot reach across and swap a working
+        # tab for a link this host cannot draw.
+        "markdown_images": False,
     },
     "copilot": {
         "label": "GitHub Copilot CLI",
