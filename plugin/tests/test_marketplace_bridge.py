@@ -127,3 +127,44 @@ def test_never_in_two_places_after_deposit(fake):
     # after a successful deposit: gone locally, present on server — never both
     assert 25 not in store.caught_ids(path=store.DEX_PATH)
     assert dep["item_id"] in fake.items
+
+
+def test_withdraw_lock_busy_persists_pending_not_false_success(fake, monkeypatch):
+    # seed a server-side item to withdraw (deposit removes the local copy)
+    _give(25, 1)
+    dep = mc.deposit("pikachu")
+    iid = dep["item_id"]
+    assert 25 not in store.caught_ids(path=store.DEX_PATH)  # left locally on deposit
+    # simulate the Pokédex lock being unavailable for the re-catch
+    monkeypatch.setattr(store, "record_catch", lambda *a, **k: None)
+    out = mc.withdraw(iid)
+    # NOT a clean success: the item left the server but never re-landed locally
+    assert "withdrawn" not in out
+    assert out["pending_withdraw"]["species_id"] == 25
+    assert "reconcile" in out["error"]
+    assert 25 not in store.caught_ids(path=store.DEX_PATH)  # not caught yet
+    assert iid not in fake.items                            # server already released it
+    # a pending-withdraw op is recorded so nothing is lost
+    pend = mc._pending()
+    assert any(o.get("withdraw_species") == 25 for o in pend)
+    assert all("deposit_token" not in o for o in pend)      # distinct from deposit ops
+
+
+def test_reconcile_completes_pending_withdraw(fake, monkeypatch):
+    # arrive at the pending-withdraw state (as after a lock-busy withdraw)
+    _give(25, 1)
+    dep = mc.deposit("pikachu")
+    iid = dep["item_id"]
+    real_record_catch = store.record_catch
+    monkeypatch.setattr(store, "record_catch", lambda *a, **k: None)
+    mc.withdraw(iid)
+    assert any(o.get("withdraw_species") == 25 for o in mc._pending())
+    assert 25 not in store.caught_ids(path=store.DEX_PATH)
+    # restore real record_catch (without undoing the pokedex-isolation patches),
+    # then reconcile completes the owed local re-catch
+    monkeypatch.setattr(store, "record_catch", real_record_catch)
+    rec = mc.reconcile()
+    assert 25 in store.caught_ids(path=store.DEX_PATH)      # now re-caught locally
+    assert not any(o.get("withdraw_species") == 25 for o in mc._pending())  # op gone
+    assert any("recaught" in r for r in rec["reconciled"])
+    assert rec["pending_remaining"] == 0

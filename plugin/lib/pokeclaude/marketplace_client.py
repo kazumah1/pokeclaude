@@ -197,35 +197,66 @@ def withdraw(item_id):
     if status != 200 or "species_id" not in out:
         return out if isinstance(out, dict) else {"error": "withdraw failed"}
     # server released it; now re-catch locally
-    store.record_catch(int(out["species_id"]), path=store.DEX_PATH)
-    return {"withdrawn": {"species_id": out["species_id"], "name": out.get("name")}}
+    sid = int(out["species_id"])
+    caught = store.record_catch(sid, path=store.DEX_PATH)
+    if caught is None:
+        # server already released the item but the local re-catch could not commit;
+        # persist a pending-withdraw so reconcile can complete it — never report a
+        # lost item as a clean success.
+        _add_pending({"withdraw_species": sid, "name": out.get("name")})
+        return {"pending_withdraw": {"species_id": sid, "name": out.get("name")},
+                "error": "received from the marketplace but the Pokedex was busy — "
+                         "run: marketplace reconcile"}
+    return {"withdrawn": {"species_id": sid, "name": out.get("name")}}
 
 
 def reconcile():
-    """Resolve pending deposits: ask the server whether each landed. Landed -> clear;
-    not landed -> re-catch locally so nothing is lost."""
+    """Resolve pending ops so nothing is ever stranded.
+
+    Deposit ops (keyed by ``deposit_token``): ask the server whether each landed.
+    Landed -> clear; server refused -> re-catch locally so nothing is lost.
+
+    Withdraw ops (keyed by ``withdraw_species``, no deposit_token): the server has
+    already released the item; re-attempt the LOCAL re-catch. Succeeds -> drop the
+    op; Pokédex still busy -> leave it pending for a later run."""
     if not configured():
         return NO_SERVER
     token = saved_token()
     resolved = []
     for op in list(_pending()):
-        dtok = op["deposit_token"]
-        try:
-            # re-POST is idempotent: same token returns the same item if it landed,
-            # or creates it now if it never did (both are 'resolved: on server').
-            status, out = request_json("POST", "/deposit",
-                                       {"species_id": op["species_id"], "name": op["name"],
-                                        "deposit_token": dtok}, token)
-        except MarketError:
-            continue  # still unreachable; leave pending
-        if status == 200 and "item_id" in out:
-            _clear_pending(dtok)
-            resolved.append({"deposit_token": dtok, "item_id": out["item_id"]})
-        else:
-            # server refused to accept it -> the escrow won't happen; give the copy back
-            store.record_catch(int(op["species_id"]), path=store.DEX_PATH)
-            _clear_pending(dtok)
-            resolved.append({"deposit_token": dtok, "restored": op["species_id"]})
+        if "deposit_token" in op:
+            dtok = op["deposit_token"]
+            try:
+                # re-POST is idempotent: same token returns the same item if it landed,
+                # or creates it now if it never did (both are 'resolved: on server').
+                status, out = request_json("POST", "/deposit",
+                                           {"species_id": op["species_id"], "name": op["name"],
+                                            "deposit_token": dtok}, token)
+            except MarketError:
+                continue  # still unreachable; leave pending
+            if status == 200 and "item_id" in out:
+                _clear_pending(dtok)
+                resolved.append({"deposit_token": dtok, "item_id": out["item_id"]})
+            else:
+                # server refused to accept it -> the escrow won't happen; give the copy back
+                store.record_catch(int(op["species_id"]), path=store.DEX_PATH)
+                _clear_pending(dtok)
+                resolved.append({"deposit_token": dtok, "restored": op["species_id"]})
+        elif "withdraw_species" in op:
+            # the server already released the item; only the local re-catch is owed.
+            sid = int(op["withdraw_species"])
+            caught = store.record_catch(sid, path=store.DEX_PATH)
+            if caught is not None:
+                # completed: drop this op. It has no deposit_token to key on, so filter
+                # by value and remove a single match (duplicates each get one re-catch).
+                cur = _pending()
+                try:
+                    cur.remove(op)
+                except ValueError:
+                    pass
+                _set_pending(cur)
+                resolved.append({"withdraw_species": sid, "recaught": sid})
+            # else: Pokédex still busy; leave it pending for a later run
     return {"reconciled": resolved, "pending_remaining": len(_pending())}
 
 
