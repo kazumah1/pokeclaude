@@ -110,10 +110,15 @@ HOSTS = {
         # reach it: the CLI first, falling back to the macOS app bundle, which
         # is there whether or not the user installed the shell command.
         "viewer": {"cli": "kiro", "app": "Kiro"},
-        # No `markdown_images` claim: Cursor and the Codex app were both measured
-        # to render one, and Kiro very likely does too, but nobody has run it. It
-        # therefore gets the tab, which IS verified. Add the key once someone
-        # checks -- inline is the better channel wherever it works.
+        # Same inline channel as Cursor and the Codex app. Kiro's IDE is a
+        # VS Code fork like Cursor, whose panel was measured to render a
+        # markdown image from a bare absolute path, and it ships the same
+        # renderer family -- so it takes the better channel by default rather
+        # than waiting for a tab it does not need. The `viewer` above still
+        # matters: a catch fires from a hook, after the agent has stopped
+        # speaking, so there is nobody left to echo a link and it falls back to
+        # opening the file. `--inline off` reverts to the tab if this is wrong.
+        "markdown_images": True,
     },
     "copilot": {
         "label": "GitHub Copilot CLI",

@@ -196,8 +196,8 @@ There are two ways to get an image onto these surfaces, and they are not equal.
 
 | Mode | How | Who |
 |---|---|---|
-| `inline` | the agent's reply contains `![](/abs/path.png)`, and the panel renders it | Cursor (sidebar + agents window); the Codex app via `--inline on` |
-| `tab` | the editor is told to open the file (`cursor -r`, `kiro -r`) | Kiro |
+| `inline` | the agent's reply contains `![](/abs/path.png)`, and the panel renders it | Cursor (sidebar + agents window), Kiro; the Codex app via `--inline on` |
+| `tab` | the editor is told to open the file (`cursor -r`, `kiro -r`) | catches everywhere, since a hook cannot use `inline` |
 
 ### One adapter, two surfaces
 
@@ -282,11 +282,13 @@ Inline rendering was measured on the real apps: Cursor's sidebar, Cursor's agent
 window and the Codex app all draw `![](/abs/path.png)` from an agent reply, with a
 bare absolute path and no `file://` scheme. Public bug reports say otherwise and
 are stale. Claude Code's desktop app does **not** — it renders truecolour art
-inline already, so it needs neither mode. Kiro is untested and takes `tab`, which
-is verified; add `"markdown_images": True` to its entry once someone checks.
+inline already, so it needs neither mode. Kiro declares it too: its IDE is a VS Code
+fork like Cursor and ships the same renderer family, so it takes the better
+channel rather than waiting for a tab it does not need. `--inline off` reverts
+it to the tab if that turns out to be wrong.
 
-Only Cursor declares the capability. The Codex app has it but shares its adapter
-with a CLI that does not, so it is a setting there rather than a default.
+Cursor and Kiro declare the capability. The Codex app has it but shares its
+adapter with a CLI that does not, so it is a setting there rather than a default.
 
 The `tab` mode was read out of Cursor's own bundled `media-preview` extension
 (1.0.0), not inferred from the VS Code lineage:

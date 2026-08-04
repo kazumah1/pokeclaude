@@ -2226,11 +2226,11 @@ def test_image_card():
     veto = os.environ.pop("POKECLAUDE_IMAGE_TAB", None)
     for host, cfg, want, why in (
         ("cursor", {}, "inline", "Cursor renders a markdown image in the reply"),
-        ("kiro", {}, "tab", "Kiro has a viewer but no measured inline support"),
+        ("kiro", {}, "inline", "Kiro takes the same inline channel as Cursor"),
         ("claude", {}, None, "Claude Code shows truecolour art and needs neither"),
         ("codex", {}, None, "codex stays text: the same entry serves its CLI"),
         ("codex", {"inline": True}, "inline", "until the Codex app turns it on"),
-        ("kiro", {"inline": True}, "inline", "inline beats a tab wherever it works"),
+        ("kiro", {"inline": False}, "tab", "inline off on Kiro falls back to its viewer"),
         ("codex", {"inline": False}, None, "and inline off is respected"),
         ("cursor", {"inline": False}, "tab", "inline off on Cursor falls back to a tab"),
         # The global-setting trap: `--inline on` is set for the Codex app, and
