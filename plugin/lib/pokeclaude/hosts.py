@@ -135,7 +135,69 @@ DEFAULT_HOST = "claude"
 BLIND_TURN_TOKENS = 3000
 
 
-def detect(env=None):
+# Process names that identify a host when the environment does not. Matched as
+# substrings against the lowercased command of each ancestor, nearest first, so
+# "Cursor Helper (Plugin): extension-host Agents Window" resolves to cursor.
+PROCESS_MARKERS = (
+    ("cursor", "cursor"),
+    ("kiro", "kiro"),
+    ("codex", "codex"),
+    ("claude", "claude"),
+)
+
+
+def _process_table():
+    """{pid: (ppid, command)} for every process, from one `ps` call."""
+    import subprocess
+
+    out = subprocess.run(
+        ["ps", "-Ao", "pid=,ppid=,comm="], capture_output=True, timeout=5
+    ).stdout.decode("utf-8", "replace")
+    table = {}
+    for line in out.splitlines():
+        parts = line.split(None, 2)
+        if len(parts) < 2:
+            continue
+        try:
+            table[int(parts[0])] = (int(parts[1]), parts[2] if len(parts) > 2 else "")
+        except ValueError:
+            continue
+    return table
+
+
+def ancestor_host(table=None, pid=None, limit=8):
+    """Which host launched us, read off the process tree. None if unrecognised.
+
+    The last resort, and the only signal left when a host scrubs its
+    environment: Cursor's agent panel runs tools with no TERM_PROGRAM, no
+    CURSOR_TRACE_ID and TERM=dumb, so every environment marker is absent and
+    detection would otherwise fall through to the default. The parent chain still
+    says `Cursor Helper (Plugin): extension-host Agents Window`.
+
+    Deliberately last. It costs a subprocess, which a turn-end hook should not
+    pay on every turn, and it is only reached when nothing cheaper answered.
+    """
+    try:
+        table = table if table is not None else _process_table()
+        pid = pid if pid is not None else os.getpid()
+        for _ in range(limit):
+            entry = table.get(pid)
+            if entry is None:
+                return None
+            ppid, comm = entry
+            lowered = comm.lower()
+            for needle, host in PROCESS_MARKERS:
+                if needle in lowered and host in HOSTS:
+                    return host
+            if ppid <= 1:
+                return None
+            pid = ppid
+    except Exception:
+        return None
+    return None
+
+
+def detect(env=None, ancestry=None):
     """Which host are we running under?
 
     Explicit configuration wins, because detection cannot be perfect and a user
@@ -170,6 +232,14 @@ def detect(env=None):
         return "kiro"
     if "cursor" in term or "vscode" in term:
         return "cursor"
+
+    # Nothing in the environment named a host. Before falling back to the
+    # default, ask the process tree -- a panel that scrubs its environment is
+    # precisely the case the default gets wrong, and getting it wrong there means
+    # a catch is emitted on a channel that host ignores.
+    found = (ancestry or ancestor_host)()
+    if found in HOSTS:
+        return found
     return DEFAULT_HOST
 
 

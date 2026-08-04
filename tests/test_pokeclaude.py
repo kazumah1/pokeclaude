@@ -1462,6 +1462,74 @@ def test_hosts():
         "explicit POKECLAUDE_HOST overrides detection",
     )
 
+    # --- detection from the process tree.
+    #
+    # Cursor's agent panel runs tools with NOTHING to key on: no TERM_PROGRAM, no
+    # CURSOR_TRACE_ID, TERM=dumb. Measured, not assumed. Without this fallback
+    # every such panel reads as the default host, and a catch goes out on a
+    # channel that host ignores.
+    panel = {
+        101: (102, "Python"),
+        102: (103, "zsh"),
+        103: (104, "Cursor Helper (Plugin): extension-host Agents Window [5-98]"),
+        104: (1, "Cursor"),
+    }
+    check(
+        hosts.ancestor_host(panel, 101) == "cursor",
+        "a Cursor panel is recognised from its parent chain",
+    )
+    check(
+        hosts.ancestor_host({1: (1, "launchd")}, 1) is None,
+        "an unrecognised chain returns None rather than guessing",
+    )
+    check(
+        hosts.ancestor_host({}, 999) is None, "a missing pid is not an error"
+    )
+    kiro_chain = {1: (2, "python3"), 2: (3, "Kiro Helper (Renderer)"), 3: (1, "Kiro")}
+    check(hosts.ancestor_host(kiro_chain, 1) == "kiro", "and Kiro likewise")
+
+    # The walk is nearest-first, which is what makes nesting come out right:
+    # Claude Code running in Cursor's integrated terminal has BOTH in its chain,
+    # and the answer must be the agent that actually invoked us -- otherwise the
+    # inner agent's perfectly good truecolour art gets replaced with an image.
+    nested = {
+        1: (2, "Python"), 2: (3, "zsh"), 3: (4, "claude"), 4: (5, "zsh"),
+        5: (6, "Cursor Helper: terminal pty-host"), 6: (1, "Cursor"),
+    }
+    check(
+        hosts.ancestor_host(nested, 1) == "claude",
+        "an agent nested in another IDE resolves to the nearer one",
+    )
+
+    # A cycle in the table must terminate, not spin.
+    check(
+        hosts.ancestor_host({5: (6, "sh"), 6: (5, "sh")}, 5) is None,
+        "a cyclic process table terminates",
+    )
+
+    check(
+        hosts.detect({}, ancestry=lambda: "cursor") == "cursor",
+        "detect falls back to the process tree when the environment is bare",
+    )
+    check(
+        hosts.detect({}, ancestry=lambda: None) == "claude",
+        "and to the default when even that says nothing",
+    )
+
+    # The fallback costs a subprocess, so it must never run when something
+    # cheaper already answered -- the turn-end hook pays this on every turn.
+    def _explode():
+        raise AssertionError("ancestry was consulted despite an env marker")
+
+    check(
+        hosts.detect({"CURSOR_TRACE_ID": "x"}, ancestry=_explode) == "cursor",
+        "an env marker short-circuits before the process tree is read",
+    )
+    check(
+        hosts.detect({"TERM_PROGRAM": "vscode"}, ancestry=_explode) == "cursor",
+        "so does TERM_PROGRAM",
+    )
+
     # Display channel: stdout JSON for hosts that render it, stderr otherwise.
     # The two must never both fire, or a catch would print twice.
     for host in sorted(hosts.HOSTS):
