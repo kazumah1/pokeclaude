@@ -76,6 +76,46 @@ Then add a template in `adapters/<myhost>/` and a detection marker in
 `hosts.detect()`. No other code changes are needed.
 
 
+## Which host are we on?
+
+`hosts.detect()` takes the first answer it gets, cheapest first:
+
+1. `POKECLAUDE_HOST`, which always wins — detection cannot be perfect, and a user
+   who says which host they are on should be believed.
+2. Environment markers each host sets (`CODEX_HOME`, `CURSOR_TRACE_ID`,
+   `KIRO_IDE`, `CLAUDECODE`, …). Most specific first: several hosts set
+   CLAUDECODE-like variables for compatibility, so Claude Code is checked last.
+3. `TERM_PROGRAM`.
+4. The process tree.
+
+Step 4 exists because of a case that broke everything above it. Cursor's **agent
+panel** runs a tool with its environment scrubbed:
+
+```
+CURSOR_TRACE_ID unset   CLAUDECODE unset   TERM_PROGRAM unset   TERM=dumb
+```
+
+Nothing identifies the host, so detection fell through to the default — Claude
+Code — which correctly refuses inline images because Claude Code cannot render
+them. The Pokedex then printed ANSI art into the one panel that strips escapes:
+the safe fallback silently disabled the feature it was protecting.
+
+The parent chain still says what we are:
+
+```
+Python → zsh → Cursor Helper (Plugin): extension-host Agents Window → Cursor
+```
+
+So `ancestor_host()` walks it, matching process names against `PROCESS_MARKERS`.
+Two properties matter:
+
+- **Nearest match wins.** Claude Code running in Cursor's integrated terminal has
+  both names in its chain and must resolve to Claude Code, or the inner agent's
+  working truecolour art would be swapped for an image it renders perfectly well.
+- **It is genuinely last.** It costs a `ps`, and the turn-end hook pays detection
+  on every turn. Any environment marker short-circuits before the process table
+  is read, which the tests assert by passing an ancestry callback that raises.
+
 ## Testing a host
 
 Verify the hook works before waiting on a real catch:
@@ -83,8 +123,20 @@ Verify the hook works before waiting on a real catch:
 ```bash
 python3 tools/check_host.py kiro          # probe one host
 python3 tools/check_host.py kiro --show   # and print the banner
+python3 tools/check_host.py cursor --open # really open the image card
 python3 tools/check_host.py --all         # every host
+python3 tools/check_host.py --explain     # what THIS process sees
 ```
+
+`--explain` is the one to reach for when a host behaves differently from what the
+table above promises. It probes nothing and launches nothing, so it is safe to
+paste into any agent panel — which is the point, because the two facts that
+decide everything can only be observed from inside the surface in question: what
+the environment says we are, and whether stdout is a terminal. It prints both,
+the process chain that launched us, and the mode they resolve to.
+
+Run it in an agent's panel and in that same app's integrated terminal; the two
+answers should differ, and if they do not, that is the bug.
 
 This runs the real hook with a synthetic large turn, so it forces a catch rather
 than depending on luck, and uses a throwaway Pokedex so your collection is
