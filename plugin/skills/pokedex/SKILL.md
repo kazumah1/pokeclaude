@@ -8,26 +8,38 @@ description: Browse the PokeClaude Pokedex — every Pokemon caught across all s
 Run this command:
 
 ```bash
-# 1. Where the repo or installed plugin says it is.
-for d in "$POKECLAUDE_ROOT" "$CODEX_PLUGIN_ROOT" "$PLUGIN_ROOT" "$CLAUDE_PLUGIN_ROOT" "$PWD" \
-         "$HOME/pokeclaude" "$HOME/proj/pokeclaude" "$HOME/src/pokeclaude"; do
-  for sub in "plugin/scripts" "scripts"; do
-    if [ -n "$d" ] && [ -f "$d/$sub/pokedex.py" ]; then
-      POKECLAUDE_AGENT=1 python3 "$d/$sub/pokedex.py" $ARGUMENTS; exit 0
-    fi
-  done
-done
-# 2. Where the agent that installed us actually put it. A marketplace install
-#    lands in a per-agent cache that no environment variable points at, and some
-#    hosts (the Codex app) set none of the variables above at all. Newest first,
-#    so an upgrade wins over the version it replaced.
-for f in $(ls -1dt "$HOME"/.codex/plugins/cache/*/*/*/scripts/pokedex.py \
-                   "$HOME"/.claude/plugins/cache/*/*/*/scripts/pokedex.py \
-                   "$HOME"/.cursor/plugins/cache/*/*/*/scripts/pokedex.py \
-                   "$HOME"/.claude/plugins/marketplaces/*/plugin/scripts/pokedex.py 2>/dev/null); do
-  POKECLAUDE_AGENT=1 python3 "$f" $ARGUMENTS; exit 0
-done
-echo "pokeclaude: could not locate pokedex.py -- set POKECLAUDE_ROOT to the repo" >&2
+# Locate pokedex.py, then run it. The search is done in Python rather than with
+# shell globs on purpose: an unmatched glob is a fatal error in zsh ("no matches
+# found"), which aborted this whole command in Kiro, while bash passes it
+# through. Python has no such disagreement with itself.
+S=$(python3 -c '
+import glob, os, sys
+seen = []
+for d in [os.environ.get(v, "") for v in
+          ("POKECLAUDE_ROOT", "CODEX_PLUGIN_ROOT", "PLUGIN_ROOT",
+           "CLAUDE_PLUGIN_ROOT")] + [os.getcwd()] + [
+          os.path.expanduser(p) for p in
+          ("~/pokeclaude", "~/proj/pokeclaude", "~/src/pokeclaude")]:
+    for sub in ("plugin/scripts", "scripts"):
+        p = os.path.join(d, sub, "pokedex.py") if d else ""
+        if p and os.path.isfile(p):
+            print(p); sys.exit()
+# Marketplace installs land in a per-agent cache no variable points at.
+# Newest first, so an upgrade wins over the version it replaced.
+for pat in ("~/.codex/plugins/cache/*/*/*/scripts/pokedex.py",
+            "~/.claude/plugins/cache/*/*/*/scripts/pokedex.py",
+            "~/.cursor/plugins/cache/*/*/*/scripts/pokedex.py",
+            "~/.kiro/plugins/cache/*/*/*/scripts/pokedex.py",
+            "~/.claude/plugins/marketplaces/*/plugin/scripts/pokedex.py"):
+    seen += glob.glob(os.path.expanduser(pat))
+if seen:
+    print(max(seen, key=os.path.getmtime))
+')
+if [ -n "$S" ]; then
+  POKECLAUDE_AGENT=1 python3 "$S" $ARGUMENTS
+else
+  echo "pokeclaude: could not locate pokedex.py -- set POKECLAUDE_ROOT to the repo" >&2
+fi
 ```
 
 Substitute the user's flags for `$ARGUMENTS`, or omit it for the default view. If

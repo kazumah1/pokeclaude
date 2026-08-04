@@ -1779,7 +1779,7 @@ def test_skills():
         # plugin-root variable, since a chat skill gets none.
         # Scripts are referenced through the "$sub" layout variable, so match the
         # script filename rather than a fixed path.
-        scripts = set(re.findall(r"\$sub/([a-z_]+\.py)", body))
+        scripts = set(re.findall(r"([a-z_]+\.py)", body))
         check(
             bool(scripts),
             "%s invokes a real script (%s)" % (name, ", ".join(sorted(scripts)) or "none"),
@@ -1792,7 +1792,7 @@ def test_skills():
         # installed plugin cache has plugin/ AS the root, so the script is at
         # scripts/. Probing only the former made the skills dead on Codex.
         check(
-            '"plugin/scripts" "scripts"' in body or "plugin/scripts\" \"scripts" in body,
+            '"plugin/scripts", "scripts"' in body,
             "%s probes both the clone and installed-cache layouts" % name,
         )
         # Knowing the LAYOUT is not enough if nothing points at the directory.
@@ -1807,8 +1807,20 @@ def test_skills():
                 "%s falls back to the %s install" % (name, cache.split("/")[0]),
             )
         check(
-            "ls -1dt" in body,
+            "getmtime" in body,
             "%s prefers the newest cached version over the one it replaced" % name,
+        )
+        # Resolution is done in Python, not with shell globs. zsh treats an
+        # unmatched glob as a fatal error ("no matches found") where bash passes
+        # it through, and Kiro handed this to zsh -- which killed the command
+        # outright rather than falling through to the next candidate.
+        check(
+            "ls -1dt" not in body,
+            "%s does not glob in the shell, which zsh treats as fatal" % name,
+        )
+        check(
+            "POKECLAUDE_AGENT=1" in body,
+            "%s signals an agent invocation by env, not by a flag" % name,
         )
 
     # Every script a skill references must exist.
