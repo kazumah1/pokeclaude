@@ -2336,6 +2336,44 @@ def test_pokedex_card():
     check(path == os.path.join(home, "pokedex.png"), "inline writes to the dex path")
     check(os.path.exists(path), "and the file is there for the agent to link")
 
+    # --- an unwritable collection directory falls back rather than giving up.
+    #
+    # The Codex app sandboxes writes to the workspace while allowing reads
+    # anywhere, so the collection loads but the card cannot be saved beside it.
+    # Before this, write_inline returned None, _deliver reported failure, and the
+    # command quietly printed ANSI art into a panel that strips escapes -- with
+    # nothing anywhere saying a write had been refused.
+    import pokeclaude.card as cardmod
+
+    real_default = cardmod.default_path
+    cardmod.default_path = lambda filename=cardmod.FILENAME: os.path.join(
+        home, "definitely", "not", "writable\x00", filename
+    )
+    try:
+        rescued = card.write_inline(canvas, "pokedex.png")
+        check(
+            rescued is not None and os.path.exists(rescued),
+            "an unwritable primary path falls back to one that works (%s)" % rescued,
+        )
+        check(
+            rescued != real_default("pokedex.png"),
+            "and the fallback is somewhere else entirely",
+        )
+        # Order matters: the host's own directory before scratch space. It
+        # survives a reboot and it is obvious where the file came from.
+        order = cardmod._candidates("pokedex.png", host="codex")
+        check(
+            order[1] == os.path.join(os.path.expanduser("~/.codex"), "pokeclaude",
+                                     "pokedex.png"),
+            "the host's own directory is tried before temp (%s)" % order[1],
+        )
+        check(
+            "tmp" in order[-1] or "T/" in order[-1] or "Temp" in order[-1],
+            "and scratch space is the last resort (%s)" % order[-1],
+        )
+    finally:
+        cardmod.default_path = real_default
+
     # --- the two card files are the only ones, and they are overwritten.
     before = sorted(f for f in os.listdir(home) if f.endswith(".png"))
     for _ in range(5):

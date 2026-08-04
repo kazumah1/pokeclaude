@@ -54,7 +54,7 @@ def _deliver(canvas, mode, host, header, note=""):
 
     path = None
     if mode == "inline":
-        path = card.write_inline(canvas, card.FILENAME_DEX)
+        path = card.write_inline(canvas, card.FILENAME_DEX, host=host)
     elif mode == "tab":
         path = card.show_canvas(canvas, card.FILENAME_DEX, host=host)
     if not path:

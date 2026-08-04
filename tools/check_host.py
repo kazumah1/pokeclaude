@@ -211,6 +211,26 @@ def explain():
         cfg.get("mono"), cfg.get("image_tab"), cfg.get("inline")))
     mode = hostlib.image_mode(host, cfg, sys.stdout)
     print("  image mode      %s" % (mode or "none (plain ANSI art)"))
+
+    # Deciding on an image and being ABLE to write one are different questions,
+    # and conflating them cost an afternoon: a sandbox that allows reads but not
+    # writes looks exactly like a host with no image support, because the card
+    # falls back to text without saying why.
+    if mode:
+        for label, target in (("primary", card.default_path()),
+                              ("fallback", card.fallback_path())):
+            try:
+                d = os.path.dirname(target)
+                if not os.path.isdir(d):
+                    os.makedirs(d)
+                probe = target + ".probe"
+                with open(probe, "wb") as f:
+                    f.write(b"x")
+                os.remove(probe)
+                state = "writable"
+            except Exception as e:
+                state = "NOT writable -- %s" % e.__class__.__name__
+            print("  %-15s %s  %s" % (label + " path", target, DIM + state + RESET))
     if mode == "tab":
         argv = card.viewer_argv(card.default_path(), host)
         print("  would run       %s" % (" ".join(argv) if argv else "nothing"))

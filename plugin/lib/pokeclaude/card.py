@@ -69,6 +69,56 @@ def default_path(filename=FILENAME):
     return os.path.join(store.ROOT, filename)
 
 
+def fallback_path(filename=FILENAME):
+    """Where to put a card when the collection directory cannot be written.
+
+    Sandboxed hosts are the reason. The Codex app lets a tool READ anywhere --
+    the Pokedex and the config both load -- but confines writes to the
+    workspace, so `~/.claude/pokeclaude/` is off limits. The failure is silent by
+    construction: a card that cannot be drawn falls back to text rather than
+    breaking the command, which makes a sandbox look exactly like a host that
+    does not support images.
+
+    The temp directory is writable in that sandbox, and a card there renders the
+    same -- measured, an image under /var/folders displays inline correctly.
+    """
+    import tempfile
+
+    return os.path.join(tempfile.gettempdir(), "pokeclaude", filename)
+
+
+def host_path(filename=FILENAME, host=None):
+    """Beside the host's own configuration, e.g. ~/.codex/pokeclaude/.
+
+    Tried before the temp directory because it is a real home for the file
+    rather than scratch space: it survives a reboot, it is obvious where it came
+    from, and a host that sandboxes a tool to its own tree may well allow it.
+    """
+    d = hosts.spec(host).get("config_dir")
+    if not d:
+        return None
+    return os.path.join(os.path.expanduser(d), "pokeclaude", filename)
+
+
+def _candidates(filename, path=None, host=None):
+    """Paths to try, in order. An explicit path is taken as given.
+
+    Ordered by how good a home each is, not by likelihood of success: the
+    collection directory keeps the card with everything else PokeClaude owns,
+    the host's own directory is the next most sensible place, and the temp
+    directory is the last resort that a sandbox will almost always permit.
+    """
+    if path:
+        return [path]
+    out = [default_path(filename), host_path(filename, host),
+           fallback_path(filename)]
+    seen = []
+    for p in out:
+        if p and p not in seen:
+            seen.append(p)
+    return seen
+
+
 def _bbox(blob):
     """Tight bounds of the opaque pixels: (x0, y0, x1, y1), or None if blank."""
     _, rows = spritelib.decode(blob)
@@ -481,29 +531,30 @@ def show_canvas(canvas, filename=FILENAME, host=None, path=None):
     viewer, or writing/launching failed. Never raises -- a view that cannot be
     drawn is a missed picture, not a broken command.
     """
-    try:
-        path = path or default_path(filename)
-        if viewer_argv(path, host) is None:
-            return None
-        write_canvas(path, canvas)
-        return path if open_path(path, host) else None
-    except Exception:
-        return None
+    for candidate in _candidates(filename, path, host):
+        try:
+            if viewer_argv(candidate, host) is None:
+                return None
+            write_canvas(candidate, canvas)
+            return candidate if open_path(candidate, host) else None
+        except Exception:
+            continue
+    return None
 
 
-def write_inline(canvas, filename=FILENAME_DEX, path=None):
+def write_inline(canvas, filename=FILENAME_DEX, path=None, host=None):
     """Write a canvas for a host that renders markdown images. Path, or None.
 
     No launcher: the agent puts `![](path)` in its own reply and the panel draws
     it there. Verified in Cursor with a bare absolute path -- no `file://` scheme,
     which that renderer does not accept.
     """
-    try:
-        path = path or default_path(filename)
-        write_canvas(path, canvas)
-        return path
-    except Exception:
-        return None
+    for candidate in _candidates(filename, path, host):
+        try:
+            return write_canvas(candidate, canvas)
+        except Exception:
+            continue
+    return None
 
 
 def show(blob, host=None, path=None, **facts):
