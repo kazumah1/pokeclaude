@@ -77,19 +77,17 @@ def register(name):
     return out
 
 
-import json as _json
-import os as _os
 import random as _random
 
-_HERE = _os.path.dirname(_os.path.abspath(__file__))
-META_PATH = _os.path.join(_HERE, "..", "..", "assets", "pokemon.json")
+_HERE = os.path.dirname(os.path.abspath(__file__))
+META_PATH = os.path.join(_HERE, "..", "..", "assets", "pokemon.json")
 _ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz"
 
 
 def _load_meta():
     try:
         with open(META_PATH) as f:
-            return _json.load(f)
+            return json.load(f)
     except (IOError, OSError, ValueError):
         return {}
 
@@ -229,3 +227,54 @@ def reconcile():
             _clear_pending(dtok)
             resolved.append({"deposit_token": dtok, "restored": op["species_id"]})
     return {"reconciled": resolved, "pending_remaining": len(_pending())}
+
+
+# --- market commands (thin passthroughs over the server) ---------------------
+
+def _authed_call(method, path, body=None):
+    if not configured():
+        return NO_SERVER
+    token = saved_token()
+    if not token:
+        return {"error": "not registered — run: marketplace register <name>"}
+    try:
+        status, out = request_json(method, path, body, token)
+    except MarketError as e:
+        return {"error": str(e)}
+    return out if isinstance(out, dict) else {"error": "unexpected response"}
+
+
+def vault():
+    return _authed_call("GET", "/vault")
+
+
+def browse():
+    return _authed_call("GET", "/listings")
+
+
+def create_listing(item_id, note=None):
+    body = {"item_id": int(item_id)}
+    if note:
+        body["note"] = note
+    return _authed_call("POST", "/listings", body)
+
+
+def cancel_listing(listing_id):
+    return _authed_call("POST", "/listings/%d/cancel" % int(listing_id), {})
+
+
+def create_offer(listing_id, offered_item_id):
+    return _authed_call("POST", "/offers",
+                        {"listing_id": int(listing_id), "offered_item_id": int(offered_item_id)})
+
+
+def accept_offer(offer_id):
+    return _authed_call("POST", "/offers/%d/accept" % int(offer_id), {})
+
+
+def decline_offer(offer_id):
+    return _authed_call("POST", "/offers/%d/decline" % int(offer_id), {})
+
+
+def withdraw_offer(offer_id):
+    return _authed_call("POST", "/offers/%d/withdraw" % int(offer_id), {})
