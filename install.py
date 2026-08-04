@@ -282,9 +282,49 @@ def write_json(path, data, dry_run):
     return True
 
 
-def install_one(host, dry_run=False, uninstall=False, workspace=None):
+def marketplace_copies(host):
+    """Paths where `host` already has PokeClaude installed from a marketplace.
+
+    Claude Code, Codex and Cursor each fetch a plugin into their own cache and
+    wire its hooks themselves, from the plugin's `hooks/hooks.json`. Installing
+    on top of that gives the host TWO copies of every hook: this one, pinned to
+    an absolute path, and the marketplace's, which follows the cache. Both fire
+    on every turn.
+
+    That is not just wasteful. The hand-written path goes stale the moment the
+    plugin updates or the repo moves, and the resulting error names a directory
+    that no longer exists -- which reads as a broken plugin rather than as two
+    installs disagreeing.
+    """
+    import glob
+
+    root = _expand(hostlib.HOSTS[host]["config_dir"])
+    return sorted(
+        os.path.dirname(os.path.dirname(p))
+        for p in glob.glob(os.path.join(root, "plugins", "cache", "*", "*", "*",
+                                        "hooks", "catch.py"))
+    )
+
+
+def install_one(host, dry_run=False, uninstall=False, workspace=None,
+                force=False):
     spec = hostlib.HOSTS[host]
     path = target_path(host, workspace)
+
+    if not uninstall:
+        copies = marketplace_copies(host)
+        if copies and not force:
+            print("  %-18s SKIPPED -- already installed from a marketplace"
+                  % spec["label"])
+            for c in copies:
+                print("                     %s" % c)
+            print("                     That copy wires its own hooks and "
+                  "updates itself.")
+            print("                     Installing again would double every "
+                  "hook and pin a path")
+            print("                     that breaks on the next update. "
+                  "--force to override.")
+            return True
     existing = read_json(path)
     if existing == "INVALID":
         return False
@@ -320,6 +360,12 @@ def main():
              "of your home directory. Kiro documents hooks only at workspace level.",
     )
     ap.add_argument("--all", action="store_true", help="wire every known host")
+    ap.add_argument(
+        "--force", action="store_true",
+        help="install even where the host already has PokeClaude from a "
+             "marketplace. Gives that host two copies of every hook; only useful "
+             "when you deliberately want the repo's copy to run instead.",
+    )
     args = ap.parse_args()
 
     if not os.path.exists(CATCH):
@@ -361,7 +407,9 @@ def main():
           % (action, len(targets), " (dry run)" if args.dry_run else ""))
     ok = True
     for host in targets:
-        ok = install_one(host, args.dry_run, args.uninstall, args.workspace) and ok
+        ok = install_one(
+            host, args.dry_run, args.uninstall, args.workspace, args.force
+        ) and ok
 
     print()
     if not args.uninstall and not args.dry_run:

@@ -2029,6 +2029,64 @@ def decode_png(data):
     return w, h, rows
 
 
+def test_install_marketplace_guard():
+    """install.py must not stack a second copy on a marketplace install."""
+    print("\n[install] marketplace conflict detection")
+    spec = importlib.util.spec_from_file_location(
+        "installmod", os.path.join(REPO, "install.py")
+    )
+    inst = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(inst)
+
+    root = tempfile.mkdtemp(prefix="pokeclaude-install-")
+    original = inst._expand
+    inst._expand = lambda p: root
+    try:
+        check(
+            inst.marketplace_copies("codex") == [],
+            "a host with no marketplace copy reports none",
+        )
+        # The layout a marketplace install actually produces:
+        #   <config>/plugins/cache/<marketplace>/<plugin>/<version>/hooks/catch.py
+        cached = os.path.join(root, "plugins", "cache", "mkt", "pokeclaude",
+                              "2.2.3", "hooks")
+        os.makedirs(cached)
+        open(os.path.join(cached, "catch.py"), "w").close()
+        found = inst.marketplace_copies("codex")
+        check(
+            found == [os.path.dirname(cached)],
+            "an installed copy is found at its version root (%s)" % found,
+        )
+
+        # And the guard declines rather than doubling the hooks. Dry run, so
+        # nothing is written either way.
+        out = []
+        real_print = inst.print if hasattr(inst, "print") else None
+        import io
+        import contextlib
+
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            inst.install_one("codex", dry_run=True)
+        out = buf.getvalue()
+        check("SKIPPED" in out, "install_one declines when a copy exists")
+        check("--force" in out, "and says how to override it")
+
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            inst.install_one("codex", dry_run=True, force=True)
+        check("SKIPPED" not in buf.getvalue(), "--force proceeds anyway")
+
+        # Uninstall must never be blocked -- that is the way OUT of a double
+        # install, and refusing it would strand anyone who hit this.
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            inst.install_one("codex", dry_run=True, uninstall=True)
+        check("SKIPPED" not in buf.getvalue(), "uninstall is never blocked")
+    finally:
+        inst._expand = original
+
+
 def test_logo():
     """The mark is generated, so it must stay reproducible and committed."""
     print("\n[logo] the generated mark")
@@ -2492,6 +2550,7 @@ def main():
         test_skills,
         test_pokeball_geometry,
         test_readme_svgs,
+        test_install_marketplace_guard,
         test_logo,
         test_image_card,
         test_pokedex_card,
