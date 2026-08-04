@@ -128,9 +128,65 @@ def probe(host, attempts=60, show=False, open_image=False):
     return {"ok": False, "why": "no catch in %d attempts (unexpected)" % attempts}
 
 
+def explain():
+    """Report what this process sees, without probing or launching anything.
+
+    Meant to be run FROM INSIDE an agent panel, which is the only place the two
+    facts that decide everything can be observed: what the environment says we
+    are running under, and whether our stdout is a terminal. Both differ between
+    a panel and the integrated terminal of the same app, and neither can be
+    determined from outside.
+    """
+    from pokeclaude import card, store
+
+    cfg = store.load_config()
+    host = hostlib.detect()
+    tty = hostlib.is_terminal(sys.stdout)
+
+    print("")
+    print("  detected host   %s   %s" % (host, DIM + hostlib.HOSTS[host]["label"] + RESET))
+    print("  stdout is a tty %s   %s" % (
+        "YES" if tty else "no",
+        DIM + ("a terminal: art stays ANSI" if tty else "a pipe: an image is allowed")
+        + RESET,
+    ))
+
+    markers = [
+        (k, os.environ.get(k)) for k in (
+            "POKECLAUDE_HOST", "POKECLAUDE_IMAGE_TAB", "POKECLAUDE_INLINE",
+            "CURSOR_TRACE_ID", "KIRO_IDE", "KIRO_WORKSPACE", "CODEX_HOME",
+            "CLAUDE_PLUGIN_ROOT", "CLAUDECODE", "TERM_PROGRAM", "TERM",
+        )
+    ]
+    print("")
+    print("  environment")
+    for k, v in markers:
+        print("    %-22s %s" % (k, (v if v else DIM + "unset" + RESET)))
+
+    print("")
+    print("  config          mono=%r image_tab=%r inline=%r" % (
+        cfg.get("mono"), cfg.get("image_tab"), cfg.get("inline")))
+    mode = hostlib.image_mode(host, cfg, sys.stdout)
+    print("  image mode      %s" % (mode or "none (plain ANSI art)"))
+    if mode == "tab":
+        argv = card.viewer_argv(card.default_path(), host)
+        print("  would run       %s" % (" ".join(argv) if argv else "nothing"))
+    print("")
+    print(DIM + "  If this says the wrong thing, that is the bug: the mode is decided")
+    print("  entirely by the two lines at the top." + RESET)
+    print("")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("host", nargs="?", help="host key, e.g. kiro")
+    ap.add_argument(
+        "--explain", action="store_true",
+        help="report what THIS process detects and would do, and exit. Run it "
+             "from inside an agent panel to see what that panel actually looks "
+             "like from in here.",
+    )
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--show", action="store_true", help="print the banner produced")
     ap.add_argument(
@@ -140,6 +196,9 @@ def main():
              "the SAME tab rather than opening another.",
     )
     args = ap.parse_args()
+
+    if args.explain:
+        return explain()
 
     if args.all:
         targets = list(hostlib.HOSTS)
