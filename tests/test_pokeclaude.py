@@ -2346,8 +2346,22 @@ def test_pokedex_card():
     import pokeclaude.card as cardmod
 
     real_default = cardmod.default_path
+    real_host_path = cardmod.host_path
+    real_fallback = cardmod.fallback_path
     cardmod.default_path = lambda filename=cardmod.FILENAME: os.path.join(
         home, "definitely", "not", "writable\x00", filename
+    )
+    # The other two candidates MUST be redirected as well. They resolve from the
+    # HOSTS table and the system temp directory, neither of which honours
+    # POKECLAUDE_HOME -- so leaving them alone lets this test walk straight out
+    # of its sandbox and overwrite the real ~/.claude/pokeclaude/pokedex.png.
+    # It did exactly that, and because an inline image is a link rather than a
+    # copy, it retroactively changed what an hour-old chat message displayed.
+    cardmod.host_path = lambda filename=cardmod.FILENAME, host=None: os.path.join(
+        home, "hostdir", filename
+    )
+    cardmod.fallback_path = lambda filename=cardmod.FILENAME: os.path.join(
+        home, "tmpdir", filename
     )
     try:
         rescued = card.write_inline(canvas, "pokedex.png")
@@ -2362,17 +2376,24 @@ def test_pokedex_card():
         # Order matters: the host's own directory before scratch space. It
         # survives a reboot and it is obvious where the file came from.
         order = cardmod._candidates("pokedex.png", host="codex")
-        check(
-            order[1] == os.path.join(os.path.expanduser("~/.codex"), "pokeclaude",
-                                     "pokedex.png"),
-            "the host's own directory is tried before temp (%s)" % order[1],
-        )
-        check(
-            "tmp" in order[-1] or "T/" in order[-1] or "Temp" in order[-1],
-            "and scratch space is the last resort (%s)" % order[-1],
-        )
+        check(order[1].endswith(os.path.join("hostdir", "pokedex.png")),
+              "the host's own directory is tried before temp (%s)" % order[1])
+        check(order[-1].endswith(os.path.join("tmpdir", "pokedex.png")),
+              "and scratch space is the last resort (%s)" % order[-1])
     finally:
         cardmod.default_path = real_default
+        cardmod.host_path = real_host_path
+        cardmod.fallback_path = real_fallback
+
+    # The real ordering, computed rather than written to: the host's own
+    # directory before scratch space, because it survives a reboot and it is
+    # obvious where the file came from.
+    live = cardmod._candidates("pokedex.png", host="codex")
+    check(
+        live[1] == os.path.join(os.path.expanduser("~/.codex"), "pokeclaude",
+                                "pokedex.png"),
+        "codex cards land in ~/.codex/pokeclaude (%s)" % live[1],
+    )
 
     # --- the two card files are the only ones, and they are overwritten.
     before = sorted(f for f in os.listdir(home) if f.endswith(".png"))
@@ -2570,6 +2591,12 @@ def card_path_is_stable(home):
     return pngs == ["latest-catch.png"]
 
 
+def hostlib_for_tests():
+    from pokeclaude import hosts
+
+    return hosts
+
+
 def main():
     print("PokeClaude test suite (python %s)" % sys.version.split()[0])
     # Images off for the suite at large. Otherwise every test that asserts on
@@ -2580,6 +2607,28 @@ def main():
     os.environ["POKECLAUDE_IMAGE_TAB"] = "0"
     real = os.path.join(os.path.expanduser("~"), ".claude", "pokeclaude")
     before = os.path.exists(real)
+
+    # Fingerprint every real collection directory, not just whether the main one
+    # exists. Existence alone missed a test that redirected a card's write into
+    # ~/.claude/pokeclaude/pokedex.png -- the directory was already there, so the
+    # check passed while the suite quietly overwrote a user's file. Card paths
+    # resolve from the HOSTS table and the temp directory, and neither honours
+    # POKECLAUDE_HOME, so isolation has to be verified rather than assumed.
+    def fingerprint():
+        seen = {}
+        for host in hostlib_for_tests().HOSTS.values():
+            d = os.path.join(os.path.expanduser(host["config_dir"]), "pokeclaude")
+            if not os.path.isdir(d):
+                continue
+            for name in os.listdir(d):
+                f = os.path.join(d, name)
+                try:
+                    seen[f] = os.stat(f).st_mtime_ns
+                except OSError:
+                    pass
+        return seen
+
+    real_before = fingerprint()
 
     for fn in (
         test_store_basics,
@@ -2638,6 +2687,15 @@ def main():
     # The suite must never have created or mutated the real collection.
     if not before:
         check(not os.path.exists(real), "real pokedex was never created by the tests")
+
+    touched = [
+        f for f, stamp in fingerprint().items() if real_before.get(f) != stamp
+    ]
+    check(
+        not touched,
+        "no real collection file was written by the tests (%s)"
+        % (", ".join(sorted(touched)[:3]) if touched else "none"),
+    )
 
     print("\n%d passed, %d failed%s" % (
         len(PASSED), len(FAILURES),
