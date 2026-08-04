@@ -110,14 +110,14 @@ HOSTS = {
         # reach it: the CLI first, falling back to the macOS app bundle, which
         # is there whether or not the user installed the shell command.
         "viewer": {"cli": "kiro", "app": "Kiro"},
-        # Same inline channel as Cursor and the Codex app. Kiro's IDE is a
-        # VS Code fork like Cursor, whose panel was measured to render a
-        # markdown image from a bare absolute path, and it ships the same
-        # renderer family -- so it takes the better channel by default rather
-        # than waiting for a tab it does not need. The `viewer` above still
-        # matters: a catch fires from a hook, after the agent has stopped
-        # speaking, so there is nobody left to echo a link and it falls back to
-        # opening the file. `--inline off` reverts to the tab if this is wrong.
+        # Images at all, ONLY in the IDE. This entry serves two surfaces: the
+        # IDE panel, which eats escapes, and the Kiro CLI, which paints
+        # truecolour perfectly and wants neither a markdown link nor an editor
+        # window opening on top of it. The tty check cannot separate them --
+        # a CLI agent runs its tools on a pipe, same as a panel -- so the
+        # surface is named instead. `codex` has the identical split and no such
+        # marker, which is why it is a setting there.
+        "gui_env": "KIRO_IDE",
         "markdown_images": True,
     },
     "copilot": {
@@ -336,6 +336,19 @@ def renders_markdown_images(host=None, config=None):
     return bool(declared)
 
 
+def is_gui(host=None):
+    """Is this host's image-capable surface the one we are running under?
+
+    Only meaningful for an adapter that serves both a GUI and a CLI. `gui_env`
+    names the variable the GUI sets; without it the two are indistinguishable
+    from in here, since a CLI agent hands its tools a pipe exactly like a panel
+    does, and the CLI would get an editor window opening over the terminal art
+    it renders perfectly well.
+    """
+    marker = spec(host).get("gui_env")
+    return bool(os.environ.get(marker)) if marker else True
+
+
 def is_terminal(stream):
     """Is this stream a real terminal, which will paint our escapes itself?
 
@@ -373,10 +386,20 @@ def use_image(host=None, config=None, stream=None, agent=False):
     # exactly this. A heuristic cannot separate those; the caller knows. Only a
     # skill file passes it, and a skill is agent-invoked by definition, so a
     # human running the same script by hand still gets the tty answer.
+    # The env var is what the skills actually set. A FLAG breaks hard on any
+    # older copy of the script -- "unrecognized arguments: --agent" and no
+    # Pokedex at all -- and a skill cannot know which version it will resolve
+    # to, since it globs plugin caches. An unknown variable is simply ignored.
+    agent = agent or bool(os.environ.get("POKECLAUDE_AGENT"))
     if not agent and stream is not None and is_terminal(stream):
         return False
     if config and config.get("image_tab") is not None:
         return bool(config["image_tab"])
+    # After the settings, so anyone who explicitly wants images in a CLI can
+    # still have them, and before the capability check, so the default on a
+    # split adapter is the surface-appropriate one.
+    if not is_gui(host):
+        return False
     return viewer(host) is not None or renders_markdown_images(host, config)
 
 

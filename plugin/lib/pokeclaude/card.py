@@ -94,6 +94,11 @@ def host_path(filename=FILENAME, host=None):
     rather than scratch space: it survives a reboot, it is obvious where it came
     from, and a host that sandboxes a tool to its own tree may well allow it.
     """
+    if os.environ.get("POKECLAUDE_HOME"):
+        # An explicit home means "keep everything here". Scattering cards into
+        # host directories would walk straight out of a sandbox -- which is
+        # exactly how a test once overwrote a real collection.
+        return None
     d = hosts.spec(host).get("config_dir")
     if not d:
         return None
@@ -110,7 +115,10 @@ def _candidates(filename, path=None, host=None):
     """
     if path:
         return [path]
-    out = [default_path(filename), host_path(filename, host),
+    # The host's own directory first: a card is a per-agent artifact, it is
+    # where someone using that agent would look for it, and it sidesteps a
+    # sandbox that confines writes to the host's own tree.
+    out = [host_path(filename, host), default_path(filename),
            fallback_path(filename)]
     seen = []
     for p in out:

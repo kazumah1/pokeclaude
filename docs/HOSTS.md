@@ -196,10 +196,23 @@ There are two ways to get an image onto these surfaces, and they are not equal.
 
 | Mode | How | Who |
 |---|---|---|
-| `inline` | the agent's reply contains `![](/abs/path.png)`, and the panel renders it | Cursor (sidebar + agents window), Kiro; the Codex app via `--inline on` |
+| `inline` | the agent's reply contains `![](/abs/path.png)`, and the panel renders it | Cursor (sidebar + agents window), the Kiro **IDE**; the Codex app via `--inline on` |
 | `tab` | the editor is told to open the file (`cursor -r`, `kiro -r`) | catches everywhere, since a hook cannot use `inline` |
 
 ### One adapter, two surfaces
+
+`kiro` and `codex` each serve a GUI and a CLI, and they disagree about images:
+the panel eats escapes, the CLI paints truecolour perfectly and wants neither a
+markdown link nor an editor window opening over it. The tty check cannot separate
+them, because a CLI agent hands its tools a pipe exactly like a panel does.
+
+Kiro names the difference, so its entry does too:
+
+```python
+"gui_env": "KIRO_IDE",   # images only when this is set
+```
+
+Codex has no such marker, which is why it is a setting there instead.
 
 `codex` is a single entry serving the Codex CLI and the Codex app, and they
 disagree about exactly this. The app's panel renders a markdown image; the CLI is

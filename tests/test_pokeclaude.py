@@ -2190,7 +2190,7 @@ def test_image_card():
     term, pipe = FakeTTY(True), FakeTTY(False)
 
     for env, cfg, host, stream, want, why in (
-        ({}, {}, "kiro", None, True, "on by default where a viewer exists"),
+        ({}, {}, "cursor", None, True, "on by default where a viewer exists"),
         ({}, {}, "cursor", None, True, "on where the panel renders markdown images"),
         ({}, {}, "claude", None, False, "off where neither does"),
         # One adapter, two surfaces: the Codex app renders markdown images, the
@@ -2198,15 +2198,15 @@ def test_image_card():
         # that terminal, so the app opts in instead.
         ({}, {}, "codex", None, False, "off for codex, which is also a CLI"),
         ({}, {"inline": True}, "codex", None, True, "the Codex app opts in with inline"),
-        ({}, {"image_tab": False}, "kiro", None, False, "config off beats the default"),
+        ({}, {"image_tab": False}, "cursor", None, False, "config off beats the default"),
         ({}, {"image_tab": True}, "claude", None, True, "config on beats the default"),
-        ({}, {"image_tab": None}, "kiro", None, True, "null config means auto"),
+        ({}, {"image_tab": None}, "cursor", None, True, "null config means auto"),
         ({}, {}, "cursor", term, False, "a tty is a terminal that paints its own art"),
         ({}, {"image_tab": True}, "cursor", term, False, "a tty beats config on"),
         ({}, {}, "cursor", pipe, True, "a pipe is the panel, and needs the image"),
         ({"POKECLAUDE_IMAGE_TAB": "1"}, {}, "cursor", term, True,
          "an explicit env yes beats even the tty check"),
-        ({"POKECLAUDE_IMAGE_TAB": "0"}, {"image_tab": True}, "kiro", None, False,
+        ({"POKECLAUDE_IMAGE_TAB": "0"}, {"image_tab": True}, "cursor", None, False,
          "env off overrides the config"),
         ({"POKECLAUDE_IMAGE_TAB": "1"}, {"image_tab": False}, "claude", None, True,
          "env on overrides the config"),
@@ -2226,11 +2226,11 @@ def test_image_card():
     veto = os.environ.pop("POKECLAUDE_IMAGE_TAB", None)
     for host, cfg, want, why in (
         ("cursor", {}, "inline", "Cursor renders a markdown image in the reply"),
-        ("kiro", {}, "inline", "Kiro takes the same inline channel as Cursor"),
+        ("kiro", {}, None, "Kiro without KIRO_IDE is the CLI: no image at all"),
         ("claude", {}, None, "Claude Code shows truecolour art and needs neither"),
         ("codex", {}, None, "codex stays text: the same entry serves its CLI"),
         ("codex", {"inline": True}, "inline", "until the Codex app turns it on"),
-        ("kiro", {"inline": False}, "tab", "inline off on Kiro falls back to its viewer"),
+        ("kiro", {"image_tab": True, "inline": False}, "tab", "images forced on Kiro without inline give a tab"),
         ("codex", {"inline": False}, None, "and inline off is respected"),
         ("cursor", {"inline": False}, "tab", "inline off on Cursor falls back to a tab"),
         # The global-setting trap: `--inline on` is set for the Codex app, and
@@ -2245,6 +2245,42 @@ def test_image_card():
         hosts.image_mode("cursor", {}, term) is None,
         "image_mode is None on a terminal, whatever the host",
     )
+
+    # One adapter, two surfaces, and this time the host names the difference.
+    # Getting this wrong hands the Kiro CLI a markdown link to print into a
+    # terminal -- the exact failure that made `codex` opt-in. The tty check does
+    # not catch it: a CLI agent runs its tools on a pipe, same as a panel.
+    old_kiro = os.environ.pop("KIRO_IDE", None)
+    try:
+        check(
+            hosts.image_mode("kiro", {}, pipe) is None,
+            "Kiro CLI gets no image at all -- it renders truecolour itself",
+        )
+        os.environ["KIRO_IDE"] = "1"
+        check(
+            hosts.image_mode("kiro", {}, pipe) == "inline",
+            "Kiro IDE gets the inline image",
+        )
+        del os.environ["KIRO_IDE"]
+        check(
+            hosts.image_mode("kiro", {"image_tab": True}, pipe) == "inline",
+            "and the setting still reaches the CLI for anyone who wants it",
+        )
+        # The env var is what the skills set, because a flag breaks hard on an
+        # older script ("unrecognized arguments: --agent") while an unknown
+        # variable is ignored.
+        os.environ["POKECLAUDE_AGENT"] = "1"
+        try:
+            check(
+                hosts.use_image("cursor", {}, term) is True,
+                "POKECLAUDE_AGENT overrides the tty check like the flag does",
+            )
+        finally:
+            del os.environ["POKECLAUDE_AGENT"]
+    finally:
+        os.environ.pop("KIRO_IDE", None)
+        if old_kiro is not None:
+            os.environ["KIRO_IDE"] = old_kiro
     # Some panels run a tool through a pty, so stdout is a terminal in the
     # technical sense while the surface still strips escapes -- the Codex app
     # inside ChatGPT does exactly that. Only a skill passes --agent, so a person
@@ -2376,8 +2412,8 @@ def test_pokedex_card():
         # Order matters: the host's own directory before scratch space. It
         # survives a reboot and it is obvious where the file came from.
         order = cardmod._candidates("pokedex.png", host="codex")
-        check(order[1].endswith(os.path.join("hostdir", "pokedex.png")),
-              "the host's own directory is tried before temp (%s)" % order[1])
+        check(order[0].endswith(os.path.join("hostdir", "pokedex.png")),
+              "the host's own directory comes first (%s)" % order[0])
         check(order[-1].endswith(os.path.join("tmpdir", "pokedex.png")),
               "and scratch space is the last resort (%s)" % order[-1])
     finally:
@@ -2388,11 +2424,29 @@ def test_pokedex_card():
     # The real ordering, computed rather than written to: the host's own
     # directory before scratch space, because it survives a reboot and it is
     # obvious where the file came from.
-    live = cardmod._candidates("pokedex.png", host="codex")
+    # With no POKECLAUDE_HOME, a card belongs beside the host that will show it.
+    # (host_path deliberately returns None when a home IS set, so a sandboxed run
+    # cannot scatter files into real host directories.)
+    saved_home = os.environ.pop("POKECLAUDE_HOME", None)
+    try:
+        live = cardmod._candidates("pokedex.png", host="codex")
+        check(
+            live[0] == os.path.join(os.path.expanduser("~/.codex"), "pokeclaude",
+                                    "pokedex.png"),
+            "codex cards land in ~/.codex/pokeclaude (%s)" % live[0],
+        )
+        live = cardmod._candidates("pokedex.png", host="kiro")
+        check(
+            live[0] == os.path.join(os.path.expanduser("~/.kiro"), "pokeclaude",
+                                    "pokedex.png"),
+            "kiro cards land in ~/.kiro/pokeclaude (%s)" % live[0],
+        )
+    finally:
+        if saved_home is not None:
+            os.environ["POKECLAUDE_HOME"] = saved_home
     check(
-        live[1] == os.path.join(os.path.expanduser("~/.codex"), "pokeclaude",
-                                "pokedex.png"),
-        "codex cards land in ~/.codex/pokeclaude (%s)" % live[1],
+        cardmod.host_path("pokedex.png", "codex") is None,
+        "and an explicit POKECLAUDE_HOME keeps everything in one place",
     )
 
     # --- the two card files are the only ones, and they are overwritten.

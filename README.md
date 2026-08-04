@@ -205,10 +205,10 @@ expand. No tokens are spent: a file is written and the app draws it.
 
 | Surface | How it arrives |
 |---|---|
-| Cursor sidebar / agents window, Kiro IDE | **inline in the reply** — the agent echoes one `![](…)` line and the panel renders it |
+| Cursor sidebar / agents window, Kiro **IDE** | **inline in the reply** — the agent echoes one `![](…)` line and the panel renders it |
 | Codex **app** | the same, after `config.py --inline on` — its adapter is shared with the Codex CLI, which is a terminal, so this one is opt-in |
 | Any **catch** on those hosts | an **editor tab** — a hook fires after the agent stops speaking, so nothing can echo a link |
-| Codex CLI, Claude Code, any integrated terminal | untouched — real terminals paint the ANSI art perfectly |
+| Codex CLI, **Kiro CLI**, Claude Code, any integrated terminal | untouched — real terminals paint the ANSI art perfectly |
 
 `/pokedex` uses whichever applies, so a page of 24 entries renders in colour
 instead of four collapsed ones. A **catch** always uses the tab: the hook fires
