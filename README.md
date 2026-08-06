@@ -134,7 +134,7 @@ Species you have not caught render in greyscale:
 | `--id N` | large detail view for one species |
 | `--shiny` | show only the shinies you have caught |
 | `--normal` | with `--id`, the ordinary colours of a species you own a shiny of |
-| `--stats` | progress summary, no art |
+| `--stats` | progress summary with rarity breakdown, no art |
 | `--dupes` | full duplicate list, most-caught first |
 | `--project` | only Pokemon caught while working in this project |
 | `--scale 1\|2\|3` | sprite size: 1 = 64px, 2 = 32px, 3 = 21px |

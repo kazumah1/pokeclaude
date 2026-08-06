@@ -78,7 +78,7 @@ of these is rarest?" — then answer just that, in one line.
 | `--id N` | large detail view for one species |
 | `--shiny` | only the shinies the user has caught |
 | `--normal` | with `--id`, ordinary colours of a species they own a shiny of |
-| `--stats` | progress summary, no art |
+| `--stats` | progress summary with rarity breakdown, no art |
 | `--dupes` | full duplicate list, most-caught first |
 | `--project` | only Pokemon caught while working in this project |
 | `--scale 1\|2\|3\|4` | sprite size: 1 = 64px, 2 = 32px, 3 = 21px, 4 = 16px (default). `--scale 1` on `--id` almost always saves the hook output to a file and shows a duplicate preview beneath the art -- accepted tradeoff for real 64px detail |

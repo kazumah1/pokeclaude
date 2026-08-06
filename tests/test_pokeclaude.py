@@ -645,6 +645,17 @@ def test_pokedex_cli():
         "%d/%d" % (ROSTER_SIZE, ROSTER_SIZE) in stats and "100%" in stats,
         "complete pokedex reports 100%",
     )
+    check("rarity" in stats, "complete --stats includes rarity breakdown")
+    from pokeclaude import encounter as _E
+    for _, tier in _E.TIERS:
+        n = sum(1 for pid in ROSTER if _E.rarity_tier(pid) == tier)
+        if n == 0:
+            check(tier not in stats, "complete --stats omits empty %s tier" % tier)
+            continue
+        check(
+            re.search(r"%s\s+%d/%d" % (tier, n, n), stats),
+            "complete --stats shows %s as %d/%d" % (tier, n, n),
+        )
     p = subprocess.run([sys.executable, POKEDEX, "--all"], capture_output=True, env=e)
     check(p.returncode == 0, "--all on a complete pokedex renders")
 
@@ -1091,9 +1102,19 @@ def test_dupes_and_project_cli():
     check(rc == 0 and not err.strip(), "--stats runs clean")
     check("duplicates" in out and "4" in out, "duplicate section lists counts")
     check("pikachu" in out, "most-duplicated species is named")
+    check("rarity" in out, "--stats shows a rarity breakdown")
+    # Only tiers the roster actually uses are listed (RARE is currently empty).
+    for tier in ("MYTHICAL", "LEGENDARY", "COMMON"):
+        check(tier in out, "--stats lists the %s tier" % tier)
+    check("RARE" not in out, "empty rarity tiers are omitted")
+    # Five unique commons (pikachu, bulbasaur, eevee, squirtle, espeon) and
+    # nothing rarer — the top tiers should read 0 owned.
+    check(re.search(r"MYTHICAL\s+0/\d+", out), "empty mythical tier reports 0 owned")
+    check(re.search(r"COMMON\s+5/\d+", out), "common tier counts the five unique species")
 
     rc, out, _ = run(["--dupes"])
     check(rc == 0 and "pikachu" in out and "eevee" in out, "--dupes lists all duplicates")
+    check("rarity" in out, "--dupes keeps the rarity breakdown")
 
     rc, out, _ = run(["--project", "--cwd", "/proj/alpha", "--stats"])
     check(rc == 0 and "alpha" in out, "project view is labelled with the project")

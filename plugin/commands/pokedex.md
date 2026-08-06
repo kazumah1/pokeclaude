@@ -34,7 +34,7 @@ Useful arguments to pass through when the user asks:
 - `--page N` — a specific page
 - `--all` — include uncaught entries as dim silhouettes
 - `--id N` — large detail view for one species (32px)
-- `--stats` — progress summary only, no art
+- `--stats` — progress summary with rarity breakdown (mythical / legendary / common), no art
 - `--dupes` — full duplicate list, most-caught first
 - `--shiny` — show only the shinies you have caught. Combines with `--project`.
 - `--normal` — with `--id`, show the ordinary colours of a species you own a shiny of.

@@ -10,7 +10,7 @@ characters stripped, so the art must not be relayed there.
     pokedex.py --page 3        a specific page
     pokedex.py --all           include uncaught entries as dim silhouettes
     pokedex.py --id 25         detail view for one species (32px; --scale 1 for 64)
-    pokedex.py --stats         summary only, no art
+    pokedex.py --stats         summary with rarity breakdown, no art
     pokedex.py --dupes         duplicate counts, most caught first
     pokedex.py --project       only what was caught in this project
 """
@@ -113,6 +113,37 @@ def progress_bar(unique, total, width=32):
     return (
         _c(GOLD, "█" * filled) + DIM + "░" * (width - filled) + RESET
     )
+
+
+def rarity_breakdown(caught, roster):
+    """Unique species owned per rarity tier, against roster totals.
+
+    Returns lines ready to append: a dim 'rarity' header plus one row per tier
+    in encounter.TIERS order (MYTHICAL → COMMON). Mythical and legendary labels
+    are gold to match the detail/banner treatment; rare and common stay dim.
+    """
+    from pokeclaude import encounter
+
+    owned = {label: 0 for _, label in encounter.TIERS}
+    totals = {label: 0 for _, label in encounter.TIERS}
+    for pid in roster:
+        totals[encounter.rarity_tier(pid)] += 1
+    for key in caught:
+        owned[encounter.rarity_tier(int(key))] += 1
+
+    lines = ["", DIM + "  rarity" + RESET]
+    for _, label in encounter.TIERS:
+        n, t = owned[label], totals[label]
+        # Skip tiers the roster does not use — RARE is defined but currently
+        # empty (weights jump from legendary ≤0.12 straight to common 1.0).
+        if t == 0:
+            continue
+        if label in ("MYTHICAL", "LEGENDARY"):
+            name = _c(GOLD, "%-9s" % label, bold=True)
+        else:
+            name = DIM + "%-9s" % label + RESET
+        lines.append("  " + name + DIM + " %d/%d" % (n, t) + RESET)
+    return lines
 
 
 def main():
@@ -343,6 +374,11 @@ def main():
             % (n_shiny, "" if n_shiny == 1 else "es", species)
             + RESET
         )
+
+    # Rarity breakdown is summary-only: the grid already has the sprites, and
+    # stuffing four extra lines into every page would push art off-screen.
+    if args.stats or args.dupes:
+        out.extend(rarity_breakdown(caught, roster))
 
     # Duplicates are worth surfacing: they are the visible sign of a long grind.
     dupes = sorted(
